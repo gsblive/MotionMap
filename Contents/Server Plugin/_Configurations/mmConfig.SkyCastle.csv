@@ -1,0 +1,381 @@
+#
+# MotionMap.config
+#
+#   Version             Comment
+#       3.0             Added debugDeviceMode to all physical device definitions
+#       2.0             Added MultiSensor, Thermostat, Scene and Occupation Actions
+#       1.0             Support for Motion Sensor, Companion and Load devices
+#
+# This file defines the behaviors of all the devices in a MotionMap home automation environment. 
+# MotionMap operates as a plug-in to a Perceptive Indigo server and is dependant on the Insteon protocols and devices.
+# Devices described here consist of Dimmers SwitchesOutletsThermostatsand Motion Sensors
+#
+# === WARNING DO NOT USE COMMAS IN THIS CSV FILE - EVEN IN THE COMMENTS ===
+#
+# Indigo Classifications of devices 
+#
+#   Controllers – A device that controls another device. Dimmers and motions sensors are good examples of these
+#   Responders – A device that is controlled by another device
+#
+#
+# MotionMap device families and their behavioral traits
+#
+#  MotionSensor – A motion Sensor that will effect a loadDevice
+#  MultiSensor – Same as above, but with additional functionality such as Luminance, temperature, and vibration sensor functions
+#  LoadDevices – A Switch or Dimmer usually a loadDevice that can potentially command other devices
+#  Companions – A switch or Dimmer that is usually not a loadDevice device but endeavors to mimic the state of a loadDevice device (the non-loadDevice switch in a 3 way hallway switch environment)
+#  HVAC_Insteon, HVAC_Nest - Thermostats. MotionMap will use input from these devices along with knowledge of motion and temperature sensors (multisensor) to adjust the climate in the house
+#  HVAC_Insteon_Companion - A thermostat that is just used for acquiring human input and temperature sensing (no HVAC control on this unit - it will send messages to an assigned thermostat defined above)
+#  OccupationAction - An occupation trigger that can be programatically defined. When triggered an indigo action will be launched
+#  Scene - A collection of Load devices that will be turned on or off together. Scenes are a redefinition of the groups defined within indigo that make for a more reliable group control
+#
+#
+# Syntax of this file
+#
+#  This file is parsed by MotionMap.py. It must be saved in CSV format to operate
+#
+#  Blank lines are skipped and ignored
+#  Processing will continue till the end of the file unless stopped by the “-.” directive below
+#  Lines that begin with '#' are comment lines and are not parsed
+#  Lines that begin with '-' are directive lines that control the parsing flow as follows:
+#
+#    -d (or -debug) Turn on normal parsing debugging. This will echo minimal information to the indigo log during parsing for progress monitoring
+#    -e (or -echo) Echo the following cell to the console during parsing
+#    -h (or -header) The following line is a header for device type in cell B
+#    -v (or -verbose) Turn on verbose debugging. This will echo detailed progress information to the indigo log during parsing
+#    -p (or -pause) Pause Processing (used while debugging the parser and/or this config file)
+#    -r (or -resume) Resume Processing  (used while debugging the parser and/or this config file)
+#    -s (or -set) Set an environment variable or preference in MotionMap
+#    -. Stop Processing  (used while debugging the parser and/or this config file)
+#
+########################################################
+
+-echo,Parsing MotionMap.config version 1.0
+
+########################################################
+#
+# Variable Definitions – There are analogs to these entries in MotionMap.plugin.py
+#                                    These variable definitions effect the way MotionMap operates
+#
+# Syntax:
+# -set,VariableName,Value
+#
+#     Variables:
+#        gDebugName,Global Debug Logging setting (how verbose do you want the logs)
+#
+# Note String conversions will occur automatically in MotionMap.plugin.py
+#
+########################################################
+
+#-set,gDebugMode,0
+
+########################################################
+#
+# Motion Sensors – Used as Occupancy sensors
+#
+#   deviceName – The English name of the device
+#   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off
+#   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#
+#   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass)
+#
+########################################################
+
+#-h,MotionSensor
+#deviceName,maxMovement,minMovement,debugDeviceMode
+#1st Floor Bathroom Motion,120,20,noDebug
+
+########################################################
+#
+# Multi Sensors
+#
+#   deviceName – The English name of the device
+#   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off
+#   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#
+#   IMPORTANT – Keep Multi sensors Before motion sensors and all other devices because the other devices will register with the motion sensors during initialization (one pass)
+#
+########################################################
+
+-h,Multisensor
+deviceName,maxMovement,minMovement,debugDeviceMode
+ButlerKitchenMultisensor,60,10,noDebug
+CarPortMultisensor,60,5,noDebug
+DownstairsHallLeftLightsAMultisensor,60,5,noDebug
+DownstairsHallLeftLightsBMultisensor,60,5,noDebug
+DownstairsHallRightAMultisensor,60,5,noDebug
+DownstairsHallRightBMultisensor,60,5,noDebug
+FamilyRoomMultisensor,60,10,noDebug
+FamilyRoomBathMultisensor,60,10,noDebug
+FoyerCoatClosetMultisensor,60,10,noDebug
+GarageHall1Multisensor,60,10,noDebug
+GarageHall2Multisensor,60,10,noDebug
+GarageHall3Multisensor,60,10,noDebug
+GregsOfficeClosetMultisensor,60,5,noDebug
+GregsOfficeBathMultisensor,60,10,noDebug
+GregsOfficeBathShowerMultisensor,60,5,noDebug
+GregsOfficeDoorMultisensor,480,15,noDebug
+GregsOfficeMultisensor,480,15,noDebug
+GuestBathMultisensor,60,10,noDebug
+GuestMultisensor,60,10,noDebug
+KitchenBathMuiltisensor,60,10,noDebug
+LaundryRoomMultisensor,60,10,noDebug
+MasterBarbiesClosetMultisensor,60,5,noDebug
+MasterGregsClosetMultisensor,60,5,noDebug
+MasterBathMultiSensor,60,10,noDebug
+MasterBathShowerMultisensor,60,5,noDebug
+MasterBathLavMultisensor,60,10,noDebug
+PatioMultisensor,60,10,noDebug
+ServerClosetMultisensor,60,10,noDebug
+WineRoomMultisensor,60,10,noDebug
+
+########################################################
+#
+#    LoadDevices – Usually a Dimmer Switch or Outlet
+#
+#   deviceName – The English name of the device
+#   maxNonMotionTime – The maximum of time (in minutes) that this device is allowed to stay on while receiving no motion events
+#   maxOnTime – The maximum of time (in minutes) that this device is allowed to stay on (regardless of motion sensor)
+#   daytimeOnLevel – The light level to turn this device during the daytime 0 is off1 is on for switch1-100 is percent for dimmer
+#   nighttimeOnLevel – The light level to turn this device during the daytime (0 is off1 is on for switch1-100 is percent for dimmer)
+#	specialFeatures = A list that can contain any or the following string commands
+#						flash: flash the device 1 mionute prior to turning off;
+#						beep: beep the device 1 minute prior to turning off;
+#						bedtime: Disable Controllers until morning
+#   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
+#   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
+#	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#
+#	Note: if a load device doesnt have any motions sensors defined, they will stay on for maxOnTime before auto Off
+#
+########################################################
+
+-h,LoadDevice
+deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
+GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;GarageHall3Multisensor,,2,noDebug
+BackStairsLights,5,60,60,30,flash,,,2,noDebug
+ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensor,,2,noDebug
+CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor,,2,noDebug
+DownstairsHallLeftLights,5,60,0,30,flash;bedtime,DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor,,2,noDebug
+DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensor;DownstairsHallRightBMultisensor,,2,noDebug
+FamilyRoomBathVanityLight,20,60,100,30,flash,FamilyRoomBathMultisensor,,2,noDebug
+FamilyRoomCanLights,60,300,0,40,flash,DownstairsHallRightBMultisensor;FamilyRoomMultisensor,,2,noDebug
+FoyerCoatClosetLight,5,60,100,50,flash,FoyerCoatClosetMultisensor,,2,noDebug
+GregsOfficeClosetDimmer,5,60,100,20,flash,GregsOfficeClosetMultisensor,,2,noDebug
+GregsOfficeBathVanityLight,10,60,100,0,flash,GregsOfficeBathMultisensor,,2,noDebug
+GregsOfficeBathFanLight,10,60,0,30,flash,GregsOfficeBathMultisensor,,2,noDebug
+GregsOfficeBathShowerLight,5,60,100,30,flash,GregsOfficeBathShowerMultisensor,,2,noDebug
+GregsOfficeBathFan,5,60,100,100,,GregsOfficeBathShowerMultisensor,,2,noDebug
+GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor,,2,verboseDebug
+GuestBedroomFanLight,30,180,0,30,flash;bedtime,GuestMultisensor,,2,noDebug
+GuestBathVanityLight,30,120,100,25,flash,GuestBathMultisensor,,2,noDebug
+KitchenBathLight,5,60,100,25,flash,KitchenBathMuiltisensor,,2,noDebug
+LaundryRoomLight,5,60,100,25,flash,LaundryRoomMultisensor,,2,noDebug
+LaundryRoomFan,5,10,0,0,flash,,LaundryRoomMultisensor,2,noDebug
+MasterHallLight,120,180,70,30,flash,,,2,noDebug
+MasterCanLights,120,180,70,30,flash,,,2,noDebug
+MasterFanLight,120,180,70,5,flash,,,2,noDebug
+MasterBarbiesClosetLight,5,60,100,40,flash,MasterBarbiesClosetMultisensor,,2,noDebug
+MasterBathLavLight,10,60,100,6,flash,MasterBathLavMultisensor,,2,noDebug
+MasterBathLavFan,10,60,100,100,flash,,MasterBathLavMultisensor,2,noDebug
+MasterBathShowerLight,5,60,100,50,flash,MasterBathShowerMultisensor,MasterBathMultiSensor;MasterBathShowerMultisensor,2,noDebug
+MasterBathCenterLight,5,60,0,20,flash,,MasterBathMultiSensor;MasterBathShowerMultisensor,2,noDebug
+MasterBathRightVanityLight,30,90,70,30,flash,,MasterBathMultiSensor;MasterBathShowerMultisensor,2,noDebug
+MasterBathLeftVanityLight,5,60,70,30,flash,,MasterBathMultiSensor;MasterBathShowerMultisensor,2,noDebug
+MasterBathTubLight,5,60,0,23,flash,MasterBathMultiSensor,MasterBathShowerMultisensor,2,noDebug
+MasterGregsClosetLight,5,60,100,20,flash,MasterGregsClosetMultisensor,,2,noDebug
+MJBathroom,10,60,100,10,flash,,,2,noDebug
+MJCloset,5,60,100,20,flash,,,2,noDebug
+MJBedroomLights,300,300,0,40,flash,,,2,noDebug
+PatioCarriageLights,60,300,0,20,flash,PatioMultisensor,,2,noDebug
+UnderRearDeckOutletWallLights - Top,480,480,100,100,,,,2,noDebug
+UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
+RearDeckCarriage,360,360,100,30,,,,2,noDebug
+RearDeckCarraigeB,360,360,100,30,,,,2,noDebug
+UpstairsHallRightA,600,600,60,30,flash,,,2,noDebug
+UpstairsHallRightB,600,600,60,30,flash,,,2,noDebug
+UpstairsHallRightC,600,600,60,30,flash,,,2,noDebug
+UpstairsHallRightD,600,600,60,30,flash,,,2,noDebug
+FoyerFrontLeftOutletBottom,360,360,100,100,,,,2,noDebug
+#FoyerFrontLeftOutletTop,360,360,60,30,,,,2,noDebug
+FoyerLeftOutletBottom,360,360,100,100,,,,2,noDebug
+#FoyerLeftOutletTop,360,360,60,30,,,,2,noDebug
+FoyerFrontRightOutletBottom,360,360,100,100,,,,2,noDebug
+#FoyerFrontRightOutletTop,360,360,100,100,,,,2,noDebug
+FamilyRoomOutletBottom,360,360,100,100,,,,2,noDebug
+#FamilyRoomOutletTop,360,360,100,100,,,,2,noDebug
+LivingRoomOutletBottom,360,360,100,100,,,,2,noDebug
+#LivingRoomOutletTop,360,360,100,100,,,,2,noDebug
+OutdoorTempFrontDoor,360,360,100,100,,,,2,noDebug
+OutdoorTempDriveway,360,360,100,100,,,,2,noDebug
+OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
+QuadMasterHallLight,5,60,60,30,flash,,,2,noDebug
+Quad Front,60,120,60,30,flash,,,2,noDebug
+Quad Back,60,120,60,30,flash,,,2,noDebug
+Main Stairs Chandelier,60,120,100,100,flash,,,2,noDebug
+Main Stairs Left,60,120,60,30,flash,,,2,noDebug
+Main Stairs Right,60,120,60,30,flash,,,2,noDebug
+ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensor,,2,noDebug
+DogRunAndWaterfallFloodLight,30,31,100,100,flash,,,2,noDebug
+WineRoomLight,5,60,40,40,flash,WineRoomMultisensor,,2,noDebug
+FrontPondOutletTop,480,480,100,100,flash,,,2,noDebug
+FrontPondOutletBottom,480,480,100,100,flash,,,2,noDebug
+#FakeLoadDevice,480,480,100,100,flash,,,2,noDebug
+
+########################################################
+#
+# Companion – Usually a Dimmer or Switch
+#
+#   deviceName – The English name of the device
+#   loadDeviceName -  The loadDevice for this companion
+#	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#
+########################################################
+
+-h,Companion
+deviceName,loadDeviceName,maxSequentialErrorsAllowed,debugDeviceMode
+MasterBathCenterLight1,MasterBathCenterLight,2,noDebug
+MasterBathCenterLight2,MasterBathCenterLight,2,noDebug
+DownstairsHallRightLights1,DownstairsHallRightLights,2,noDebug
+#UpstairsHallRightA1,UpstairsHallRightA;UpstairsHallRightB,2,noDebug
+UpstairsHallRightA1,UpstairsHallRightA,2,noDebug
+DownstairsHallLeftLights1,DownstairsHallLeftLights,2,noDebug
+FamilyRoomCanLights1,FamilyRoomCanLights,2,noDebug
+FamilyRoomCanLights2,FamilyRoomCanLights,2,noDebug
+GarageHall1,GarageHall,2,noDebug
+GarageHall2,GarageHall,2,noDebug
+Main Stairs Chandelier 1,Main Stairs Chandelier,2,noDebug
+Main Stairs Chandelier 2,Main Stairs Chandelier,2,noDebug
+Quad Front 1,Quad Front,2,noDebug
+Quad Back 1,Quad Back,2,noDebug
+Quad Back 2,Quad Back,2,noDebug
+Quad Back 3,Quad Back,2,noDebug
+QuadMasterHallLight1,QuadMasterHallLight,2,noDebug
+RearDeckCarraige 1,RearDeckCarriage,2,noDebug
+RearDeckWallLightA,UnderRearDeckOutletWallLights - Bottom,2,noDebug
+RearDeckWallLightB,UnderRearDeckOutletWallLights - Bottom,2,noDebug
+MJBedroomLights1,MJBedroomLights,2,noDebug
+MJCloset 1,MJCloset,2,noDebug
+MJBathroom 1,MJBathroom,2,noDebug
+MasterHallLight1,MasterHallLight,2,noDebug
+MasterFanLight1,MasterFanLight,2,noDebug
+Main Stairs Left 1,Main Stairs Left,2,noDebug
+Main Stairs Right 1,Main Stairs Right,2,noDebug
+MasterBathLeftVanityLight 1,MasterBathLeftVanityLight,2,noDebug
+FrontPondOutletTopSwitch,FrontPondOutletTop,2,noDebug
+FrontPondOutletBottomSwitch,FrontPondOutletBottom,2,noDebug
+BackStairsLights1,BackStairsLights,2,noDebug
+
+########################################################
+#
+# HVAC_Insteon – Insteon Thermostat
+#
+#   deviceName – The English name of the device
+#   operationalMode -  HvacAutoMode,HvacHeatMode, or HvacCoolMode
+#   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
+#   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
+#	coolSetpoint - the default cool set point
+#	heatSetpoint - the default heat set point
+#	updateFrequency - how often do you want the settings to be re-evaluated... in minutes
+#	fanOnThreshold - the maximum temperature threshold where the fans will turn on to mix the air
+#	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
+#	allowAsync - Allow this device to receive async commands (1 or 0)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#
+########################################################
+
+#-h,HVAC_Insteon
+#deviceName,operationalMode,onControllers,sustainControllers,coolSetpoint,heatSetpoint,updateFrequency,fanOnThreshold,maxSequentialErrorsAllowed,allowAsync,debugDeviceMode
+#HVACDownstairs,HvacAutoMode,Foyer Multisensor;Kitchen Multisensor;Family Multisensor;1st Floor Hall Multisensor;Laundry Multisensor;Powder Room Motion,1st Floor Bedroom Motion;1st Floor Bathroom Motion,76,66,15,4,4,1,noDebug
+
+
+########################################################
+#
+# HVAC_Nest – Nest Thermostat (Be sure to turn off schedule and away learning on the device - its handled by motionmap now)
+#
+#   deviceName – The English name of the device
+#   operationalMode -  HvacAutoMode,HvacHeatMode, or HvacCoolMode
+#   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
+#   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
+#	coolSetpoint - the default cool set point
+#	heatSetpoint - the default heat set point
+#	updateFrequency - how often do you want the settings to be re-evaluated... in minutes
+#	fanOnThreshold - the maximum temperature threshold where the fans will turn on to mix the air
+#	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
+#	allowAsync - Allow this device to receive async commands (1 or 0)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#
+########################################################
+
+#-h,HVAC_Nest
+#deviceName,operationalMode,onControllers,sustainControllers,coolSetpoint,heatSetpoint,updateFrequency,fanOnThreshold,maxSequentialErrorsAllowed,allowAsync,debugDeviceMode
+#Hallway Thermostat,HvacAutoMode,Office Multisensor;Master Closet Rope P Motion;2nd Floor Hall Multisensor;Master Bath Shower Motion;Bar Motion;3rd Floor Bottom Stairs Multisensor;3rd Floor Stairway Motion,Master Bath Multisensor;3rd Floor Bedroom Motion;3rd Floor Bathroom Motion;2nd Floor Bath Multisensor;3rd Floor Stairway Motion,76,66,15,4,4,0,noDebug
+
+########################################################
+#
+# HVAC_Insteon_Companion – Thermostat
+#
+# The Insteon wireless thermostat is typically used for this device, it is battery powered and goes to sleep. This means
+#	that we cannot send commands to this thermostat nor can we send update requests. Instead, what we do is watch for commands from this device and
+#	use that information to influence the settings of the associated master thwermostat (which actually controls the furnace and air conditioner).
+#	We do, however get information that is broadcast from this thermostat when something in it changes, we note this information and can provide it to
+#	other devices when we are asked for it.
+#
+#   deviceName – The English name of the device
+#   operationalMode -  HvacAutoMode,HvacHeatMode, or HvacCoolMode
+#   master – this thermostat's master (all of this thermostat's commands get passed on to the master for action)
+#	coolSetPoint - the default cool set point
+#   coolInfluence – the amount of influence by percent this thermostat has on the master's cool setting
+#	heatSetpoint - the default heat set point
+#   heatInfluence – the amount of influence by percent this thermostat has on the master's heat setting
+#	occupancySensor - the occupancy sensor governing the motion detection for this thermostat
+#	allowAsync - Allow this device to receive async commands (1 or 0)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#
+########################################################
+
+#W-h,HVAC_Insteon_Companion
+#WdeviceName,operationalMode,master,coolSetpoint,coolInfluence,heatSetpoint,heatInfluence,occupancySensor,allowAsync,debugDeviceMode
+#WHVACCompanionMaster,HvacAutoMode,Hallway Thermostat,76,30,66,30,Master Multisensor,0,noDebug
+
+
+########################################################
+#
+# Scene – What devices are associated with a scene
+#
+#   deviceName – The English name of the device
+#   sceneNumber -  The number of the PowerLink (scene)
+#	members - the devices that belong to this scene
+#
+########################################################
+
+-h,Scene
+deviceName,sceneNumber,members
+MasterBathAll,10,MasterBarbiesClosetLight;MasterBathCenterLight;MasterLeftVanityLight;MasterRightVanityLight;MasterBathShowerLight;MasterBathTubLight;MasterGregsClosetLight;MasterBathLavLight;MasterBathLavFan
+GregsOfficeBathAll,11,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight
+GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight
+
+
+########################################################
+#
+# OccupationAction – IndigoActionGroups to execute based on area occupation
+#
+#   deviceName – The name of the OccupationAction
+#   occupationEvent -  'on', 'off', 'occupied' or 'unoccupied'
+#	when - When this occupationAction is valid ... 'day','night','anyTime'
+#   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
+#   activateDelayMinutes - The amount that must transpire (in minutes) after the occupationEvent before executing the action
+#   deactivateAction – The name of the ActionGroup to perform when this occupation becomes deactivated
+#   deactivateDelayMinutes - The amount of time that must transpire (in minutes) after the reversal of occupationEvent before executing deactivateAction
+#	mode - What actionControllers must agree before the actiateAction occurs... 'any' or 'all'
+#	actionControllers - The controllers that can trigger this action
+#
+########################################################
+
+#-h,OccupationAction
+#deviceName,occupationEvent,when,activateAction,activateDelayMinutes,deactivateAction,deactivateDelayMinutes,mode,actionControllers
+#GarageHouseDoorLockControl,unoccupied,anyTime,_Security_GarageHouseDoorLock,30,,0,all,Garage Multisensor;Laundry Multisensor

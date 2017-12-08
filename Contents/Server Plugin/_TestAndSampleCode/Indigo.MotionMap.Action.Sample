@@ -1,0 +1,7 @@
+mmId = "motionmap3.listener"
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'setLightBrightness','theDevice':'OfficeLampP','theValue':100})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'setLightBrightness','theDevice':'Master Bath Lav Fan P','theValue':0})
+else:
+	indigo.server.log(">>> MotionMap is NOT Enabled")

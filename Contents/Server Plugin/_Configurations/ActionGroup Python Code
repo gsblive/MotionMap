@@ -1,0 +1,244 @@
+
+
+_Test GetSeviceLinks
+
+theDeviceName = "PowerLinc Interface"
+links = indigo.rawServerRequest("GetLinksForDevice", {"Name": theDeviceName})
+#indigo.server.log("### Start PowerLinks" + unicode(links))
+#return 0
+theControllerList = links["ControllerList"]
+for theLink in theControllerList:
+ try:
+  theControllerDevice = indigo.devices[theLink["DeviceNameUI"]]
+  indigo.server.log("Controller Found: " + theControllerDevice.name)
+ except:
+  indigo.server.log("###Invalid Controller for device: " + theDeviceName + ". DeviceNameUI: " + theLink["DeviceNameUI"] + ". GroupNum: " + str(theLink["GroupNum"]))
+
+
+
+
+
+   Display ZWave Object
+
+devnumber = 833678262
+#indigo.server.log(indigo.devices[devnumber].globalProps["com.perceptiveautomation.indigoplugin.zwave"]["zwNodeNeighborsStr"])
+indigo.server.log(unicode(indigo.devices[devnumber]))
+
+
+  _MotionMap popCommandQ
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'popCommandQ'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+  _MotionMap PrintBatteryReport
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'batteryReport'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+  _MotionMap PrintCommandQueue
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printCommandQueue'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+  _MotionMap PrintDeviceStatus
+
+import time
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'3rd Floor Stairway Chandelier P','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'Master Bath Shower Light P','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'3rd Floor Stairway Sconce P','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'OfficeLampP','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'GarageYardDoorLockControl','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'GarageHouseDoorLockControl','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'Hallway Thermostat','theValue':0,'theMode':'IMMED'})
+else:
+	indigo.server.log(">>> MotionMap is NOT enabled.”)
+
+
+
+  _MotionMap PrintMotionStatus
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'all','theValue':100})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'OfficeLampP','theValue':0})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'on','theValue':100})
+else:
+	indigo.server.log(">>> MotionMap is NOT Enabled”)
+
+
+
+  _MotionMap PrintOfflineReport
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'offlineReport'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'offlineReport','theDevice':'all', 'theMode':'Email'})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'offlineReport','theDevice':'errorCounter'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+  _MotionMap ResetOfflineStatistics
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'resetOfflineStatistics'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+
+  _MotionMap RestartCommandQ
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'restartCommandQ'})
+else:
+	indigo.server.log("MotinMap not Enabled”)
+
+
+  _MotionMap Test
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'theMode':'IMMED'})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':0})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'beep','theDevice':'OfficeLampP','theValue':0})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'beep','theDevice':'OfficeLampP','theValue':0,'repeat':1})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':100,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printCommandQueue'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+
+  _MotionMap Test copy
+
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'theMode':'IMMED'})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':0})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'beep','theDevice':'OfficeLampP','theValue':0})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'beep','theDevice':'OfficeLampP','theValue':0,'repeat':1})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':100,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printCommandQueue'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+
+  _MotionMap Test Flash
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'flash','theDevice':'OfficeLampP','theValue':100,'retry':2})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+
+  _MotionMap Test RawCommand
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	#Set downstairs cool setpoint to 80
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':1,'cmd1':108,'cmd2':162,'retry':2})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+  _MotionMap Test RawCommandExtended
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	#Set downstairs cool setpoint to 80
+	#This extended Command is: [ Command (108), temp*2, temp*2 (again), deadband (we use 4), 0]
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':0,'extended':1,'cmd1':108,'cmd2':80*2,'cmd3':80*2,'cmd4':4,'cmd5':0,'retry':2})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+  _MotionMap Test RawCommandExtended EnableStatusChange
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	#Enable Status Change Mewssages
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':0,'extended':1,'cmd1':107,'cmd2':22,'cmd3':22,'cmd4':0,'cmd5':0,'retry':2})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+  _MotionMap VerifyLogMode
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'verifyLogMode'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+ _MotionMap 1stFloorBedAndBathAllSceneOff
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sceneOff','theDevice':'1stFloorBedAndBathAll'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+

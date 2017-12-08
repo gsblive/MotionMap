@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- Define Plugin Actions Here.
+-->
+<Actions>
+	<Action id="executeMMCommand" deviceFilter="self">
+		<Name>Execute MotionMap Command</Name>
+		<CallbackMethod>executeMMCommand</CallbackMethod>
+	</Action>
+</Actions>

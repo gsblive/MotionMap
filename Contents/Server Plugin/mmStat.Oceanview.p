@@ -1,0 +1,14 @@
+(dp0
+S'MiddleFloorBathToiletFanLightP'
+p1
+(dp2
+S'timeoutCounter'
+p3
+I0
+sS'highestSequentialErrors'
+p4
+I1
+sS'errorCounter'
+p5
+I1
+ss.
