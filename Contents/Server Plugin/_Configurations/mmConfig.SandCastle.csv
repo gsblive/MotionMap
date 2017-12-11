@@ -202,6 +202,7 @@ BottomFloorRoomLightNearStairs,BottomFloorRoomNearDoorP,2,noDebug
 MiddleFloorUpperStairwellLight,TopFloorStairwellLightP,2,noDebug
 MiddleFloorLowerStairsLight,BottomFloorStairsLightP,2,noDebug
 TopFloorMasterBathVanityLight,TopFloorMasterBathVanityLightP,2,noDebug
+TopFloorMasterLights,TopFloorMasterLightsP,2,noDebug
 TopFloorFoyerLight,TopFloorFoyerLightP,2,noDebug
 
 ########################################################
