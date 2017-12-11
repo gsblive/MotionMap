@@ -1,0 +1,3 @@
+#!/bin/bash
+SCRIPTDIR="$(dirname "$0")"
+osascript "$SCRIPTDIR/ReplaceMotionMap.scpt"

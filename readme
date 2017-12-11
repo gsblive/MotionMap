@@ -1,0 +1,48 @@
+
+MotionMap 3
+
+
+
+This project is an indigo plugin that establishes associations between motion sensors and other devices in your home.
+It supports insteon devices (switches, outlets and thermostats, Relays, etc).
+Insteon motions sensors and some ZWave multisensors are supported as well. The plugin, when installed and activated within instean, will parse a CSV file located
+in _Configurations folder to establish relationships between devices - there are more descriptions in the _Configuration files.
+Also check our MotionMapPlugion.py for more details. That file defines (among other things) what configuration file should be parsed on startup.
+There are some theory of operation files in _Documentaion, but alas nothing is complete - this is not a commercial product, just something I put together to control my own homes.
+It does in fact work and has been working for my purposes for several years in several homes.
+
+
+Indigo is owned by Perceptive Automation. Some of the files here are based on their sample files.
+https://www.indigodomo.com/
+
+A few things you can do with this plugin...
+
+Associate Master (load) light switches with companion (noload) switches. Usage would include a load switch at the end of a hall and a
+companion at the other end. Instead of linking both switches through Insteon protocol, link one-way companion to master so the master
+has high response rate. The problem this solves is that you are not linking two way (which causes communication collisions in busy insteon
+deployments). THe MotionMap plugin will take care of making the companion switch match the Master's settings (i.e. the indicator LEDs will
+match on both ends of the hall - a pet peeve of mine
+
+Associate master (load) switch with motion activity. Upon entering a room, the light will come on (and you will ge the benefit above if you
+have companion switches). Also, you can specify (in the configuration file) a separate daytime and nighttime brightness setting for the
+switch (which means you can enjoy automatic nughtlight illumination upon entering a dark room instead of full-on brightness that you might
+want in daytime).
+
+Automatic light off in the absense of motion (or after a specified duration of on-time)
+
+Comprehensive house occupation events. Lock doors, turn off fireplaces activate heater setbacks when nobody is home, of reverse that when you arrive.
+
+Ultra smart thermostats based on occupation. Weighted average temperatures in rooms (assuming you are using multisensors like I am) control the
+temp settings based on whole-house room-occupation knowledge.
+
+Much more reliable system. MotionMap controls all devices in your house while minimizing uncrolled traffic in the insteon/zwave networks. You can delay
+commands to devices till after the network settles, plus all commands that MotionMap sends can be queued (i.e. a new command wont be dispatched until
+the preceeding cmoand is complete). Motionmap is aware of command failures and does retries as needed for mission critical commands.
+
+One-shot or recurring actions. For example MotionMap is programmed to status request sequentially to all the devices in the house to insure they
+are in their expected states (only when the network is idle)
+
+Device failure and low battery notifications. If you have an insteon/zwave device that fails to respond after a certain number of retries, you will get
+a text message or email alerting you of a problem. Same with low battery warnings.
+
+API published to indigo.  You can make Indigo action groups that command MotionMap to take advantage of any feature listed above.
