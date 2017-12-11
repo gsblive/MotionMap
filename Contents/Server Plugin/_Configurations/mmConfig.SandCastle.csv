@@ -113,6 +113,7 @@ TopFloorMasterMultisensor,60,10,noDebug
 TopFloorStairsMultisensor,60,5,noDebug
 TopFloorMasterBathLavMultisensor,60,10,noDebug
 
+
 ########################################################
 #
 #    LoadDevices – Usually a Dimmer Switch or Outlet
@@ -312,6 +313,6 @@ MasterBathroomAll,9,TopFloorMasterBathToiletFanLightP;TopFloorMasterShowerLightP
 deviceName,occupationEvent,when,activateAction,activateDelayMinutes,deactivateAction,deactivateDelayMinutes,mode,actionControllers
 UpperDoorLockControl,unoccupied,anyTime,_Security UpperDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor
 LowerDoorLockControl,unoccupied,anyTime,_Security LowerDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor
-TopFireplaceOffControl,unoccupied,anyTime,_MotionMap Top Floor Fireplace Off,30,,0,all,TopFloorMasterMultisensor;TestMultisensor
+TopFireplaceOffControl,unoccupied,anyTime,_MotionMap Top Floor Fireplace Off,30,,0,all,TopFloorMasterBathMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterMultisensor
 MiddleFireplaceOffControl,unoccupied,anyTime,_MotionMap Middle Floor Fireplace Off,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
 BottomFloorHeatCutoff,occupied,anyTime,BottomFloorHeatOn,0,BottomFloorHeatOff,120,any,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
