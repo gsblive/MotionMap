@@ -18,6 +18,7 @@ import mmDev_HVACNest
 import mmDev_HVACCompanion
 import mmObj_Scene
 import mmObj_Occupation
+import time
 
 ######################################################
 #
@@ -29,6 +30,7 @@ def parseConfig(theFilePath):
 	currentHeader = []
 	processHeader = 0
 	currentmmDeviceType = ""
+#	inObjectTime = 0
 
 	initialLogSensitivity = mmLib_Log.getLogSensitivity()
 
@@ -108,7 +110,12 @@ def parseConfig(theFilePath):
 				continue
 
 			mmLib_Log.logVerbose(" >>>Initializing " + str(initParameters["deviceName"]) )
+
+			# Create and initialize the object
+#			dispatchTime = time.time()
 			newObject = dispatchInit(initParameters)
+#			inObjectTime = inObjectTime + round(time.time() - dispatchTime, 4)
+
 			if newObject.initResult != 0:
 				mmLib_Log.logTerse("######  " + newObject.deviceName + " failed to initialize due to " + str(newObject.initResult) + ". ######")
 			else:
@@ -122,6 +129,7 @@ def parseConfig(theFilePath):
 	#
 	f.close()
 	mmLib_Log.setLogSensitivity(initialLogSensitivity)		# restore log sensitivity (in case it changed while parsing)
+#	mmLib_Log.logForce("  +TIMETRACK:" + str(inObjectTime) + "s. Time in objects.")
 	mmLib_Log.logTerse("Complete Parsing file: " + theFilePath)
 
 
