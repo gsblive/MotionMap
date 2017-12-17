@@ -477,7 +477,10 @@ class mmIndigo(object):
 			# note: The following can't fail. However if the queue was previously empty, the command will execute which may fail.
 			#    we dont have this in a try statement because we dont want to mask the failures, we want to fix them (as they present themselves as errors)
 
-			mmLib_CommandQ.enqueQ(theTargetDevice, theCommandParameters, ['theCommand'])
+			if "NoFlush" in theCommandParameters:
+				mmLib_CommandQ.enqueQ(theTargetDevice, theCommandParameters, 0)
+			else:
+				mmLib_CommandQ.enqueQ(theTargetDevice, theCommandParameters, ['theCommand'])
 
 		return theResult
 

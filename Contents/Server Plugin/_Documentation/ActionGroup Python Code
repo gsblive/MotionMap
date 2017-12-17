@@ -1,4 +1,114 @@
 
+_MotionMap SpeedTest
+
+#import itertools
+import appscript
+import time
+theDeviceName = 'GregsOfficeLight'
+bypassMMQueue = 0	# make this 0 to use mm queue, 1 to bypass the mm queue
+theTriggerName = 'GregsExampleTrigger'
+theVarName = "triggerTimeStamp"
+theLevel = 100
+
+lamp = indigo.devices[theDeviceName]
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+
+
+def createTimingTrigger():
+
+# The trigger we create will stop the clock to give us elapsed time to complete these asynchronous tasks performed here.
+# When the dimmer named above goes to brightness level 1, the trigger executes.
+
+	try:
+		theTrigger=indigo.triggers[theTriggerName]
+	except:
+		theTrigger=indigo.devStateChange.create(name=theTriggerName)
+
+
+	theTrigger.deviceId = lamp.id
+	theTrigger.description  = "This trigger was created by the Action Group \"_MotionMap SpeedTest\". It is incomplete pending changes in Indigo > 7.0. See \"_MotionMap SpeedTest\" for details."
+	theTrigger.stateChangeType = indigo.kStateChange.BecomesEqual
+	theTrigger.stateSelector = "brightnessLevel"
+	theTrigger.stateValue = "1"
+#	theTrigger.actions = Your python code here (not implemented yet in Indigo 7)
+	theTrigger.replaceOnServer()
+
+# Add the trigger code (Cant be done yet until changes occur in Indigo 7.0+
+
+#	indigo.server.log(str(theTrigger))
+
+# This is an old way, but I couldnt get it to work
+
+#	isapp = appscript.app("IndigoServer")
+#	isapp.trigger_actions[theTriggerName].action_steps[1].script_code.set("\n")
+#	indigo.trigger.enable(theTrigger.id, value=True)
+
+	return
+
+
+if mmPlugin.isEnabled():
+
+	theBrightness = lamp.brightness
+	indigo.server.log("  ### Gregs Office Light Starting Brightness:" + str(theBrightness) + ".")
+
+	startTime = time.time()
+
+	try:
+		theVarValue = indigo.variables[theVarName].value
+	except:
+		indigo.server.log(">>> Indigo variable  \'" + theVarName + "\' does not exist... creating it and setting it to \'" + str(startTime) + "\' .")
+		theVarValue = indigo.variable.create(theVarName, str(startTime))
+
+	indigo.variable.updateValue(theVarName, str(startTime))
+
+	createTimingTrigger()
+
+	if bypassMMQueue != 0:
+		while theLevel > 0:
+			mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':theDeviceName,'theValue':theLevel,'retry':2,'theMode':'IMMED'})
+			theLevel -=1
+		mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':theDeviceName,'theValue':theBrightness,'retry':2,'theMode':'IMMED'})
+	else:
+		while theLevel > 0:
+			# We have to add the noflush here because the MM queue will normally automatically optimize similar commands already queued (purge them)
+			# because only the last command has any real relavance. Testing (like this script) is the only real time we would use noflush.
+			mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':theDeviceName,'theValue':theLevel,'retry':2, 'NoFlush':'yes'})
+			theLevel -=1
+		mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':theDeviceName,'theValue':theBrightness,'retry':2, 'NoFlush':'yes'})
+
+	deltaTime = time.time()
+	indigo.server.log("    Time to complete queuing:" + str(round(time.time() - deltaTime, 4)) + "s. mmLib_Log.start() completed.")
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+###########
+
+Associated Trigger
+
+##########
+
+TimeTestTrigger or whatever is named in theTriggerName above
+
+
+import time
+theVarName = "triggerTimeStamp"
+
+try:
+	theValue = indigo.variables[theVarName].value
+	if theValue != "":
+		deltaTime = time.time() - float(indigo.variables[theVarName].value)
+		indigo.server.log("  ###TriggerTime:" + str(round(deltaTime, 2)) + "s.")
+		indigo.variable.updateValue(theVarName, str(""))
+
+except:
+	indigo.server.log(">>> Indigo variable  \'" + theVarName + "\' does not exist... creating it and setting it to \'" + str("") + "\' .")
+	theVarValue = indigo.variable.create(theVarName, str(""))
+
+indigo.variable.updateValue(theVarName, str(""))
+
+################
 
 _Test GetSeviceLinks
 
@@ -15,7 +125,7 @@ for theLink in theControllerList:
   indigo.server.log("###Invalid Controller for device: " + theDeviceName + ". DeviceNameUI: " + theLink["DeviceNameUI"] + ". GroupNum: " + str(theLink["GroupNum"]))
 
 
-
+################
 
 
    Display ZWave Object
@@ -24,6 +134,7 @@ devnumber = 833678262
 #indigo.server.log(indigo.devices[devnumber].globalProps["com.perceptiveautomation.indigoplugin.zwave"]["zwNodeNeighborsStr"])
 indigo.server.log(unicode(indigo.devices[devnumber]))
 
+##################
 
   _MotionMap popCommandQ
 
@@ -34,6 +145,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+##################
 
   _MotionMap PrintBatteryReport
 
@@ -44,6 +156,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+##################
 
   _MotionMap PrintCommandQueue
 
@@ -54,6 +167,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+##################
 
 
   _MotionMap PrintDeviceStatus
@@ -72,6 +186,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log(">>> MotionMap is NOT enabled.”)
 
+##################
 
 
   _MotionMap PrintMotionStatus
@@ -85,6 +200,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log(">>> MotionMap is NOT Enabled”)
 
+##################
 
 
   _MotionMap PrintOfflineReport
@@ -98,6 +214,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+##################
 
   _MotionMap ResetOfflineStatistics
 
@@ -109,6 +226,7 @@ else:
 	indigo.server.log("MotinMap not Enabled")
 
 
+##################
 
 
   _MotionMap RestartCommandQ
@@ -120,6 +238,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled”)
 
+##################
 
   _MotionMap Test
 
@@ -143,6 +262,7 @@ else:
 	indigo.server.log("MotinMap not Enabled")
 
 
+##################
 
 
   _MotionMap Test copy
@@ -168,6 +288,7 @@ else:
 	indigo.server.log("MotinMap not Enabled")
 
 
+##################
 
 
   _MotionMap Test Flash
@@ -180,6 +301,7 @@ else:
 	indigo.server.log("MotinMap not Enabled")
 
 
+##################
 
 
   _MotionMap Test RawCommand
@@ -192,6 +314,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+##################
 
 
   _MotionMap Test RawCommandExtended
@@ -205,6 +328,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+##################
 
 
   _MotionMap Test RawCommandExtended EnableStatusChange
@@ -217,6 +341,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+##################
 
 
   _MotionMap VerifyLogMode
@@ -228,6 +353,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+##################
 
 
  _MotionMap 1stFloorBedAndBathAllSceneOff

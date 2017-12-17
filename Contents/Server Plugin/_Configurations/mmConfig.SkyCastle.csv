@@ -76,7 +76,7 @@
 #   deviceName – The English name of the device
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off
 #   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass)
 #
@@ -93,7 +93,7 @@
 #   deviceName – The English name of the device
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off
 #   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 #   IMPORTANT – Keep Multi sensors Before motion sensors and all other devices because the other devices will register with the motion sensors during initialization (one pass)
 #
@@ -147,7 +147,7 @@ WineRoomMultisensor,60,10,noDebug
 #   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
 #   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 #	Note: if a load device doesnt have any motions sensors defined, they will stay on for maxOnTime before auto Off
 #
@@ -155,26 +155,42 @@ WineRoomMultisensor,60,10,noDebug
 
 -h,LoadDevice
 deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;GarageHall3Multisensor,,2,noDebug
 BackStairsLights,5,60,60,30,flash,,,2,noDebug
 ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensor,,2,noDebug
 CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor,,2,noDebug
+DogRunAndWaterfallFloodLight,30,31,100,100,flash,,,2,noDebug
 DownstairsHallLeftLights,5,60,0,30,flash;bedtime,DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor,,2,noDebug
 DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensor;DownstairsHallRightBMultisensor,,2,noDebug
 FamilyRoomBathVanityLight,20,60,100,30,flash,FamilyRoomBathMultisensor,,2,noDebug
 FamilyRoomCanLights,60,300,0,40,flash,DownstairsHallRightBMultisensor;FamilyRoomMultisensor,,2,noDebug
+#FamilyRoomOutletTop,360,360,100,100,,,,2,noDebug
+FamilyRoomOutletBottom,360,360,100,100,,,,2,noDebug
 FoyerCoatClosetLight,5,60,100,50,flash,FoyerCoatClosetMultisensor,,2,noDebug
+FoyerFrontRightOutletBottom,360,360,100,100,,,,2,noDebug
+#FoyerFrontRightOutletTop,360,360,100,100,,,,2,noDebug
+FoyerFrontLeftOutletBottom,360,360,100,100,,,,2,noDebug
+#FoyerFrontLeftOutletTop,360,360,60,30,,,,2,noDebug
+FoyerLeftOutletBottom,360,360,100,100,,,,2,noDebug
+#FoyerLeftOutletTop,360,360,60,30,,,,2,noDebug
+FrontPondOutletTop,480,480,100,100,flash,,,2,noDebug
+FrontPondOutletBottom,480,480,100,100,flash,,,2,noDebug
+GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;GarageHall3Multisensor,,2,noDebug
 GregsOfficeClosetDimmer,5,60,100,20,flash,GregsOfficeClosetMultisensor,,2,noDebug
 GregsOfficeBathVanityLight,10,60,100,0,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathFanLight,10,60,0,30,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathShowerLight,5,60,100,30,flash,GregsOfficeBathShowerMultisensor,,2,noDebug
 GregsOfficeBathFan,5,60,100,100,,GregsOfficeBathShowerMultisensor,,2,noDebug
-GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor,,2,verboseDebug
+GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor,,2,noDebug
 GuestBedroomFanLight,30,180,0,30,flash;bedtime,GuestMultisensor,,2,noDebug
 GuestBathVanityLight,30,120,100,25,flash,GuestBathMultisensor,,2,noDebug
 KitchenBathLight,5,60,100,25,flash,KitchenBathMuiltisensor,,2,noDebug
 LaundryRoomLight,5,60,100,25,flash,LaundryRoomMultisensor,,2,noDebug
 LaundryRoomFan,5,10,0,0,flash,,LaundryRoomMultisensor,2,noDebug
+LivingRoomOutletBottom,360,360,100,100,,,,2,noDebug
+#LivingRoomOutletTop,360,360,100,100,,,,2,noDebug
+Main Stairs Chandelier,60,120,100,100,flash,,,2,noDebug
+Main Stairs Left,60,120,60,30,flash,,,2,noDebug
+Main Stairs Right,60,120,60,30,flash,,,2,noDebug
 MasterHallLight,120,180,70,30,flash,,,2,noDebug
 MasterCanLights,120,180,70,30,flash,,,2,noDebug
 MasterFanLight,120,180,70,5,flash,,,2,noDebug
@@ -190,39 +206,23 @@ MasterGregsClosetLight,5,60,100,20,flash,MasterGregsClosetMultisensor,,2,noDebug
 MJBathroom,10,60,100,10,flash,,,2,noDebug
 MJCloset,5,60,100,20,flash,,,2,noDebug
 MJBedroomLights,300,300,0,40,flash,,,2,noDebug
+OutdoorTempFrontDoor,360,360,100,100,,,,2,noDebug
+OutdoorTempDriveway,360,360,100,100,,,,2,noDebug
+OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
 PatioCarriageLights,60,300,0,20,flash,PatioMultisensor,,2,noDebug
-UnderRearDeckOutletWallLights - Top,480,480,100,100,,,,2,noDebug
-UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
 RearDeckCarriage,360,360,100,30,,,,2,noDebug
 RearDeckCarraigeB,360,360,100,30,,,,2,noDebug
+QuadMasterHallLight,5,60,60,30,flash,,,2,noDebug
+Quad Front,60,120,60,30,flash,,,2,noDebug
+Quad Back,60,120,60,30,flash,,,2,noDebug
+ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensor,,2,noDebug
+UnderRearDeckOutletWallLights - Top,480,480,100,100,,,,2,noDebug
+UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
 UpstairsHallRightA,600,600,60,30,flash,,,2,noDebug
 UpstairsHallRightB,600,600,60,30,flash,,,2,noDebug
 UpstairsHallRightC,600,600,60,30,flash,,,2,noDebug
 UpstairsHallRightD,600,600,60,30,flash,,,2,noDebug
-FoyerFrontLeftOutletBottom,360,360,100,100,,,,2,noDebug
-#FoyerFrontLeftOutletTop,360,360,60,30,,,,2,noDebug
-FoyerLeftOutletBottom,360,360,100,100,,,,2,noDebug
-#FoyerLeftOutletTop,360,360,60,30,,,,2,noDebug
-FoyerFrontRightOutletBottom,360,360,100,100,,,,2,noDebug
-#FoyerFrontRightOutletTop,360,360,100,100,,,,2,noDebug
-FamilyRoomOutletBottom,360,360,100,100,,,,2,noDebug
-#FamilyRoomOutletTop,360,360,100,100,,,,2,noDebug
-LivingRoomOutletBottom,360,360,100,100,,,,2,noDebug
-#LivingRoomOutletTop,360,360,100,100,,,,2,noDebug
-OutdoorTempFrontDoor,360,360,100,100,,,,2,noDebug
-OutdoorTempDriveway,360,360,100,100,,,,2,noDebug
-OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
-QuadMasterHallLight,5,60,60,30,flash,,,2,noDebug
-Quad Front,60,120,60,30,flash,,,2,noDebug
-Quad Back,60,120,60,30,flash,,,2,noDebug
-Main Stairs Chandelier,60,120,100,100,flash,,,2,noDebug
-Main Stairs Left,60,120,60,30,flash,,,2,noDebug
-Main Stairs Right,60,120,60,30,flash,,,2,noDebug
-ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensor,,2,noDebug
-DogRunAndWaterfallFloodLight,30,31,100,100,flash,,,2,noDebug
 WineRoomLight,5,60,40,40,flash,WineRoomMultisensor,,2,noDebug
-FrontPondOutletTop,480,480,100,100,flash,,,2,noDebug
-FrontPondOutletBottom,480,480,100,100,flash,,,2,noDebug
 #FakeLoadDevice,480,480,100,100,flash,,,2,noDebug
 
 ########################################################
@@ -232,7 +232,7 @@ FrontPondOutletBottom,480,480,100,100,flash,,,2,noDebug
 #   deviceName – The English name of the device
 #   loadDeviceName -  The loadDevice for this companion
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 ########################################################
 
@@ -243,6 +243,7 @@ MasterBathCenterLight2,MasterBathCenterLight,2,noDebug
 DownstairsHallRightLights1,DownstairsHallRightLights,2,noDebug
 #UpstairsHallRightA1,UpstairsHallRightA;UpstairsHallRightB,2,noDebug
 UpstairsHallRightA1,UpstairsHallRightA,2,noDebug
+UpstairsHallRightC1,UpstairsHallRightC,2,noDebug
 DownstairsHallLeftLights1,DownstairsHallLeftLights,2,noDebug
 FamilyRoomCanLights1,FamilyRoomCanLights,2,noDebug
 FamilyRoomCanLights2,FamilyRoomCanLights,2,noDebug
@@ -284,7 +285,7 @@ BackStairsLights1,BackStairsLights,2,noDebug
 #	fanOnThreshold - the maximum temperature threshold where the fans will turn on to mix the air
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
 #	allowAsync - Allow this device to receive async commands (1 or 0)
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 ########################################################
 
@@ -307,7 +308,7 @@ BackStairsLights1,BackStairsLights,2,noDebug
 #	fanOnThreshold - the maximum temperature threshold where the fans will turn on to mix the air
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
 #	allowAsync - Allow this device to receive async commands (1 or 0)
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 ########################################################
 
@@ -334,7 +335,7 @@ BackStairsLights1,BackStairsLights,2,noDebug
 #   heatInfluence – the amount of influence by percent this thermostat has on the master's heat setting
 #	occupancySensor - the occupancy sensor governing the motion detection for this thermostat
 #	allowAsync - Allow this device to receive async commands (1 or 0)
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 ########################################################
 
