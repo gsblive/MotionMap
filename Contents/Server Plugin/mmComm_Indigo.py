@@ -64,9 +64,9 @@ class mmIndigo(object):
 				self.devIndigoAddress = str(self.theIndigoDevice.address)
 				self.devIndigoID = self.theIndigoDevice.id
 			except:
-				if self.mmDeviceType != "Scene":
+				if self.mmDeviceType not in ["Scene","OccupationAction"]:
 					mmLib_Log.logForce("###### Warning: " + self.mmDeviceType + " device named " + self.deviceName + " does not exist ######")
-					self.initResult = 1
+					self.initResult = "DeviceType " + self.mmDeviceType + " does not exist."
 
 				# No indigo device use default index
 				self.theIndigoDevice = "none"

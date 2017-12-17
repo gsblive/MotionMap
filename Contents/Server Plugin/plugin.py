@@ -140,19 +140,40 @@ class Plugin(indigo.PluginBase):
 		global startTime
 
 		startTime = time.time()
+	#	deltaTime = time.time()
+
 		mmLib_Log.logForce("---" + _MotionMapPlugin.MM_NAME + " plugin version " + _MotionMapPlugin.MM_VERSION + ". Startup called")
 
+	#	deltaTime = time.time()
 		mmLib_Log.start()
-		mmLib_Low.init()
-		mmLib_Low.mmSubscribeToEvent('initComplete', self.initComplete)
-		result = mmParseConfig({'theCommand':'reparseConfig'})
-		mmLib_Low.restoreOfflineStatistics()
+	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. mmLib_Log.start() completed.")
 
+	#	deltaTime = time.time()
+		mmLib_Low.init()
+	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. mmLib_Log.start() completed.")
+
+	#	deltaTime = time.time()
+		mmLib_Low.mmSubscribeToEvent('initComplete', self.initComplete)
+	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. initcompleteSubscribe() completed.")
+
+	#	deltaTime = time.time()
+		result = mmParseConfig({'theCommand':'reparseConfig'})
+	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. mmParseConfig() completed.")
+
+	#	deltaTime = time.time()
+		mmLib_Low.restoreOfflineStatistics()
+	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. restoreOfflineStatistics() completed.")
+
+	#	deltaTime = time.time()
 		indigo.insteon.subscribeToIncoming()
 		indigo.insteon.subscribeToOutgoing()
 		indigo.devices.subscribeToChanges()
+	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. messageSubscriptions() completed.")
 
+		# Run subscriptions for all objects in the init queue
+	#	deltaTime = time.time()
 		mmLib_Low.mmRunSubscriptions('initComplete')
+	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. initSubscribeRUN() completed.")
 
 	########################################
 	#

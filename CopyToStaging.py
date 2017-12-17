@@ -1,6 +1,8 @@
 import distutils.core
 import os
 
+#Copy the MotionMap Indigo Plugin to MotionMapStaging
+
 # Main Code
 targetPath = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop') + "/MotionMapStaging/MotionMap 3.indigoPlugin"
 myPath = os.path.realpath(__file__)
