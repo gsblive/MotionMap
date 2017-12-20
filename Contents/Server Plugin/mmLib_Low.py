@@ -24,6 +24,7 @@ import time
 import itertools
 import pickle
 import collections
+import bisect
 
 superClass = 0
 
@@ -68,7 +69,7 @@ controllerDeque	= deque()
 loadDeque	= deque()
 
 # a list of all devices we queue for status requests
-statusQueue = deque()
+statisticsQueue = deque()
 
 # Delay Queue related stuff
 delayQueue = []
@@ -95,7 +96,7 @@ def resetGlobals():
 	global verifySceneQueue
 	global loadDeque
 	global controllerDeque
-	global statusQueue
+	global statisticsQueue
 	global timerQueue
 	global timerQueueLoopCounter
 	global initCompletionQueue
@@ -116,7 +117,7 @@ def resetGlobals():
 
 	controllerDeque	= deque()
 
-	statusQueue = deque()
+	statisticsQueue = deque()
 
 ############################################################################################
 
@@ -400,8 +401,9 @@ def registerDelayedAction(theFunction, whenSeconds):
 		# Time already expired, do it now
 		theFunction()
 	else:
-		delayQueue.append((whenSeconds,theFunction))		# insert into timer deque
-		delayQueue.sort()
+		#delayQueue.append((whenSeconds,theFunction))		# insert into timer deque
+		#delayQueue.sort()
+		bisect.insort(delayQueue, (whenSeconds,theFunction))
 
 	if delayTime:
 		# Round the time up to the next timer run and return it for the convenience of the caller
@@ -470,7 +472,7 @@ def resetOfflineStatistics(theCommandParameters):
 	mmLib_Log.logForce("Resetting onine statistics file " + theStatFileName)
 	setIndigoVariable("StatisticsResetTime", time.strftime("%m/%d/%Y %I:%M:%S"))
 
-	for mmDev in statusQueue:
+	for mmDev in statisticsQueue:
 		mmDev.timeoutCounter = 0
 		mmDev.errorCounter = 0
 		mmDev.highestSequentialErrors = 0
@@ -489,7 +491,7 @@ def resetOfflineStatistics(theCommandParameters):
 def saveOfflineStatistics():
 
 	devDict = {}
-	for mmDev in statusQueue:
+	for mmDev in statisticsQueue:
 		entryName = mmDev.deviceName
 		if mmDev.timeoutCounter or mmDev.errorCounter:
 			entryStatistics = {"timeoutCounter": mmDev.timeoutCounter, "errorCounter": mmDev.errorCounter, "highestSequentialErrors":mmDev.highestSequentialErrors}
@@ -523,7 +525,7 @@ def restoreOfflineStatistics():
 		mmLib_Log.logVerbose("  Contents: " + str(devDict))
 
 
-		for mmDev in statusQueue:
+		for mmDev in statisticsQueue:
 			entryName = mmDev.deviceName
 
 			try:
@@ -594,8 +596,8 @@ def _only_diff(expected, actual):
 #############################################################################################
 def processOfflineReport(theCommandParameters):
 
-	if statusQueue:
-		newList = sorted(statusQueue, key=lambda mmRoot: mmRoot.deviceName)
+	if statisticsQueue:
+		newList = sorted(statisticsQueue, key=lambda mmRoot: mmRoot.deviceName)
 
 		try:
 			whichDevices = theCommandParameters['theDevice']
@@ -653,28 +655,6 @@ def processOfflineReport(theCommandParameters):
 				#mmLog.logForce( "Sending Email. Recipient: " + theRecipient + " TheSubject: " + theSubject)
 				indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=theEmail)
 
-
-############################################################################################
-#
-# processStatusRequestQueue
-#	make sure all devices have up-to-date statue once an hour or so
-#
-############################################################################################
-def processStatusRequestQueue():
-
-
-	mmLib_Log.logDebug("Running processStatusRequestQueue")
-
-	if statusQueue:
-		# Process a maximum of 10 devices
-		for repCount in range(1,10):
-			mmDev = statusQueue.popleft()
-			statusQueue.append(mmDev)
-			# the Hallway Thermostat business below is because status requests arent working for the nest right now GB Fix Me
-			if time.time() - mmDev.updateTimeStamp > 3600 and mmDev.deviceName != "Hallway Thermostat":
-				mmLib_Log.logDebug("Requesting Status for " + mmDev.deviceName)
-				mmDev.queueCommand({'theCommand':'sendStatusRequest', 'theDevice':mmDev.deviceName, 'theValue':999, 'retry':2})
-				if mmDev.updateTimeStamp != 0: break		# do all of the devices that have 0 timestamp (up to the 100 count)
 
 ############################################################################################
 #
@@ -910,4 +890,4 @@ def init():
 	initIndigoVariable("StatisticsResetTime", time.strftime("%m/%d/%Y %I:%M:%S"))	# in this variable's case, only init it if it doesnt exist.
 	resetGlobals()
 	# now subscribe to time events
-	mmRegisterForTimer(processStatusRequestQueue, 300)		# give us a kick every 5 minutes
+	# mmRegisterForTimer(processStatusRequestQueue, 300)		# give us a kick every 5 minutes

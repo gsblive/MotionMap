@@ -38,7 +38,7 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 			# Set object variables
 			#
 			self.loadDeviceName = theDeviceParameters["loadDeviceName"]
-			mmLib_Low.statusQueue.append(self)		# insert into request-status deque
+			mmLib_Low.statisticsQueue.append(self)		# insert into request-status deque
 
 			# append to the loadDevice's companion list
 			try:

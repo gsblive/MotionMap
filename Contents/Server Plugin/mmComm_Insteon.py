@@ -254,7 +254,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	#		Does not honor the unresponsive variable
 	#
 	def sendStatusRequest(self, theCommandParameters):
-		mmLib_Log.logForce("Requesting Status for " + self.deviceName)
+		mmLib_Log.logVerbose("Requesting Status for " + self.deviceName)
 		#indigo.iodevice.statusRequest(self.theIndigoDevice.id)
 		indigo.insteon.sendStatusRequest(self.theIndigoDevice.address,waitUntilAck=False)
 

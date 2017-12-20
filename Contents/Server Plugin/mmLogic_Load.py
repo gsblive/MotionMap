@@ -25,7 +25,7 @@ import time
 import itertools
 import pickle
 import collections
-
+import random
 
 kLoadDeviceTimeSeconds = 60
 
@@ -56,8 +56,16 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['off'], self.processControllerEvent)
 			self.companions = []
 			mmLib_Low.loadDeque.append(self)						# insert into loadDevice deque
-			mmLib_Low.statusQueue.append(self)					# insert into request-status deque
-			#mmLib_Low.mmRegisterForTimer(self.deviceTime, kLoadDeviceTimeSeconds)		# give us a kick every minute
+			mmLib_Low.statisticsQueue.append(self)					# insert into statistics deque
+
+			random.seed()
+			initialStatusRequestTimeDelta = random.randint(60,660)		# somewhere between 1 to 11 minutes from now
+			#mmLib_Log.logForce("### TIMER " + self.deviceName + " Will send Status Request in " + str(round(initialStatusRequestTimeDelta/60.0,2)) + " minutes.")
+
+			when = time.mktime(time.localtime()) + initialStatusRequestTimeDelta
+
+			mmLib_Low.registerDelayedAction(self.periodicStatusUpdateRequest, when)		# Send a status request every so often
+
 			self.scheduledOffTimer = 0
 			self.scheduledOffTimerType = 'none'
 			self.offTimerSubType = self.scheduledOffTimerType
@@ -482,6 +490,20 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		if self.theIndigoDevice.onState == True and self.theIndigoDevice.__class__ == indigo.DimmerDevice and self.getAreaOccupiedState(self.combinedControllers) == False:
 			mmLib_Log.logForce("Day/Night transition for device: " + self.deviceName)
 			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'dayNightTransition', 'retry': 2})
+
+	#
+	# periodicStatusUpdateRequest - status requests every now and then
+	#
+	def periodicStatusUpdateRequest(self):
+
+		self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 999, 'retry': 2})
+
+		renewalStatusRequestTimeDelta = random.randint(3600, 3600 * 2)  # then repeat between 1-2 hours
+		mmLib_Log.logVerbose("Sent Status Update Request for device: " + self.deviceName + ". Will send another in " + str(round(renewalStatusRequestTimeDelta/60.0, 2)) + " minutes.")
+		when = time.mktime(time.localtime()) + renewalStatusRequestTimeDelta
+		mmLib_Low.registerDelayedAction(self.periodicStatusUpdateRequest, when)  # renew status request time
+
+		return 0
 
 	#
 	# deviceTime - do device housekeeping... this should happen once a minute
