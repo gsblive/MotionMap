@@ -162,6 +162,8 @@ DogRunAndWaterfallFloodLight,30,31,100,100,flash,,,2,noDebug
 DownstairsHallLeftLights,5,60,0,30,flash;bedtime,DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor,,2,noDebug
 DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensor;DownstairsHallRightBMultisensor,,2,noDebug
 FamilyRoomBathVanityLight,20,60,100,30,flash,FamilyRoomBathMultisensor,,2,noDebug
+FamilyRoomBathFan,20,60,100,100,flash,,FamilyRoomBathMultisensor,2,noDebug
+FamilyRoomBathFanLight,20,60,100,30,flash,,FamilyRoomBathMultisensor,2,noDebug
 FamilyRoomCanLights,60,300,0,40,flash,DownstairsHallRightBMultisensor;FamilyRoomMultisensor,,2,noDebug
 #FamilyRoomOutletTop,360,360,100,100,,,,2,noDebug
 FamilyRoomOutletBottom,360,360,100,100,,,,2,noDebug
@@ -183,7 +185,11 @@ GregsOfficeBathFan,5,60,100,100,,GregsOfficeBathShowerMultisensor,,2,noDebug
 GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor,,2,noDebug
 GuestBedroomFanLight,30,180,0,30,flash;bedtime,GuestMultisensor,,2,noDebug
 GuestBathVanityLight,30,120,100,25,flash,GuestBathMultisensor,,2,noDebug
+GuestBathFan,30,60,0,0,flash,,GuestBathMultisensor,2,noDebug
+GuestBathFanLight,30,60,100,25,flash,,GuestBathMultisensor,2,noDebug
 KitchenBathLight,5,60,100,25,flash,KitchenBathMuiltisensor,,2,noDebug
+KitchenLavLight,30,60,100,25,flash,,KitchenBathMuiltisensor,2,noDebug
+KitchenLavFan,30,60,0,0,flash,,KitchenBathMuiltisensor,2,noDebug
 LaundryRoomLight,5,60,100,25,flash,LaundryRoomMultisensor,,2,noDebug
 LaundryRoomFan,5,10,0,0,flash,,LaundryRoomMultisensor,2,noDebug
 LivingRoomOutletBottom,360,360,100,100,,,,2,noDebug
@@ -196,7 +202,7 @@ MasterCanLights,120,180,70,30,flash,,,2,noDebug
 MasterFanLight,120,180,70,5,flash,,,2,noDebug
 MasterBarbiesClosetLight,5,60,100,40,flash,MasterBarbiesClosetMultisensor,,2,noDebug
 MasterBathLavLight,10,60,100,6,flash,MasterBathLavMultisensor,,2,noDebug
-MasterBathLavFan,10,60,100,100,flash,,MasterBathLavMultisensor,2,noDebug
+MasterBathLavFan,10,60,0,0,flash,,MasterBathLavMultisensor,2,noDebug
 MasterBathShowerLight,5,60,100,50,flash,MasterBathShowerMultisensor,MasterBathMultiSensor;MasterBathShowerMultisensor,2,noDebug
 MasterBathCenterLight,5,60,0,20,flash,,MasterBathMultiSensor;MasterBathShowerMultisensor,2,noDebug
 MasterBathRightVanityLight,30,90,70,30,flash,,MasterBathMultiSensor;MasterBathShowerMultisensor,2,noDebug
@@ -210,13 +216,13 @@ OutdoorTempFrontDoor,360,360,100,100,,,,2,noDebug
 OutdoorTempDriveway,360,360,100,100,,,,2,noDebug
 OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
 PatioCarriageLights,60,300,0,20,flash,PatioMultisensor,,2,noDebug
-RearDeckCarriage,360,360,100,30,,,,2,noDebug
-RearDeckCarraigeB,360,360,100,30,,,,2,noDebug
+RearDeckCarriage,240,240,100,30,,,,2,noDebug
+RearDeckCarraigeB,240,240,100,30,,,,2,noDebug
 QuadMasterHallLight,5,60,60,30,flash,,,2,noDebug
 Quad Front,60,120,60,30,flash,,,2,noDebug
 Quad Back,60,120,60,30,flash,,,2,noDebug
 ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensor,,2,noDebug
-UnderRearDeckOutletWallLights - Top,480,480,100,100,,,,2,noDebug
+UnderRearDeckOutletWallLights - Top,240,240,100,100,,,,2,noDebug
 UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
 UpstairsHallRightA,600,600,60,30,flash,,,2,noDebug
 UpstairsHallRightB,600,600,60,30,flash,,,2,noDebug
