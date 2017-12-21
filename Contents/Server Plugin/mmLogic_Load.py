@@ -251,20 +251,19 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def completeInit(self):
 
+		newCallbackType = 'MaxOccupancy'	#assume Max Occupancy unless proven empty area
 		mmLib_Log.logVerbose(self.deviceName + " is completing its initialization tasks.")
 
 		if self.theIndigoDevice.onState == True:
-			onGroup = self.listOnControllers(self.combinedControllers)
-			# should we turn it off?
-			if not onGroup:
-				self.updateOffTimerCallback('NonMotion')
-			else:
-				# a motion sensor is on, set up an auto timer to turn it off
-				self.updateOffTimerCallback('MaxOccupancy')
+			# The device is on, should we schedule to turn it off based on non occupancy?
+			# note that if there are no controllers, controllers cannot influence turning the light off
+			if self.combinedControllers and not self.listOnControllers(self.combinedControllers):
+				newCallbackType = 'NonMotion'
+			self.updateOffTimerCallback(newCallbackType)
 		else:
-			# should we turn it on?
-			onGroup = self.listOnControllers(self.onControllers)
-			if onGroup:
+			# The device is Off, should we turn it on?
+			if self.onControllers and self.listOnControllers(self.onControllers):
+				# Yes we have some controllers and they are reporting occupied
 				if indigo.variables['MMDayTime'].value == 'true':
 					newBrightnessVal = self.daytimeOnLevel
 				else:
@@ -404,7 +403,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# setControllersOnOfflineState - for all of our controllers
 	#	We actually put the controller offline because the load device (switch) is the UI for the controller(motion sensor)
-	#	its theonly wat to put the motion sensor to sleep for other devices (Water pump and HVAC for example)
+	#	its the only wat to put the motion sensor to sleep for other devices (Water pump and HVAC for example)
 	#
 	def setControllersOnOfflineState(self,requestedState):
 
@@ -477,8 +476,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON:
 				self.bedtimeMode = mmLib_Low.BEDTIMEMODE_OFF
 				mmLib_Log.logForce("Bedtime Mode OFF for device: " + self.deviceName)
-				self.setControllersOnOfflineState(
-					'on')  # we are turning badtime mode off, so start commands from our controllers again
+				self.setControllersOnOfflineState('on')  # we are turning badtime mode off, so start commands from our controllers again
 		else:
 			#
 			#  process day to night transition

@@ -101,6 +101,7 @@
 
 -h,Multisensor
 deviceName,maxMovement,minMovement,debugDeviceMode
+BackStairsMultisensor,60,5,noDebug
 ButlerKitchenMultisensor,60,10,noDebug
 CarPortMultisensor,60,5,noDebug
 DownstairsHallLeftLightsAMultisensor,60,5,noDebug
@@ -155,7 +156,7 @@ WineRoomMultisensor,60,10,noDebug
 
 -h,LoadDevice
 deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-BackStairsLights,5,60,60,30,flash,,,2,noDebug
+BackStairsLights,5,60,60,30,flash,GarageHall3Multisensor;BackStairsMultisensor,,2,noDebug
 ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensor,,2,noDebug
 CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor,,2,noDebug
 DogRunAndWaterfallFloodLight,30,31,100,100,flash,,,2,noDebug
@@ -224,10 +225,10 @@ Quad Back,60,120,60,30,flash,,,2,noDebug
 ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensor,,2,noDebug
 UnderRearDeckOutletWallLights - Top,240,240,100,100,,,,2,noDebug
 UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
-UpstairsHallRightA,600,600,60,30,flash,,,2,noDebug
-UpstairsHallRightB,600,600,60,30,flash,,,2,noDebug
-UpstairsHallRightC,600,600,60,30,flash,,,2,noDebug
-UpstairsHallRightD,600,600,60,30,flash,,,2,noDebug
+UpstairsHallRightA,30,600,60,30,flash,,,2,noDebug
+UpstairsHallRightB,30,600,60,30,flash,,,2,noDebug
+UpstairsHallRightC,30,600,60,30,flash,,,2,noDebug
+UpstairsHallRightD,30,600,60,30,flash,,,2,noDebug
 WineRoomLight,5,60,40,40,flash,WineRoomMultisensor,,2,noDebug
 #FakeLoadDevice,480,480,100,100,flash,,,2,noDebug
 
@@ -244,19 +245,27 @@ WineRoomLight,5,60,40,40,flash,WineRoomMultisensor,,2,noDebug
 
 -h,Companion
 deviceName,loadDeviceName,maxSequentialErrorsAllowed,debugDeviceMode
-MasterBathCenterLight1,MasterBathCenterLight,2,noDebug
-MasterBathCenterLight2,MasterBathCenterLight,2,noDebug
+BackStairsLights1,BackStairsLights,2,noDebug
 DownstairsHallRightLights1,DownstairsHallRightLights,2,noDebug
-#UpstairsHallRightA1,UpstairsHallRightA;UpstairsHallRightB,2,noDebug
-UpstairsHallRightA1,UpstairsHallRightA,2,noDebug
-UpstairsHallRightC1,UpstairsHallRightC,2,noDebug
 DownstairsHallLeftLights1,DownstairsHallLeftLights,2,noDebug
 FamilyRoomCanLights1,FamilyRoomCanLights,2,noDebug
 FamilyRoomCanLights2,FamilyRoomCanLights,2,noDebug
+FrontPondOutletTopSwitch,FrontPondOutletTop,2,noDebug
+FrontPondOutletBottomSwitch,FrontPondOutletBottom,2,noDebug
 GarageHall1,GarageHall,2,noDebug
 GarageHall2,GarageHall,2,noDebug
 Main Stairs Chandelier 1,Main Stairs Chandelier,2,noDebug
 Main Stairs Chandelier 2,Main Stairs Chandelier,2,noDebug
+Main Stairs Left 1,Main Stairs Left,2,noDebug
+Main Stairs Right 1,Main Stairs Right,2,noDebug
+MasterBathCenterLight1,MasterBathCenterLight,2,noDebug
+MasterBathCenterLight2,MasterBathCenterLight,2,noDebug
+MasterBathLeftVanityLight 1,MasterBathLeftVanityLight,2,noDebug
+MJBedroomLights1,MJBedroomLights,2,noDebug
+MJCloset 1,MJCloset,2,noDebug
+MJBathroom 1,MJBathroom,2,noDebug
+MasterHallLight1,MasterHallLight,2,noDebug
+MasterFanLight1,MasterFanLight,2,noDebug
 Quad Front 1,Quad Front,2,noDebug
 Quad Back 1,Quad Back,2,noDebug
 Quad Back 2,Quad Back,2,noDebug
@@ -265,17 +274,8 @@ QuadMasterHallLight1,QuadMasterHallLight,2,noDebug
 RearDeckCarraige 1,RearDeckCarriage,2,noDebug
 RearDeckWallLightA,UnderRearDeckOutletWallLights - Bottom,2,noDebug
 RearDeckWallLightB,UnderRearDeckOutletWallLights - Bottom,2,noDebug
-MJBedroomLights1,MJBedroomLights,2,noDebug
-MJCloset 1,MJCloset,2,noDebug
-MJBathroom 1,MJBathroom,2,noDebug
-MasterHallLight1,MasterHallLight,2,noDebug
-MasterFanLight1,MasterFanLight,2,noDebug
-Main Stairs Left 1,Main Stairs Left,2,noDebug
-Main Stairs Right 1,Main Stairs Right,2,noDebug
-MasterBathLeftVanityLight 1,MasterBathLeftVanityLight,2,noDebug
-FrontPondOutletTopSwitch,FrontPondOutletTop,2,noDebug
-FrontPondOutletBottomSwitch,FrontPondOutletBottom,2,noDebug
-BackStairsLights1,BackStairsLights,2,noDebug
+UpstairsHallRightA1,UpstairsHallRightA,2,noDebug
+UpstairsHallRightC1,UpstairsHallRightC,2,noDebug
 
 ########################################################
 #

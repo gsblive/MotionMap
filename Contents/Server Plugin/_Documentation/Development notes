@@ -1,0 +1,12 @@
+Using Aeotec ZWave stick
+
+
+For those of you trying to remove a node using zensys tool here are the steps required:
+1. Highlight the node you believe has failed from the top left frame's node list/table
+2. Toggle the "Quene Overrided" checkbox for this selected node (a check should appear)
+3. Send a NOP (i.e. no operation) command by selecting the exclamation mark from the tools menu
+4. Check to see if the node is failed by selecting the "is node failed" icon from the tools menu. If it has failed, you should see a message stating it has failed in the lower right frame (i.e. log actions tab)
+5. Select the "remove failed" icon from the tools menu
+Note: If uncertain which icon from the tools menu corresponds to a particular action, hoover your mouse over each to receive a "tool tip" message specifying the corresponding action.
+
+
