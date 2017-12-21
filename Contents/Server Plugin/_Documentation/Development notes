@@ -1,5 +1,7 @@
 Using Aeotec ZWave stick
 
+Get Windows ZenSys Tool
+http://www.moonlitzwave.com/zensys-tools.zip
 
 For those of you trying to remove a node using zensys tool here are the steps required:
 1. Highlight the node you believe has failed from the top left frame's node list/table
