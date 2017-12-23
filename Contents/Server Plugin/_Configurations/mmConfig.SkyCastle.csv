@@ -104,6 +104,8 @@ deviceName,maxMovement,minMovement,debugDeviceMode
 BackStairsMultisensor,60,5,noDebug
 ButlerKitchenMultisensor,60,10,noDebug
 CarPortMultisensor,60,5,noDebug
+DiningRoomMultisensorA,60,5,noDebug
+DiningRoomMultisensorB,60,5,noDebug
 DownstairsHallLeftLightsAMultisensor,60,5,noDebug
 DownstairsHallLeftLightsBMultisensor,60,5,noDebug
 DownstairsHallRightAMultisensor,60,5,noDebug
@@ -128,8 +130,15 @@ MasterGregsClosetMultisensor,60,5,noDebug
 MasterBathMultiSensor,60,10,noDebug
 MasterBathShowerMultisensor,60,5,noDebug
 MasterBathLavMultisensor,60,10,noDebug
+MasterHallMultisensor,60,5,noDebug
 PatioMultisensor,60,10,noDebug
+QuadMasterHallLightMultisensor,60,5,noDebug
+QuadMultisensorA,60,5,noDebug
+QuadMultisensorB,60,5,noDebug
 ServerClosetMultisensor,60,10,noDebug
+UpstairsHallRightAMultisensor,60,5,noDebug
+UpstairsHallRightBMultisensor,60,5,noDebug
+UpstairsHallRightCMultisensor,60,5,noDebug
 WineRoomMultisensor,60,10,noDebug
 
 ########################################################
@@ -156,12 +165,14 @@ WineRoomMultisensor,60,10,noDebug
 
 -h,LoadDevice
 deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-BackStairsLights,5,60,60,30,flash,GarageHall3Multisensor;BackStairsMultisensor,,2,noDebug
+BackStairsLights,5,60,60,25,flash,GarageHall3Multisensor;BackStairsMultisensor,,2,noDebug
 ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensor,,2,noDebug
 CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor,,2,noDebug
 DogRunAndWaterfallFloodLight,30,31,100,100,flash,,,2,noDebug
 DownstairsHallLeftLights,5,60,0,30,flash;bedtime,DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor,,2,noDebug
 DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensor;DownstairsHallRightBMultisensor,,2,noDebug
+Dining Chandelier,30,600,0,30,flash,DownstairsHallRightBMultisensor,DiningRoomMultisensorB;DiningRoomMultisensorA,2,noDebug
+DiningRoomCans,10,600,0,30,flash,DownstairsHallRightAMultisensor;DiningRoomMultisensorA;DownstairsHallLeftLightsAMultisensor,DiningRoomMultisensorB,2,noDebug
 FamilyRoomBathVanityLight,20,60,100,30,flash,FamilyRoomBathMultisensor,,2,noDebug
 FamilyRoomBathFan,20,60,100,100,flash,,FamilyRoomBathMultisensor,2,noDebug
 FamilyRoomBathFanLight,20,60,100,30,flash,,FamilyRoomBathMultisensor,2,noDebug
@@ -184,7 +195,7 @@ GregsOfficeBathFanLight,10,60,0,30,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathShowerLight,5,60,100,30,flash,GregsOfficeBathShowerMultisensor,,2,noDebug
 GregsOfficeBathFan,5,60,100,100,,GregsOfficeBathShowerMultisensor,,2,noDebug
 GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor,,2,noDebug
-GuestBedroomFanLight,30,180,0,30,flash;bedtime,GuestMultisensor,,2,noDebug
+GuestBedroomFanLight,30,180,0,30,flash;bedtime,,GuestMultisensor,2,noDebug
 GuestBathVanityLight,30,120,100,25,flash,GuestBathMultisensor,,2,noDebug
 GuestBathFan,30,60,0,0,flash,,GuestBathMultisensor,2,noDebug
 GuestBathFanLight,30,60,100,25,flash,,GuestBathMultisensor,2,noDebug
@@ -195,10 +206,10 @@ LaundryRoomLight,5,60,100,25,flash,LaundryRoomMultisensor,,2,noDebug
 LaundryRoomFan,5,10,0,0,flash,,LaundryRoomMultisensor,2,noDebug
 LivingRoomOutletBottom,360,360,100,100,,,,2,noDebug
 #LivingRoomOutletTop,360,360,100,100,,,,2,noDebug
-Main Stairs Chandelier,60,120,100,100,flash,,,2,noDebug
-Main Stairs Left,60,120,60,30,flash,,,2,noDebug
-Main Stairs Right,60,120,60,30,flash,,,2,noDebug
-MasterHallLight,120,180,70,30,flash,,,2,noDebug
+Main Stairs Chandelier,60,300,0,100,flash,,QuadMultisensorA;QuadMultisensorB;DiningRoomMultisensorA;DiningRoomMultisensorB,2,noDebug
+Main Stairs Left,60,120,0,30,flash,,,2,noDebug
+Main Stairs Right,60,120,0,30,flash,,,2,noDebug
+MasterHallLight,5,30,0,24,flash,MasterHallMultisensor,,2,noDebug
 MasterCanLights,120,180,70,30,flash,,,2,noDebug
 MasterFanLight,120,180,70,5,flash,,,2,noDebug
 MasterBarbiesClosetLight,5,60,100,40,flash,MasterBarbiesClosetMultisensor,,2,noDebug
@@ -219,16 +230,16 @@ OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
 PatioCarriageLights,60,300,0,20,flash,PatioMultisensor,,2,noDebug
 RearDeckCarriage,240,240,100,30,,,,2,noDebug
 RearDeckCarraigeB,240,240,100,30,,,,2,noDebug
-QuadMasterHallLight,5,60,60,30,flash,,,2,noDebug
-Quad Front,60,120,60,30,flash,,,2,noDebug
-Quad Back,60,120,60,30,flash,,,2,noDebug
+QuadMasterHallLight,5,60,0,20,flash,MasterHallMultisensor;QuadMasterHallLightMultisensor,,2,noDebug
+Quad Front,60,120,0,20,flash,QuadMultisensorA,,2,noDebug
+Quad Back,60,120,0,20,flash,QuadMasterHallLightMultisensor;UpstairsHallRightAMultisensor;QuadMultisensorB,QuadMultisensorA,2,noDebug
 ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensor,,2,noDebug
 UnderRearDeckOutletWallLights - Top,240,240,100,100,,,,2,noDebug
 UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
-UpstairsHallRightA,30,600,60,30,flash,,,2,noDebug
-UpstairsHallRightB,30,600,60,30,flash,,,2,noDebug
-UpstairsHallRightC,30,600,60,30,flash,,,2,noDebug
-UpstairsHallRightD,30,600,60,30,flash,,,2,noDebug
+UpstairsHallRightA,5,30,0,24,flash,UpstairsHallRightAMultisensor;UpstairsHallRightBMultisensor,,2,noDebug
+UpstairsHallRightB,5,30,0,24,flash,UpstairsHallRightAMultisensor;UpstairsHallRightBMultisensor,,2,noDebug
+UpstairsHallRightC,5,30,0,24,flash,UpstairsHallRightAMultisensor;UpstairsHallRightBMultisensor;UpstairsHallRightCMultisensor,,2,noDebug
+UpstairsHallRightD,5,30,0,24,flash,UpstairsHallRightCMultisensor;BackStairsMultisensor,,2,noDebug
 WineRoomLight,5,60,40,40,flash,WineRoomMultisensor,,2,noDebug
 #FakeLoadDevice,480,480,100,100,flash,,,2,noDebug
 
