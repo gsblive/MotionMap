@@ -165,7 +165,7 @@ WineRoomMultisensor,60,10,noDebug
 
 -h,LoadDevice
 deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-BackStairsLights,5,60,60,25,flash,GarageHall3Multisensor;BackStairsMultisensor,,2,noDebug
+BackStairsLights,5,30,60,25,flash,GarageHall3Multisensor;BackStairsMultisensor,,2,noDebug
 ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensor,,2,noDebug
 CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor,,2,noDebug
 DogRunAndWaterfallFloodLight,30,31,100,100,flash,,,2,noDebug
