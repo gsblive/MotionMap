@@ -300,11 +300,14 @@ class Plugin(indigo.PluginBase):
 			mmLib_Log.logForce("Device Update. Cannot make signature for device: " + str(newDev))
 			return 0
 
+
 		try:
 			mmDev = mmLib_Low.MotionMapDeviceDict[mmSignature]
 		except:
 			# Not our device
 			return 0
+
+		#mmLib_Log.logForce("Device Update. Signature: " + str(mmSignature) + " " + mmDev.deviceName)
 
 		#if newDev.__class__ == indigo.DimmerDevice:mmLog.logForce( str(mmDev.deviceName) + " has been updated to " + str(newDev.brightness))
 

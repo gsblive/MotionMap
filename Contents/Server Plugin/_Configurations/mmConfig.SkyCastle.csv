@@ -171,7 +171,7 @@ CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor,,2,noDebug
 DogRunAndWaterfallFloodLight,30,31,100,100,flash,,,2,noDebug
 DownstairsHallLeftLights,5,60,0,30,flash;bedtime,DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor,,2,noDebug
 DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensor;DownstairsHallRightBMultisensor,,2,noDebug
-Dining Chandelier,30,600,0,30,flash,DownstairsHallRightBMultisensor,DiningRoomMultisensorB;DiningRoomMultisensorA,2,noDebug
+Dining Chandelier,30,600,0,30,flash,,DiningRoomMultisensorB;DiningRoomMultisensorA;DownstairsHallRightAMultisensor;DownstairsHallLeftLightsAMultisensor,2,noDebug
 DiningRoomCans,10,600,0,30,flash,DownstairsHallRightAMultisensor;DiningRoomMultisensorA;DownstairsHallLeftLightsAMultisensor,DiningRoomMultisensorB,2,noDebug
 FamilyRoomBathVanityLight,20,60,100,30,flash,FamilyRoomBathMultisensor,,2,noDebug
 FamilyRoomBathFan,20,60,100,100,flash,,FamilyRoomBathMultisensor,2,noDebug
