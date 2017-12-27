@@ -231,8 +231,8 @@ PatioCarriageLights,60,300,0,20,flash,PatioMultisensor,,2,noDebug
 RearDeckCarriage,240,240,100,30,,,,2,noDebug
 RearDeckCarraigeB,240,240,100,30,,,,2,noDebug
 QuadMasterHallLight,5,60,0,20,flash,MasterHallMultisensor;QuadMasterHallLightMultisensor,,2,noDebug
-Quad Front,60,120,0,20,flash,QuadMultisensorA,,2,noDebug
-Quad Back,60,120,0,20,flash,QuadMasterHallLightMultisensor;UpstairsHallRightAMultisensor;QuadMultisensorB,QuadMultisensorA,2,noDebug
+Quad Front,5,120,0,20,flash,QuadMultisensorA,,2,noDebug
+Quad Back,5,120,0,20,flash,QuadMasterHallLightMultisensor;UpstairsHallRightAMultisensor;QuadMultisensorB,QuadMultisensorA,2,noDebug
 ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensor,,2,noDebug
 UnderRearDeckOutletWallLights - Top,240,240,100,100,,,,2,noDebug
 UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug

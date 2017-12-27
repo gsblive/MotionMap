@@ -26,7 +26,7 @@
 #	mm.dd.2016	0.9.0		To do
 #							Nest Thermostat doesnt support Status message
 #							Nest Thermostat not staying updated by factoring in temps from all regions (probably a multisensor thing, not updating thermostat object)
-#							if the light switch does not have any associated motion sensors, use max on time instead of max non-motion time
+#							x if the light switch does not have any associated motion sensors, use max on time instead of max non-motion time
 #							On companion brightness change, send new change to Master(but ignore change response for the companion)
 #							Log all changes(button Pressing) by device
 #							Link validation tool

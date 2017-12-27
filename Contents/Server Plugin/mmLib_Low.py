@@ -83,6 +83,8 @@ TIMER_QUEUE_GRANULARITY = 5
 # scene verification stuff
 verifySceneQueue = deque()
 
+DeviceDict = {}
+
 # One shot initialization routines (executed after 1 minute). Obsolete... we now use 'initComplete' subscription below
 # initCompletionQueue = deque()
 

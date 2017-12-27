@@ -23,6 +23,22 @@ import itertools
 import pickle
 import collections
 
+
+def makeDeviceDictionary():
+	for newDev in indigo.devices.iter("indigo.zwave, indigo.sensor"):
+
+		try:
+			temp = mmLib_Low.DeviceDict[newDev.address]
+		except:
+			mmLib_Low.DeviceDict[newDev.address] = {}
+
+		mmLib_Low.DeviceDict[newDev.address][newDev.subModel] = newDev
+		#indigo.server.log(newDev.name + " " + newDev.address + " " + newDev.subModel)
+
+
+	aDev = mmLib_Low.DeviceDict['70']["Motion Sensor"]
+
+
 ######################################################
 #
 # mmMultisensor - Multi Sensor Device (such as Fibaro FGMS-0001)
@@ -34,38 +50,51 @@ class mmMultisensor(object):
 	#
 	def __init__(self, theDeviceParameters):
 
+		subTypesSupported = ["Motion Sensor", "Tilt/Tamper", "Luminance", "Temperature"]
+		subModelConversion = {'Motion Sensor': 'Motion Sensor','Tilt/Tamper': 'VibrationSensor','Luminance': 'LuminanceSensor','Temperature': 'TemperatureSensor'}
+		subModelInit = {'Motion Sensor': mmMultisensorMotion,'Tilt/Tamper': mmMultisensorVibration,'Luminance': mmMultisensorLuminance,'Temperature': mmMultisensorTemperature}
+
 		self.initResult = 0
 		mmLib_Log.logVerbose("Adding multisensor with parameters: " + str(theDeviceParameters))
 		self.deviceName = theDeviceParameters["deviceName"]
 		self.theIndigoDevice = indigo.devices[self.deviceName]
 		self.theIndigoAddress = self.theIndigoDevice.address
+		self.debugDevice = 0
 
-		subDeviceParameters = theDeviceParameters
+		try:
+			if theDeviceParameters["debugDeviceMode"] != "noDebug":
+				self.debugDevice = 1
+		except:
+			mmLib_Log.logVerbose("debugDeviceMode field is undefined in config file for " + self.deviceName + " , " + self.mmDeviceType)
 
 		if "FGMS001" in self.theIndigoDevice.model:
-			# Add the sub components by itterating device address
-			for newDev in indigo.devices.iter("indigo.zwave"):
-				if newDev.address == self.theIndigoAddress:
-					subDeviceParameters["deviceName"] = newDev.name
-					if newDev.subModel == "Motion Sensor":
-						mmMultisensorMotion(theDeviceParameters)
-					elif newDev.subModel == "Tilt/Tamper":
-						subDeviceParameters["deviceType"] = 'VibrationSensor'
-						mmMultisensorVibration(subDeviceParameters)
-					elif newDev.subModel == "Luminance":
-						subDeviceParameters["deviceType"] = 'LuminanceSensor'
-						mmMultisensorLuminance(subDeviceParameters)
-					elif newDev.subModel == "Temperature":
-						subDeviceParameters["deviceType"] = 'TemperatureSensor'
-						mmMultisensorTemperature(subDeviceParameters)
-					else:
-						mmLib_Log.logForce("#### " + self.deviceName + " Unsupported subModel: " + str(newDev.subModel))
+
+			if mmLib_Low.DeviceDict == {}:
+				makeDeviceDictionary()
+
+			subDeviceParameters = theDeviceParameters
+
+			for subType in subTypesSupported:
+
+				try:
+					newDev = mmLib_Low.DeviceDict[str(self.theIndigoAddress)][str(subType)]
+				except:
+					mmLib_Log.logForce("===Adding multisensor with address " + str(self.theIndigoAddress) + " and unsupported sub type: " + str(subType))
+					continue
+
+				subDeviceParameters["deviceName"] = newDev.name
+				subDeviceParameters["deviceType"] = subModelConversion[subType]
+				if self.debugDevice != 0: mmLib_Log.logForce("Initializing: " + str(newDev.name))
+				subModelInit[subType](subDeviceParameters)
 
 		else:
 			mmLib_Log.logForce("#### " + self.deviceName + ": Unknown multifunction device type.")
 
 
-	######################################################################################
+
+
+
+######################################################################################
 	#
 	# Externally Addessable Routines, must have a single parameter - theCommandParameters
 	#
