@@ -24,20 +24,6 @@ import pickle
 import collections
 
 
-def makeDeviceDictionary():
-	for newDev in indigo.devices.iter("indigo.zwave, indigo.sensor"):
-
-		try:
-			temp = mmLib_Low.DeviceDict[newDev.address]
-		except:
-			mmLib_Low.DeviceDict[newDev.address] = {}
-
-		mmLib_Low.DeviceDict[newDev.address][newDev.subModel] = newDev
-		#indigo.server.log(newDev.name + " " + newDev.address + " " + newDev.subModel)
-
-
-	aDev = mmLib_Low.DeviceDict['70']["Motion Sensor"]
-
 
 ######################################################
 #
@@ -45,9 +31,33 @@ def makeDeviceDictionary():
 #
 ######################################################
 class mmMultisensor(object):
+
+	######################################################################################
 	#
-	# __init__
+	# Internally used routines for this object (mmMultisensor)
 	#
+	######################################################################################
+
+	def makeDeviceSubmodelDictionary(self):
+
+		for newDev in indigo.devices.iter("indigo.zwave, indigo.sensor"):
+
+			try:
+				temp = mmLib_Low.DeviceDict[newDev.address]
+			except:
+				mmLib_Low.DeviceDict[newDev.address] = {}
+
+			mmLib_Low.DeviceDict[newDev.address][newDev.subModel] = newDev
+
+		return
+
+
+	######################################################################################
+	#
+	#  __init__ mmMultisensor
+	#
+	######################################################################################
+
 	def __init__(self, theDeviceParameters):
 
 		subTypesSupported = ["Motion Sensor", "Tilt/Tamper", "Luminance", "Temperature"]
@@ -70,7 +80,7 @@ class mmMultisensor(object):
 		if "FGMS001" in self.theIndigoDevice.model:
 
 			if mmLib_Low.DeviceDict == {}:
-				makeDeviceDictionary()
+				self.makeDeviceSubmodelDictionary()
 
 			subDeviceParameters = theDeviceParameters
 
@@ -94,7 +104,7 @@ class mmMultisensor(object):
 
 
 
-######################################################################################
+	######################################################################################
 	#
 	# Externally Addessable Routines, must have a single parameter - theCommandParameters
 	#
@@ -111,7 +121,7 @@ class mmMultisensor(object):
 
 ######################################################################################
 #
-# Device Subclasses
+# Device Subclasses Such as the motion Sensor, Vibration Sensor, temperature sensor and the Luminance Sensor for the fibaro above
 #
 ######################################################################################
 
