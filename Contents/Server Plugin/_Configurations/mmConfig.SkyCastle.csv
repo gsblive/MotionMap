@@ -224,9 +224,9 @@ MasterGregsClosetLight,5,60,100,20,flash,MasterGregsClosetMultisensor,,2,noDebug
 MJBathroom,10,60,100,10,flash,,,2,noDebug
 MJCloset,5,60,100,20,flash,,,2,noDebug
 MJBedroomLights,300,300,0,40,flash,,,2,noDebug
-OutdoorTempFrontDoor,360,360,100,100,,,,2,noDebug
-OutdoorTempDriveway,360,360,100,100,,,,2,noDebug
-OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
+#OutdoorTempFrontDoor,360,360,100,100,,,,2,noDebug
+#OutdoorTempDriveway,360,360,100,100,,,,2,noDebug
+#OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
 PatioCarriageLights,60,300,0,20,flash,PatioMultisensor,,2,noDebug
 RearDeckCarriage,240,240,100,30,,,,2,noDebug
 RearDeckCarraigeB,240,240,100,30,,,,2,noDebug
