@@ -137,7 +137,7 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 	#
 	# doActivation - Run activation Routine
 	#
-	def doActivation(self):
+	def doActivation(self, parameters):
 		if not self.isActive and self.activateAction :
 			indigo.actionGroup.execute(self.activateAction)
 		self.isActive = 1
@@ -146,7 +146,7 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 	#
 	# doDeactivation - Run Deactivation Routine
 	#
-	def doDeactivation(self):
+	def doDeactivation(self, parameters):
 		if self.isActive and self.deactivateAction :
 			indigo.actionGroup.execute(self.deactivateAction)
 		self.isActive = 0
@@ -181,9 +181,9 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 				self.scheduledDeactivationTime = 0
 				mmLib_Low.cancelDelayedAction(self.doDeactivation)
 				if not self.activateDelaySeconds:
-					self.doActivation()
+					self.doActivation({})
 				else:
-					self.scheduledActivationTime = mmLib_Low.registerDelayedAction(self.doActivation, time.mktime(time.localtime()) + self.activateDelaySeconds)
+					mmLib_Low.registerDelayedAction({'theFunction': self.doActivation, 'timeDeltaSeconds': self.activateDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "doActivation"})
 
 
 	#
@@ -219,9 +219,9 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 				self.scheduledActivationTime = 0
 				mmLib_Low.cancelDelayedAction(self.doActivation)
 				if not self.deactivateDelaySeconds:
-					self.doDeactivation()
+					self.doDeactivation({})
 				else:
-					self.scheduledDeactivationTime = mmLib_Low.registerDelayedAction(self.doDeactivation, time.mktime(time.localtime()) + self.deactivateDelaySeconds)
+					mmLib_Low.registerDelayedAction({'theFunction': self.doDeactivation, 'timeDeltaSeconds': self.deactivateDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "doDeactivation"})
 
 
 
