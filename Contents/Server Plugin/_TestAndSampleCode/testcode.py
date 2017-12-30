@@ -66,53 +66,60 @@ random.seed()
 
 print("Method1")
 
-x=10000
 
+for x in range(10000 , 20000):
+	delayQueue.append((x, bottomClass))  # insert into timer deque
+
+print(delayQueue)
+
+# Now access the list 10000 times, measuring time
 startTime = time.time()
 
-while x:
-	newTime = random.randint(1,10000) + time.mktime(time.localtime())
-	delayQueue.append((newTime, bottomClass))  # insert into timer deque
-	delayQueue.sort()
-	x=x-1
+#print("### TIMER " + str(m1DeltaTime) + "s")
+
+for x in range(0 , 10000):
+	newTime = random.randint(1,9999) + 10000
+	testVal = bisect.bisect_left(delayQueue, newTime)
+
 
 m1DeltaTime = time.time()-startTime
-
-
 print("### TIMER " + str(m1DeltaTime) + "s")
-print(delayQueue)
+
+
+#===============
+
 print("Method2")
 
-x=10000
+deviceDict = {}
 
+
+for x in range(10000 , 20000):
+	deviceDict[str(x)] = bottomClass
+
+print(deviceDict)
+
+# Now access the list 10000 times, measuring time
 startTime = time.time()
 
-while x:
-	newTime = random.randint(1,10000) + time.mktime(time.localtime())
-	#bisect.bisect(delayQ, (newTime, bottomClass))
-	bisect.insort(delayQ, (newTime, bottomClass))
-	x=x-1
+#print("### TIMER " + str(m1DeltaTime) + "s")
 
-m2DeltaTime = time.time()-startTime
-
-print("### TIMER " + str(m2DeltaTime) + "s")
-print(delayQ)
+for x in range(1 , 10000):
+	newTime = random.randint(1,9999) + 10000
+	testVal = deviceDict[str(newTime)]
 
 
-if m1DeltaTime >= m2DeltaTime:
-	print("Method 2 is faster.")
-else:
-	print("Method 1 is faster.")
+m1DeltaTime = time.time()-startTime
+print("### TIMER2 " + str(m1DeltaTime) + "s")
 
-#theString = 'Hello there\n test1 \ntest2'
-#theString2 = 'Jello there\n test1 \ntest2'
-#resultString = _only_diff(theString, theString2)
-#print(resultString)
-#fullHost = socket.gethostname()
-#print fullHost.split()[0]
-#print fullHost.split('.', 1)[0]
-#print(platform.node())
-#print(os.uname()[1])
-	#d = Differ()
-#result = list(d.compare(text1, text2))
-#print(str(_unidiff_output("one two \n three four", "one two \n five six")))
+#===============
+
+print("Method3")
+
+# Now access the list 10000 times, measuring time
+startTime = time.time()
+
+while delayQueue:
+	elem = delayQueue[0]
+	delayQueue.pop(0)
+m1DeltaTime = time.time()-startTime
+print("### TIMER3 " + str(m1DeltaTime) + "s")
