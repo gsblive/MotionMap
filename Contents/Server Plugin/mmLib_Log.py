@@ -29,6 +29,7 @@ MM_LOG_WARNING = 3
 MM_LOG_ERROR = 4
 MM_LOG_FORCE = 5
 MM_LOG_TIMESTAMP = 5
+MM_LOG_REPORT = 6
 
 # Log Filtering - for mmLogSensitivity
 MM_SHOW_EVERYTHING = 0
@@ -119,15 +120,21 @@ def mmError(logMessage):
 
 ########################################
 #
-#	mmForceNote - only show the message provided in all cases
+#	mmForceNote - show the message provided in all cases
 #
 def mmForceNote(logMessage):
 	return(write(MM_LOG_FORCE, logMessage))
 
+########################################
+#
+#	mmPrintReportLine - show the message provided in all cases
+#
+def mmPrintReportLine(logMessage):
+	return(write(MM_LOG_REPORT, logMessage))
 
 ########################################
 #
-#	mmTimestamp - only show the message provided in all cases, also place a debugInfo/stackcrawl and timestamp into the log file
+#	mmTimestamp - show the message provided in all cases, also place a debugInfo/stackcrawl and timestamp into the log file
 #
 def mmTimestamp(logMessage):
 	return(write(MM_LOG_TIMESTAMP, logMessage))
@@ -160,6 +167,7 @@ logWarning = mmWarning
 logError = mmError
 logForce = mmForceNote
 logTimestamp = mmTimestamp
+logReportLine = mmPrintReportLine
 
 ############################################################################################
 #
@@ -199,24 +207,35 @@ def setLogSensitivity(newVal):
 	global logError
 	global logForce
 	global logTimestamp
+	global logReportLine
 
 	if mmLogSensitivity != newVal:
 		mmLogSensitivity = newVal
 
 		if MM_LOG_DEBUG_NOTE >= mmLogSensitivity: logDebug = mmDebugNote
 		else:logDebug = mmLogNone
+
 		if MM_LOG_VERBOSE_NOTE >= mmLogSensitivity: logVerbose = mmVerboseNote
 		else:logVerbose = mmLogNone
+
 		if MM_LOG_TERSE_NOTE >= mmLogSensitivity: logTerse = mmTerseNote
 		else:logTerse = mmLogNone
+
 		if MM_LOG_WARNING >= mmLogSensitivity: logWarning = mmWarning
 		else:logWarning = mmLogNone
+
 		if MM_LOG_ERROR >= mmLogSensitivity: logError = mmError
 		else:logError = mmLogNone
+
 		if MM_LOG_FORCE >= mmLogSensitivity: logForce = mmForceNote
 		else:logForce = mmLogNone
+
 		if MM_LOG_TIMESTAMP >= mmLogSensitivity: logTimestamp = mmTimestamp
 		else:logTimestamp = mmLogNone
+
+		if MM_LOG_REPORT >= mmLogSensitivity: logReportLine = mmPrintReportLine
+		else:logReportLine = mmLogNone
+
 		indigo.server.log("  Log Sensitivity is now:" + str(mmLogSensitivity))
 #	else:
 #		indigo.server.log("  No change in Log Sensitivity:" + str(mmLogSensitivity))
@@ -297,7 +316,8 @@ def verifyLogMode(theCommandParameters):
 #	MM_LOG_TERSE_NOTE			2		Append to log entry mmLogSensitivity >= MM_SHOW_TERSE_NOTES
 #	MM_LOG_WARNING				3		Append to log entry mmLogSensitivity >= MM_SHOW_WARNINGS
 #	MM_LOG_ERROR				4		Append to log entry AND place stack trace in MotionMap.err.txt if mmLogSensitivity >= MM_SHOW_ERRORS
-#	MM_LOG_FORCE				5		Append to log no matter what.
+#	MM_LOG_FORCE				5		Append to log entry with NO trace copy to MotionMap.err.txt
+#	MM_LOG_REPORT				5		Same as MM_LOG_FORCE but no traceback and file information appended
 #
 # logType = display the message if mmLogSensitivity Priority level is greater or equal to the logType provided
 # logMessage = the message to display
@@ -330,6 +350,10 @@ def write(logType, logMessage):
 		if os.path.getsize(mmLogFileName)  > MAX_LOG_SIZE:trimFile(mmLogFileName,RESET_LOG_SIZE)
 
 	# Indent the message to keep track of recursion
+
+	if logType == MM_LOG_REPORT:
+		indigo.server.log(logMessage)
+		return(0)
 
 	theTrace = traceback.extract_stack()
 	NestingDepth = len(theTrace)-4
