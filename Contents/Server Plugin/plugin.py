@@ -79,7 +79,7 @@ def mmTestCode(theCommandParameters):
 #
 ############################################################################################
 
-supportedControlCommandsDict = {'resetOfflineStatistics':mmLib_Low.resetOfflineStatistics, 'printCommandQueue':mmLib_CommandQ.printQ, 'emptyCommandQ':mmLib_CommandQ.emptyQ, 'popCommandQ':mmLib_CommandQ.popQ, 'restartCommandQ':mmLib_CommandQ.restartQ, 'reparseConfig':mmParseConfig, 'testCode':mmTestCode, 'motionStatus': mmLib_Low.displayMotionStatus, 'offlineReport': mmLib_Low.processOfflineReport, 'verifyLogMode':mmLib_Log.verifyLogMode, 'batteryReport':mmLib_Low.batteryReport}
+supportedControlCommandsDict = {'resetOfflineStatistics':mmLib_Low.resetOfflineStatistics, 'printCommandQueue':mmLib_CommandQ.printQ, 'printDelayQueue':mmLib_Low.mmPrintDelayedProcs, 'emptyCommandQ':mmLib_CommandQ.emptyQ, 'popCommandQ':mmLib_CommandQ.popQ, 'restartCommandQ':mmLib_CommandQ.restartQ, 'reparseConfig':mmParseConfig, 'testCode':mmTestCode, 'motionStatus': mmLib_Low.displayMotionStatus, 'offlineReport': mmLib_Low.processOfflineReport, 'verifyLogMode':mmLib_Log.verifyLogMode, 'batteryReport':mmLib_Low.batteryReport}
 
 
 ############################################################################################
