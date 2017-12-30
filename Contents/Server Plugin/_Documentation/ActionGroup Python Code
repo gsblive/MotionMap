@@ -108,6 +108,20 @@ except:
 
 indigo.variable.updateValue(theVarName, str(""))
 
+
+################
+
+_MotionMap PrintDelayQueue
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue'})
+	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'theDevice':'GregsOfficeClosetDimmer'})
+	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'proc': 'offTimerCallback'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
 ################
 
 _Test GetSeviceLinks
