@@ -73,7 +73,8 @@ statisticsQueue = deque()
 
 # Delay Queue related stuff
 delayQueue = []
-delayTime = 0
+delayedFunctions = {}
+lastDelayProcRunTime = 0
 
 # Timer Queue related stuff
 timerQueue = deque()
@@ -293,7 +294,7 @@ def	mmRunSubscriptions(theEvent):
 ############################################################################################
 def	mmIsDaytime():
 
-	mmLib_Log.logForce("*** It is now Daytime ***")
+	mmLib_Log.logReportLine("*** It is now Daytime ***")
 	processOfflineReport({'theCommand': 'offlineReport', 'theDevice': 'errorCounter', 'theMode': 'Email'})
 	batteryReport({'theCommand': 'batteryReport'})
 
@@ -306,7 +307,7 @@ def	mmIsDaytime():
 ############################################################################################
 def	mmIsNighttime():
 
-	mmLib_Log.logForce("*** It is now nightime ***")
+	mmLib_Log.logReportLine("*** It is now nightime ***")
 
 	return
 
@@ -362,63 +363,128 @@ def cancelDelayedAction(theFunction):
 
 	global delayQueue
 
-	count = len(delayQueue)
-	index = 0
-	while count:
-		count = count - 1
-		elem = delayQueue[count]
-		if theFunction == elem[1]:
-			delayQueue.pop(count)
+	# GB Fix me... use an additional dictionary that converts theFunction to time to run... lookup time and start this loop at bisect.bisect_right()
 
-############################################################################################
-# printDelayedAction - print all occurances of previously registered DelayedAction
-#
-############################################################################################
-def printDelayedAction(theFunction):
+	try:
+	 	theTime = delayedFunctions[theFunction]
+		if theTime :
+			# There is a function waiting
+			delayedFunctions[theFunction] = 0	# Reset delayedFunctions... to no function waiting
+		else: return
+	except: return	# no function waiting
 
-	global delayQueue
+	# now we have thetime to do the bisect_right (saves a bunch of time)
+
+	index = bisect.bisect_left(delayQueue, theTime)
 
 	count = len(delayQueue)
-	index = 0
-	while count:
-		count = count - 1
-		elem = delayQueue[count]
-		if theFunction == elem[1]:
-			mmLib_Log.logDebug("DelayQueueEntryFound: " + str(elem))
+	while index < count:
+		elem = delayQueue[index]
+		theParameters = elem[1]
+		elemFunction = theParameters['theFunction']
+		if theFunction == elemFunction:
+			delayQueue.pop(index)
+			return
+		index = index + 1
 
 
 ############################################################################################
 # registerDelayedAction - call a function at whenSeconds time (granularity of TIMER_QUEUE_GRANULARITY seconds)
 #
+# theParameters Requirements:
+#	theFunction			the function to call on requested elapsed time (not human readable) Function must return Timer Reset delta value in number of seconds. 0 means stop timer.
+#	timeDeltaSeconds	the number of seconds to wait before timer expires
+#	theDevice			Use DeviceName
+#	timerMessage		Optional, recommended. English translation of reason for timer (for debugging). Use ProcName at least
+#
+#	Example registerDelayedAction({'theFunction': myProc, 'timeDeltaSeconds':60, 'timerMessage':"GregsOfficeLight.periodicTime"})
+#
 ############################################################################################
-def registerDelayedAction(theFunction, whenSeconds):
-
+def registerDelayedAction(parameters):
+	
 	global delayQueue
-	global delayTime
+	global lastDelayProcRunTime
 
-	whenSeconds = int(whenSeconds)
-	cancelDelayedAction(theFunction)		# we only support one at a time
+	theFunction = parameters['theFunction']
+	whenSeconds = parameters['timeDeltaSeconds'] + time.mktime(time.localtime())
+
+	cancelDelayedAction(theFunction)		# we only support one entry for this function at a time
 
 	if time.mktime(time.localtime()) >= whenSeconds:
 		# Time already expired, do it now
-		theFunction()
+		theFunction(parameters)
 	else:
-		#delayQueue.append((whenSeconds,theFunction))		# insert into timer deque
-		#delayQueue.sort()
-		bisect.insort(delayQueue, (whenSeconds,theFunction))
+		bisect.insort(delayQueue, (whenSeconds,parameters))
+		delayedFunctions[theFunction] = whenSeconds		# We now mark this function as waiting
 
-	if delayTime:
+	if lastDelayProcRunTime:
 		# Round the time up to the next timer run and return it for the convenience of the caller
-		timeDelta = int((time.mktime(time.localtime()) - delayTime) % TIMER_QUEUE_GRANULARITY)	# time since the last pass through timer
+		timeDelta = int((time.mktime(time.localtime()) - lastDelayProcRunTime) % TIMER_QUEUE_GRANULARITY)	# time since the last pass through timer
 		if timeDelta: timeDelta = (TIMER_QUEUE_GRANULARITY - timeDelta)
 		newSeconds = whenSeconds + timeDelta
 	else:
 		newSeconds = whenSeconds
 
-	#mmLib_Log.logForce(">>>DelayQueue: " + str(delayQueue))
-	#mmLib_Log.logForce("   Converted time: " + str(whenSeconds) + " to " + str(newSeconds))
-
+	# Returns time when the function will be run
 	return newSeconds
+
+############################################################################################
+# mmGetDelayedProcsList - process timer functions registered for above
+#
+############################################################################################
+def	mmGetDelayedProcsList(theCommandParameters):
+
+	global delayQueue
+	theMessage = '\n'
+
+	try:
+		specificDevice = theCommandParameters['theDevice']
+	except:
+		specificDevice = ''
+
+	try:
+		specificProc = theCommandParameters['proc']
+	except:
+		specificProc = ''
+
+	if specificDevice != '':
+		theMessage = theMessage + "==== DelayedProcs related to device " + specificDevice + " ====\n"
+	else:
+		if specificProc != '':
+			theMessage = theMessage + "==== DelayedProcs related to proc name " + specificProc + " ====\n"
+		else:
+			theMessage = theMessage + "==== DelayedProcs for all devices ====\n"
+
+	theMessage = theMessage + '{0:<3} {1:<14} {2:<46} {3:<80}'.format(" ", "Delta Time", "Device", "Notes")
+	theMessage = theMessage + "\n"
+	theMessage = theMessage + '{0:<3} {1:<14} {2:<46} {3:<80}'.format(" ", "__________", "______", "_____")
+	theMessage = theMessage + "\n"
+
+	count = len(delayQueue)
+	index = 0
+	numShown = 0
+
+	while index < count:
+		elem = delayQueue[index]
+		theParameters = elem[1]
+		if (not specificDevice or specificDevice == theParameters['theDevice']) and (not specificProc or specificProc in theParameters['timerMessage']):
+			theMessage = theMessage + str('{0:<3} {1:<14} {2:<46} {3:<80}'.format(" ", str(minutesAndSecondsTillTime(elem[0])), theParameters['theDevice'], theParameters['timerMessage']))
+			theMessage = theMessage + "\n"
+			numShown = numShown + 1
+		index = index+1
+
+	theMessage = theMessage + "   Number of Entries: " + str(numShown) + "\n"
+	theMessage = theMessage + "==== mmPrintDelayedProcs end ====" + "\n"
+	return(theMessage)
+
+
+############################################################################################
+# mmPrintDelayedProcs - process timer functions registered for above
+#
+############################################################################################
+def	mmPrintDelayedProcs(theCommandParameters):
+
+	mmLib_Log.logReportLine(mmGetDelayedProcsList(theCommandParameters))
 
 
 
@@ -429,16 +495,23 @@ def registerDelayedAction(theFunction, whenSeconds):
 def	mmRunDelayedProcs():
 
 	global delayQueue
-	global delayTime
+	global lastDelayProcRunTime
 
-	delayTime = int(time.mktime(time.localtime()))
+	lastDelayProcRunTime = int(time.mktime(time.localtime()))
 
 	count = len(delayQueue)
 	while count:
 		elem = delayQueue[0]
+		theParameters = elem[1]
+		elemFunction = theParameters['theFunction']
 		if (time.mktime(time.localtime()) >= elem[0]):
 			delayQueue.pop(0)
-			elem[1]()
+			delayedFunctions[elemFunction] = 0  # We now mark this function as waiting
+			resetDelta = elemFunction(theParameters)
+			if resetDelta:
+				theParameters['timeDeltaSeconds'] = resetDelta
+				# if we got here, there is a reset value... queue it up again. Otherwise, its been deleted above, so ready to continue
+				registerDelayedAction(theParameters)
 		else:
 			return	# the list is in time order, if we got here, there is no need to look at the rest of the list
 		count = count - 1
@@ -612,13 +685,13 @@ def processOfflineReport(theCommandParameters):
 			sendEmail = 0
 
 		theLine = str("==================================================")
-		mmLib_Log.logForce(theLine)
+		mmLib_Log.logReportLine(theLine)
 		theEmail = theLine
 		theLine = str("Running processOfflineReport for " + whichDevices + ". Activity since " + indigo.variables["StatisticsResetTime"].value)
-		mmLib_Log.logForce(theLine)
+		mmLib_Log.logReportLine(theLine)
 		theEmail = theEmail + '\n' +  theLine
 		theLine = str("==================================================")
-		mmLib_Log.logForce(theLine)
+		mmLib_Log.logReportLine(theLine)
 		theEmail = theEmail + '\n' +  theLine
 
 
@@ -636,25 +709,25 @@ def processOfflineReport(theCommandParameters):
 				theLine = str(mmDev.deviceName + ". TimeoutCount: " + str(mmDev.timeoutCounter) + ". ErrorCount: " + str(mmDev.errorCounter) + " Highest Sequential Errors: " + str(mmDev.highestSequentialErrors) + " of " + str(mmDev.maxSequentialErrors) + ". Current Sequential Errors: " + str(mmDev.sequentialErrors) + ". " )
 				if mmDev.unresponsive:
 					theLine = theLine + "*** Is Offline ***"
-				mmLib_Log.logForce(theLine)
+				mmLib_Log.logReportLine(theLine)
 				theEmail = theEmail + '\n' +  theLine
 
 		if numberShown == 0:
 			theLine = str("  ** Nothing to show ** ")
-			mmLib_Log.logForce(theLine)
+			mmLib_Log.logReportLine(theLine)
 			theEmail = theEmail + '\n' +  theLine
 
 		theLine = str("=============== End of Report ====================")
-		mmLib_Log.logForce(theLine)
+		mmLib_Log.logReportLine(theLine)
 		theEmail = theEmail + '\n' +  theLine
 
 		if sendEmail:
 			if numberShown == 0:
-				mmLib_Log.logForce("===== Not Sending Email (no data to report) ======")
+				mmLib_Log.logReportLine("===== Not Sending Email (no data to report) ======")
 			else:
 				theSubject = str("MotionMap2 " + str(indigo.variables["MMLocation"].value)+ " OfflineReport: " + whichDevices)
 				theRecipient = "greg@GSBrewer.com"
-				#mmLog.logForce( "Sending Email. Recipient: " + theRecipient + " TheSubject: " + theSubject)
+				#mmLog.logReportLine( "Sending Email. Recipient: " + theRecipient + " TheSubject: " + theSubject)
 				indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=theEmail)
 
 
@@ -670,29 +743,28 @@ def displayMotionStatus(theCommandParameters):
 	whichDevice = theCommandParameters['theDevice']
 
 	if indigo.variables['MMDayTime'].value == 'true':
-		mmLib_Log.logForce("============== ** DAYTIME ** ==================")
+		mmLib_Log.logReportLine("============== ** DAYTIME ** ==================")
 	else:
-		mmLib_Log.logForce("============= ** NIGHTTIME ** =================")
+		mmLib_Log.logReportLine("============= ** NIGHTTIME ** =================")
 
 	if whichDevice == 'all':
-		mmLib_Log.logForce("Display Motion Status for all Load Devices.")
-		mmLib_Log.logForce("===============================================")
+		mmLib_Log.logReportLine("Display Motion Status for all Load Devices.")
+		mmLib_Log.logReportLine("===============================================")
 
 		for mmDev in loadDeque:
-			mmDev.deviceMotionStatus()
+			mmDev.deviceMotionStatus
 
 	elif whichDevice == 'on':
-		mmLib_Log.logForce("Display Motion Status for all ON Load Devices.")
-		mmLib_Log.logForce("===============================================")
+		mmLib_Log.logReportLine("Display Motion Status for all ON Load Devices.")
+		mmLib_Log.logReportLine("===============================================")
 
 		for mmDev in loadDeque:
-			if mmDev.theIndigoDevice.onState == True: mmDev.deviceMotionStatus()
+			if mmDev.theIndigoDevice.onState == True: mmDev.deviceMotionStatus
 	else:
-		mmLib_Log.logForce("Display Motion Status for Device " + whichDevice)
-		mmLib_Log.logForce("===============================================")
+		mmLib_Log.logReportLine("Display Motion Status for Device " + whichDevice)
+		mmLib_Log.logReportLine("===============================================")
 		mmDev = MotionMapDeviceDict[whichDevice]
-		mmDev.deviceMotionStatus()
-
+		mmDev.deviceMotionStatus
 
 	return(0)
 
@@ -708,15 +780,15 @@ def batteryReport(theCommandParameters):
 	resultTotal = 0
 
 	addString = "==============================================="
-	mmLib_Log.logForce(addString)
+	mmLib_Log.logReportLine(addString)
 	emailString = emailString + addString + "\n"
 
 	addString = "Display Battery Status for all Controller Devices."
-	mmLib_Log.logForce(addString)
+	mmLib_Log.logReportLine(addString)
 	emailString = emailString + addString + "\n"
 
 	addString = "==============================================="
-	mmLib_Log.logForce(addString)
+	mmLib_Log.logReportLine(addString)
 	emailString = emailString + addString + "\n"
 
 
@@ -728,11 +800,11 @@ def batteryReport(theCommandParameters):
 
 	if resultTotal == 0:
 		addString = "** Nothing to Report **"
-		mmLib_Log.logForce(addString)
+		mmLib_Log.logReportLine(addString)
 		emailString = emailString + addString + "\n"
 
 	addString = "=============== end of report ==================="
-	mmLib_Log.logForce(addString)
+	mmLib_Log.logReportLine(addString)
 	emailString = emailString + addString + "\n"
 
 	if resultTotal != 0:
@@ -740,7 +812,7 @@ def batteryReport(theCommandParameters):
 		theRecipient = "greg@GSBrewer.com"
 		indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=emailString)
 	else:
-		mmLib_Log.logForce("===== Not Sending Email (no data to report) ======")
+		mmLib_Log.logReportLine("===== Not Sending Email (no data to report) ======")
 
 	return(0)
 
