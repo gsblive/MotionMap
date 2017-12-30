@@ -24,9 +24,19 @@
 # History
 #   Date   		Version      Comment
 #	mm.dd.2016	0.9.0		To do
+#							x Integrate project with GitHub VCS
+#							x Add tools to update plug-in from ActionGroup and a pycharm file to copy plug-in to icloud for deployment
 #							Nest Thermostat doesnt support Status message
 #							Nest Thermostat not staying updated by factoring in temps from all regions (probably a multisensor thing, not updating thermostat object)
 #							x if the light switch does not have any associated motion sensors, use max on time instead of max non-motion time
+#							x A max Occupancy timer of 0 means never turn off the device due to max occupancy time
+#							x use delay timers for periodic status request
+#							X improve delay timers for performance and added feature to pass command parameters
+#							x added delay timer report for debugging
+#							x use bisect for timer management
+#							x no longer itterate through all devices when initializing multisensors' sub functions (a list is made first tiem through (10x speed increase in init)
+#							Obsolete Timer Queue, use Delay Queue
+#							Average on/off trasition times for multisensors to detect bouncing (a common problem with fibaro multisensors)
 #							On companion brightness change, send new change to Master(but ignore change response for the companion)
 #							Log all changes(button Pressing) by device
 #							Link validation tool
