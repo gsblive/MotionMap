@@ -79,11 +79,35 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 			mmLib_Log.logVerbose("Companion " + self.deviceName + " received command unrecognized by MotionMap")
 			theCommandByte = "unknown"
 
-		theLoadDevice = 0
+
 		if self.loadDeviceName:
+
+			try:
+				theLoadDev = mmLib_Low.MotionMapDeviceDict[self.loadDeviceName]
+				theLoadDev.receivedCommand(theInsteonCommand)
+
+			except:
+				mmLib_Log.logVerbose("===Companion: Load Device " + self.loadDeviceName + " not found.")
+
+
+			return
+
+
+			#
+			# The folowing code may be obsolete... stay tuned... above casues the load device to receive the event as if it was clicked directly... we will see how that works
+			#
+
+			# notify load device of timing for this command
+			if theCommandByte in [mmComm_Insteon.kInsteonOn, mmComm_Insteon.kInsteonOnFast]:
+				try:
+					theLoadDev = mmLib_Low.MotionMapDeviceDict[self.loadDeviceName]
+					theLoadDev.lastOffCommandTime = int(time.mktime(time.localtime()))
+				except:
+					mmLib_Log.logVerbose("===Companion: Load Device " + self.loadDeviceName + " does not support self.loadDeviceName.")
+
 			try:
 				theLoadDevice = mmLib_Low.MotionMapDeviceDict[self.loadDeviceName]
-				if theCommandByte in [mmLib_Low.kInsteonOn, mmLib_Low.kInsteonOff, mmLib_Low.kInsteonOnFast, mmLib_Low.kInsteonOffFast]:
+				if theCommandByte in [mmComm_Insteon.kInsteonOn, mmComm_Insteon.kInsteonOff, mmComm_Insteon.kInsteonOnFast, mmComm_Insteon.kInsteonOffFast]:
 					newBrightness = self.getBrightness()
 					mmLib_Log.logVerbose("Device " + self.deviceName + " brightness is now " + str(newBrightness) + " Update Maseter " + self.loadDeviceName + " to " + str(newBrightness))
 					theLoadDevice.queueCommand({'theCommand':'brighten', 'theDevice':self.loadDeviceName, 'theValue':newBrightness, 'retry':2})

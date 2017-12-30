@@ -211,9 +211,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		# process Motion here
 		self.deviceTime()		# this will process occupancy events
-		if theCommandByte == 17:	#kInsteonOn = 17
+		if theCommandByte == mmComm_Insteon.kInsteonOn:	#kInsteonOn = 17
 			self.dispatchEventToDeque(self.onDeque, 'on')							# process on
-		elif theCommandByte == 19:	#kInsteonOff = 19
+		elif theCommandByte == mmComm_Insteon.kInsteonOff:		#kInsteonOff = 19
 			self.dispatchEventToDeque(self.offDeque, 'off')							# process off
 		else:
 			mmLib_Log.logVerbose("Invalid insteon event received for " + self.deviceName + " of " + str(theCommandByte))
@@ -252,9 +252,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				super(mmMotion, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
 				self.controllerMissedCommandCount = 0			# Reset this because it looks like are controller is alive (battery report uses this)
 				if newDev.onState == True:
-					self.receivedCommandLow( 17 )	#kInsteonOn = 17
+					self.receivedCommandLow( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
 				else:
-					self.receivedCommandLow(19 )	#kInsteonOff = 19
+					self.receivedCommandLow(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
 			else:
 				mmLib_Log.logDebug(newDev.name + ": Received duplicate command: Onstate = " + str(newDev.onState))
 

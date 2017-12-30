@@ -52,6 +52,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.onControllers = filter(None, theDeviceParameters["onControllers"].split(';'))  # Can be a list, split by semicolons... normalize it into a proper list
 			self.sustainControllers = filter(None, theDeviceParameters["sustainControllers"].split(';'))
 			self.combinedControllers = self.onControllers + self.sustainControllers
+			self.lastOffCommandTime = 0
 			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['on'], self.processControllerEvent)
 			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['off'], self.processControllerEvent)
 			self.companions = []
@@ -157,6 +158,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def receivedCommand(self, theInsteonCommand ):
 
+
+		# if it was an off or fast off, clear the command queue, no other commands are important that are waiting
+		#
+
+
 		#
 		# do the normal processing
 		# ========================
@@ -177,17 +183,21 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		if self.bedtimeMode > mmLib_Low.BEDTIMEMODE_NOT_POSSIBLE:
 
 			# look for bedtimeMode activation  (double click off)
-			# mmLow.kInsteonOffFast = 17
-			if theCommandByte == 20 : self.bedtimeModeOn( {'theCommand':'bedtimeModeOn', 'theDevice':self.deviceName} )
+			# mmComm_Insteon.kInsteonOffFast = 20
+			if theCommandByte == mmComm_Insteon.kInsteonOffFast : self.bedtimeModeOn( {'theCommand':'bedtimeModeOn', 'theDevice':self.deviceName} )
 
 		#
 		# Load devices also help the motion sensors calculate dead batteries by notifying them when a user is in a room pressing buttons
 
-		if theCommandByte == 17 or theCommandByte == 20:	#kInsteonOn = 17, kInsteonOffFast = 20
+		if theCommandByte == mmComm_Insteon.kInsteonOn or theCommandByte == mmComm_Insteon.kInsteonOnFast:	#kInsteonOn = 17, kInsteonOnFast = 18
 			for theControllerName in self.combinedControllers:
-				if not theControllerName: break
+				#if not theControllerName: break
 				theController = mmLib_Low.MotionMapDeviceDict[theControllerName]
 				theController.loadDeviceNotificationOfOn()
+		elif theCommandByte == mmComm_Insteon.kInsteonOff or theCommandByte == mmComm_Insteon.kInsteonOffFast:
+			# defeat the motion sensors for a couple seconds to keep the light from coming back on immediately
+			self.lastOffCommandTime = int(time.mktime(time.localtime()))
+
 
 		return(0)
 
@@ -291,6 +301,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		# if we are currently not processing motion events, bail early
 		if indigo.variables['MMDefeatMotion'].value == 'true': return(0)
+
+		if self.lastOffCommandTime and theEvent == 'on':
+			if int(time.mktime(time.localtime())) - self.lastOffCommandTime < 3:
+				mmLib_Log.logForce( "=== " + self.deviceName + " is ignoring ON controller event due to last user event within 3 seconds")
+				return(0)
+			elif int(time.mktime(time.localtime())) - self.lastOffCommandTime < 10:
+				mmLib_Log.logForce( "=== " + self.deviceName + " received ON controller event " + str(int(time.mktime(time.localtime())) - self.lastOffCommandTime) + " seconds after user off command.")
 
 		mmLib_Log.logVerbose(self.deviceName + " is being asked to process \'" + theEvent + "\' event by " + theControllerDev.deviceName)
 

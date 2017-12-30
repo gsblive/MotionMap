@@ -362,7 +362,8 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 		try:
 			potentialCommandList = mapInsteonToCommand[theCommandByte]
 			for theCommand in potentialCommandList:
-				mmLib_CommandQ.flushQ(self, {'theIndigoDeviceID':self.devIndigoID, 'theCommand':theCommand}, ["theCommand"])
+				if mmLib_CommandQ.flushQ(self, {'theIndigoDeviceID':self.devIndigoID, 'theCommand':theCommand}, ["theCommand"]):
+					mmLib_Log.logForce("=== Waiting comands flushed due to user interaction with: " + self.deviceName)
 		except:
 			mmLib_Log.logWarning("Command Error. The insteon command: " + str(theCommandByte))
 

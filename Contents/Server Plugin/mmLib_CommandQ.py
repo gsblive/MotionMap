@@ -259,6 +259,8 @@ def flushQ(theDevice, theCommandParameters, matchingEntries):
 		mmLib_Log.logForce("flushQ - flushing queued command " + theDevice.deviceName + ": " + theCommandParameters["theCommand"])
 		qDelete(pendingCommands, n)
 
+	return n
+
 ############################################################################################
 #
 # getQTopDev
