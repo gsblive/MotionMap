@@ -259,10 +259,11 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 	#
 	# deviceTime - do device housekeeping... this should happen once a minute
 	#
-	def offTimer(self):
+	def offTimer(self, parameters):
 
 			mmLib_Log.logForce("Device: " + self.deviceName + " Resetting onstate to 0 ")
 			indigo.device.turnOff(self.devIndigoID)
+			return 0
 
 	def parseUpdate(self, origDev, newDev):
 		if self.debugDevice != 0:
@@ -271,8 +272,7 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 
 		if self.theIndigoDevice.onState == True:
 			mmLib_Log.logForce("Device: " + self.deviceName + " is vibrating. Setting callback timer to reset onstate: ")
-			when = time.mktime(time.localtime()) + 30
-			mmLib_Low.registerDelayedAction(self.offTimer, when)  # renew status request time
+			mmLib_Low.registerDelayedAction({'theFunction': self.offTimer, 'timeDeltaSeconds': 30, 'theDevice': self.deviceName, 'timerMessage': "offTimer"})
 
 		return 1	#0 means did not process
 
