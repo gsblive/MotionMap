@@ -172,7 +172,7 @@ def printQ(theCommandParameters):
 
 		theCount = theCount + 1
 
-	mmLib_Log.logForce("Display MotionMap Queue\n" + displayQueue + "\n\n")
+	mmLib_Log.logReportLine("Display MotionMap Queue\n" + displayQueue + "\n\n")
 
 ############################################################################################
 # timeoutQ - the entry in the top of the command queue timed out
