@@ -178,16 +178,16 @@ FamilyRoomBathFan,20,60,100,100,flash,,FamilyRoomBathMultisensor,2,noDebug
 FamilyRoomBathFanLight,20,60,100,30,flash,,FamilyRoomBathMultisensor,2,noDebug
 FamilyRoomCanLights,60,300,0,40,flash,DownstairsHallRightBMultisensor;FamilyRoomMultisensor,,2,noDebug
 #FamilyRoomOutletTop,360,360,100,100,,,,2,noDebug
-FamilyRoomOutletBottom,360,360,100,100,,,,2,noDebug
+FamilyRoomOutletBottom,360,0,100,100,,,,2,noDebug
 FoyerCoatClosetLight,5,60,100,50,flash,FoyerCoatClosetMultisensor,,2,noDebug
-FoyerFrontRightOutletBottom,360,360,100,100,,,,2,noDebug
-#FoyerFrontRightOutletTop,360,360,100,100,,,,2,noDebug
-FoyerFrontLeftOutletBottom,360,360,100,100,,,,2,noDebug
-#FoyerFrontLeftOutletTop,360,360,60,30,,,,2,noDebug
-FoyerLeftOutletBottom,360,360,100,100,,,,2,noDebug
-#FoyerLeftOutletTop,360,360,60,30,,,,2,noDebug
-FrontPondOutletTop,480,480,100,100,flash,,,2,noDebug
-FrontPondOutletBottom,480,480,100,100,flash,,,2,noDebug
+FoyerFrontRightOutletBottom,360,0,100,100,,,,2,noDebug
+#FoyerFrontRightOutletTop,360,0,100,100,,,,2,noDebug
+FoyerFrontLeftOutletBottom,360,0,100,100,,,,2,noDebug
+#FoyerFrontLeftOutletTop,360,0,60,30,,,,2,noDebug
+FoyerLeftOutletBottom,360,0,100,100,,,,2,noDebug
+#FoyerLeftOutletTop,360,0,60,30,,,,2,noDebug
+FrontPondOutletTop,480,480,100,100,,,,2,noDebug
+FrontPondOutletBottom,480,480,100,100,,,,2,noDebug
 GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;GarageHall3Multisensor,,2,noDebug
 GregsOfficeClosetDimmer,5,60,100,20,flash,GregsOfficeClosetMultisensor,,2,noDebug
 GregsOfficeBathVanityLight,10,60,100,0,flash,GregsOfficeBathMultisensor,,2,noDebug
@@ -204,7 +204,7 @@ KitchenLavLight,30,60,100,25,flash,,KitchenBathMuiltisensor,2,noDebug
 KitchenLavFan,30,60,0,0,flash,,KitchenBathMuiltisensor,2,noDebug
 LaundryRoomLight,5,60,100,25,flash,LaundryRoomMultisensor,,2,noDebug
 LaundryRoomFan,5,10,0,0,flash,,LaundryRoomMultisensor,2,noDebug
-LivingRoomOutletBottom,360,360,100,100,,,,2,noDebug
+LivingRoomOutletBottom,360,0,100,100,,,,2,noDebug
 #LivingRoomOutletTop,360,360,100,100,,,,2,noDebug
 Main Stairs Chandelier,60,300,0,100,flash,,QuadMultisensorA;QuadMultisensorB;DiningRoomMultisensorA;DiningRoomMultisensorB,2,noDebug
 Main Stairs Left,60,120,0,30,flash,,,2,noDebug
