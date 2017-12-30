@@ -62,13 +62,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			initialStatusRequestTimeDelta = random.randint(60,660)		# somewhere between 1 to 11 minutes from now
 			#mmLib_Log.logForce("### TIMER " + self.deviceName + " Will send Status Request in " + str(round(initialStatusRequestTimeDelta/60.0,2)) + " minutes.")
 
-			when = time.mktime(time.localtime()) + initialStatusRequestTimeDelta
-
-			mmLib_Low.registerDelayedAction(self.periodicStatusUpdateRequest, when)		# Send a status request every so often
-
-			self.scheduledOffTimer = 0
-			self.scheduledOffTimerType = 'none'
-			self.offTimerSubType = self.scheduledOffTimerType
+			mmLib_Low.registerDelayedAction({'theFunction': self.periodicStatusUpdateRequest, 'timeDeltaSeconds': initialStatusRequestTimeDelta, 'theDevice': self.deviceName, 'timerMessage': "periodicStatusUpdateRequest"})
 			self.supportsWarning = 0
 			if 'flash' in self.specialFeatures:
 				self.supportsWarning = 'flash'
@@ -129,7 +123,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# do bedtimeMode reset if needed
 		if newDev.onState == True and self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON and origDev.onState == False:
 			self.bedtimeMode = mmLib_Low.BEDTIMEMODE_OFF
-			mmLib_Log.logForce("Bedtime Mode OFF for device: " + self.deviceName)
+			mmLib_Log.logReportLine("Bedtime Mode OFF for device: " + self.deviceName)
 			self.setControllersOnOfflineState('on')
 
 
@@ -222,7 +216,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		theResult = 0
 
 		if self.bedtimeMode == mmLib_Low.BEDTIMEMODE_OFF and indigo.variables['MMDayTime'].value == 'false':
-			mmLib_Log.logForce("Bedtime Mode ON for device: " + self.deviceName)
+			mmLib_Log.logReportLine("Bedtime Mode ON for device: " + self.deviceName)
 			self.bedtimeMode = mmLib_Low.BEDTIMEMODE_ON
 			self.setControllersOnOfflineState('off')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
 			self.queueCommand({'theCommand':'beep', 'theDevice':self.deviceName, 'theValue':0, 'repeat':1, 'retry':2})
@@ -236,8 +230,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def devStatus(self, theCommandParameters):
 
-		self.deviceMotionStatus()
-
+		theResult = self.deviceMotionStatus()
+		return(theResult)
 
 	######################################################################################
 	#
@@ -256,22 +250,29 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		if self.theIndigoDevice.onState == True:
 			# The device is on, should we schedule to turn it off based on non occupancy?
-			# note that if there are no controllers, controllers cannot influence turning the light off
+			# note that if there are no controllers, controllers cannot influence turning the light off, so it defaults to MaxOccupancy (above)
 			if self.combinedControllers and not self.listOnControllers(self.combinedControllers):
 				newCallbackType = 'NonMotion'
-			self.updateOffTimerCallback(newCallbackType)
 		else:
 			# The device is Off, should we turn it on?
 			if self.onControllers and self.listOnControllers(self.onControllers):
 				# Yes we have some controllers and they are reporting occupied
 				if indigo.variables['MMDayTime'].value == 'true':
-					newBrightnessVal = self.daytimeOnLevel
+					newBrightnessVal = int(self.daytimeOnLevel)
 				else:
-					newBrightnessVal = self.nighttimeOnLevel
-				
-				self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'initialization', 'retry': 2})
-				# we turned the light on, set up an auto timer to turn it off
-				self.updateOffTimerCallback('MaxOccupancy')
+					newBrightnessVal = int(self.nighttimeOnLevel)
+
+				# if there is a new brightness value (non zero), go ahead and turn the device on
+				if newBrightnessVal:
+					mmLib_Log.logForce(self.deviceName + " is being turned on because its motionSensor shows occupancy during initialization. Brightness value is " + str(newBrightnessVal))
+					self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'initialization', 'retry': 2})
+					# we turned the light on, set up an auto timer to turn it off
+			else:
+				# The device is off and nothing is reporting occupied... turn off timers
+				newCallbackType = 'none'
+
+		# refresh the timers to whatever we figured out above
+		self.updateOffTimerCallback(newCallbackType)
 
 		return 0
 
@@ -305,8 +306,16 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if theControllerDev.deviceName in self.onControllers:
 				# Process as an 'on' event
 				mmLib_Log.logVerbose(self.deviceName + " received an \'on\' event from " + theControllerDev.deviceName + ". Requested Brightness level: " + str(theLevel))
-				if int(theLevel) > 0 and self.theIndigoDevice.onState == False:
-					self.queueCommand({'theCommand':'brighten', 'theDevice':self.deviceName, 'theValue':theLevel, 'retry':2})
+				if self.theIndigoDevice.onState == False:
+					# the ight is off, should we turn it on?
+					if int(theLevel) > 0:
+						self.queueCommand({'theCommand':'brighten', 'theDevice':self.deviceName, 'theValue':theLevel, 'retry':2})
+					else:
+						# the light isnt on and the new level is also off, clear the off timer
+						newOffTimerType = 'none'
+			else:
+				# must be a sustain controller.. if the light is off, clear the timer
+				if self.theIndigoDevice.onState == False: newOffTimerType = 'none'
 
 		elif theEvent == 'off':
 			# if all the controllerdevices are off, revert to the shorter occupancy timeout
@@ -314,8 +323,9 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				newOffTimerType = 'NonMotion'
 		else:
 			mmLib_Log.logForce(self.deviceName + "Unsupported Event type " + theEvent)
+			return 0
 
-		if newOffTimerType != 'none': self.updateOffTimerCallback(newOffTimerType)
+		self.updateOffTimerCallback(newOffTimerType)
 
 		return 0
 
@@ -325,29 +335,31 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def updateOffTimerCallback(self, newTimerType):
 
-		if newTimerType == 'MaxOccupancy':
-			newOffTimer = time.mktime(time.localtime()) + self.maxOnTime
+		# if we are setting max occupancy and self.maxOnTime is 0, there is no limit... fall through to newOffTimer = 0 and cancel timer
+		if newTimerType == 'MaxOccupancy' and self.maxOnTime:
+			newOffTimer = self.maxOnTime
 		elif newTimerType == 'NonMotion':
-			newOffTimer = time.mktime(time.localtime()) + self.maxNonMotionTime
+			newOffTimer = self.maxNonMotionTime
+		elif newTimerType == 'Final Minute':
+			newOffTimer = 60
 		else:
 			newOffTimer = 0
 
 		if newOffTimer:
-			if self.supportsWarning:
+			if self.supportsWarning and newTimerType != 'Final Minute':
 				# Set flash or off timer, depending on special features
 				newTimerType = newTimerType + ' 1 Minute Warning'
 				newOffTimer = newOffTimer - 60
 
 			# the timer functions only support one item in the queue per device, so you dont have to flush the queue
-			self.scheduledOffTimer = mmLib_Low.registerDelayedAction(self.offTimerCallback, newOffTimer)
-			mmLib_Log.logVerbose(">>> " + self.deviceName + " requested/result timer: " + str(newOffTimer) + " / " + str(self.scheduledOffTimer))
+			scheduledOffTime = mmLib_Low.registerDelayedAction({'theFunction': self.offTimerCallback, 'timeDeltaSeconds': newOffTimer, 'theDevice': self.deviceName, 'timerMessage': "offTimerCallback:" + newTimerType, 'offTimerType': newTimerType})
+			mmLib_Log.logVerbose(">>> " + self.deviceName + " requested/result timer: " + str(newOffTimer) + " / " + str(scheduledOffTime))
 
 		else:
 			mmLib_Low.cancelDelayedAction(self.offTimerCallback)
-			self.scheduledOffTimer = 0
+			scheduledOffTime = 0
 
-		self.scheduledOffTimerType = newTimerType
-		mmLib_Log.logVerbose(self.deviceName + " Timer set to " + newTimerType + " in " + str(mmLib_Low.minutesAndSecondsTillTime(self.scheduledOffTimer)))
+		mmLib_Log.logVerbose(self.deviceName + " Timer set to " + newTimerType + " at " + str(mmLib_Low.minutesAndSecondsTillTime(scheduledOffTime)))
 
 		return 0
 
@@ -355,27 +367,31 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# 	offTimerCallback - flash or beep before turning off if necessary
 	#
-	def offTimerCallback(self):
-		mmLib_Log.logForce("\'" + self.deviceName + "\' CallBack type " + self.scheduledOffTimerType)
+	def offTimerCallback(self, parameters):
+		theTimerType = parameters["offTimerType"]
+		mmLib_Log.logReportLine("\'" + self.deviceName + "\' CallBack type " + theTimerType)
 
-		if self.scheduledOffTimerType in ['MaxOccupancy','NonMotion','Final Minute']:
+		if theTimerType in ['MaxOccupancy','NonMotion','Final Minute']:
 			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
-			self.scheduledOffTimer = 0
-			self.scheduledOffTimerType = 'none'
+			theTimerType = 'none'
 
-		elif 'Warning' in self.scheduledOffTimerType:
+		elif 'Warning' in theTimerType:
 			if self.supportsWarning == 'flash':
 				self.queueCommand({'theCommand': 'flash', 'theDevice': self.deviceName, 'theValue': 0, 'defeatTimerUpdate': 'flash','retry': 2})
 			else:
 				self.queueCommand({'theCommand': 'beep', 'theDevice': self.deviceName, 'theValue': 0, 'repeat': 1, 'retry': 2})
 
-			self.scheduledOffTimer = time.mktime(time.localtime()) + 60
-			self.scheduledOffTimerType = 'Final Minute'
-			self.scheduledOffTimer = mmLib_Low.registerDelayedAction(self.offTimerCallback, self.scheduledOffTimer)
+			theTimerType = 'Final Minute'
+
+			# We normally would return the update timer value and automatically restart the timer, but we want to change the timer note, so we call update
+			# return 60	#reschedule timer
+
+			self.updateOffTimerCallback(theTimerType)
+			return 0	# dont requeue (its handled above)
+
 		else:
-			mmLib_Log.logForce(self.deviceName + "Unknown callBack type " + self.scheduledOffTimerType)
-			self.scheduledOffTimer = 0
-			self.scheduledOffTimerType = 'none'
+			mmLib_Log.logForce(self.deviceName + "Unknown callBack type " + theTimerType)
+			theTimerType = 'none'
 
 		return 0
 
@@ -392,7 +408,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				try:
 					theController = mmLib_Low.MotionMapDeviceDict[devName]
 				except:
-					mmLib_Log.logForce(self.deviceName + "Check Controllers... No Such controller " + str(devName))
+					mmLib_Log.logReportLine(self.deviceName + "Check Controllers... No Such controller " + str(devName))
 					continue
 
 				if theController.theIndigoDevice.onState == True:
@@ -433,17 +449,20 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# deviceMotionStatus - display the motion status of a device
 	#
+
 	def deviceMotionStatus(self):
 
-		if self.theIndigoDevice.onState == True:
+		theMessage = '\n\n==== DeviceStatus for ' + self.deviceName + '====\n'
 
-			if self.scheduledOffTimer:
-				theTimeString = mmLib_Low.minutesAndSecondsTillTime(self.scheduledOffTimer)
-				mmLib_Log.logForce("\'" + self.deviceName + "\'" + " is scheduled to turn off in " + str(theTimeString) + " due to " + self.scheduledOffTimerType + ".")
+		if self.theIndigoDevice.onState == True:
+			scheduledOffTime = mmLib_Low.delayedFunctions[self.offTimerCallback]
+			if scheduledOffTime:
+				theTimeString = mmLib_Low.minutesAndSecondsTillTime(scheduledOffTime)
+				theMessage = theMessage + str("\'" + self.deviceName + "\'" + " is scheduled to turn off in " + str(theTimeString) + ".\n")
 				onGroup = self.listOnControllers(self.combinedControllers)
-				if onGroup: mmLib_Log.logForce("  Related Controllers Reporting ON: " + str(onGroup))
+				if onGroup: theMessage = theMessage + str("  Related Controllers Reporting ON: " + str(onGroup) + "\n")
 			else:
-				mmLib_Log.logForce("WARNING " + "\'" + self.deviceName + "\'" + " is on but not scheduled to turn off." )
+				theMessage = theMessage + str("WARNING " + "\'" + self.deviceName + "\'" + " is on but not scheduled to turn off.\n" )
 		else:
 
 			if self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON:
@@ -451,8 +470,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			else:
 				bedtimeMessage = ""
 
-			mmLib_Log.logForce("\'" + self.deviceName + "\'" + " is not on." + bedtimeMessage)
-			mmLib_Low.printDelayedAction(self.offTimerCallback)
+			theMessage = theMessage + str("\'" + self.deviceName + "\'" + " is not on." + bedtimeMessage + "\n")
+
+		theMessage = theMessage + mmLib_Low.mmGetDelayedProcsList({'theDevice':self.deviceName})
+		theMessage = theMessage + "\n==== DeviceStatus End ====\n"
+
+		mmLib_Log.logReportLine(theMessage)
+
 		return 0
 
 	#
@@ -475,7 +499,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			# do bedtimeMode reset if needed
 			if self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON:
 				self.bedtimeMode = mmLib_Low.BEDTIMEMODE_OFF
-				mmLib_Log.logForce("Bedtime Mode OFF for device: " + self.deviceName)
+				mmLib_Log.logReportLine("Bedtime Mode OFF for device: " + self.deviceName)
 				self.setControllersOnOfflineState('on')  # we are turning badtime mode off, so start commands from our controllers again
 		else:
 			#
@@ -486,22 +510,21 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# process day/night brightness transitions
 		# If the device is on, set its brightness to the appropriate level, but only if there is nobody in the room
 		if self.theIndigoDevice.onState == True and self.theIndigoDevice.__class__ == indigo.DimmerDevice and self.getAreaOccupiedState(self.combinedControllers) == False:
-			mmLib_Log.logForce("Day/Night transition for device: " + self.deviceName)
+			mmLib_Log.logReportLine("Day/Night transition for device: " + self.deviceName)
 			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'dayNightTransition', 'retry': 2})
 
 	#
 	# periodicStatusUpdateRequest - status requests every now and then
 	#
-	def periodicStatusUpdateRequest(self):
+	def periodicStatusUpdateRequest(self, parameters):
 
 		self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 999, 'retry': 2})
 
-		renewalStatusRequestTimeDelta = random.randint(3600, 3600 * 2)  # then repeat between 1-2 hours
-		mmLib_Log.logVerbose("Sent Status Update Request for device: " + self.deviceName + ". Will send another in " + str(round(renewalStatusRequestTimeDelta/60.0, 2)) + " minutes.")
-		when = time.mktime(time.localtime()) + renewalStatusRequestTimeDelta
-		mmLib_Low.registerDelayedAction(self.periodicStatusUpdateRequest, when)  # renew status request time
+		renewalStatusRequestTimeDelta = random.randint(3600, 3600 * 2)	# return timer reset value in seconds (between 1 and 2 hours)
 
-		return 0
+		mmLib_Log.logVerbose("Sent Status Update Request for device: " + self.deviceName + ". Will send another in " + str(round(renewalStatusRequestTimeDelta/60.0, 2)) + " minutes.")
+
+		return renewalStatusRequestTimeDelta
 
 	#
 	# deviceTime - do device housekeeping... this should happen once a minute
