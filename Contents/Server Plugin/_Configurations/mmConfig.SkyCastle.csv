@@ -163,7 +163,7 @@ WineRoomMultisensor,60,10,noDebug
 
 -h,CamMotion
 deviceName,maxMovement,minMovement,influentialLights,debugDeviceMode
-CamBackYardMotion,60,5,DogRunAndWaterfallFloodLight,CarPortLights,noDebug
+CamDogRunMotion,60,5,DogRunAndWaterfallFloodLight,CarPortLights,noDebug
 CamCarPortMotion,60,5,CarPortLights;Front Porch;GarageDoorLights;DogRunAndWaterfallFloodLight;CarPortCarriageLights,noDebug
 CamLeftFrontHouseMotion,60,5,CarPortLights;Front Porch;PatioCarriageLights,noDebug
 CamGarageMotion,60,5,Front Porch;PatioCarriageLights;GarageDoorLights,noDebug
@@ -196,7 +196,7 @@ deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFea
 BackStairsLights,5,30,60,25,flash,GarageHall3Multisensor;BackStairsMultisensor,,2,noDebug
 ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensor,,2,noDebug
 CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor,,2,noDebug
-DogRunAndWaterfallFloodLight,30,31,100,100,flash,CamBackYardMotion,,2,noDebug
+DogRunAndWaterfallFloodLight,30,31,100,100,flash,CamDogRunMotion,,2,noDebug
 DownstairsHallLeftLights,5,60,0,30,flash,DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor,,2,noDebug
 DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensor;DownstairsHallRightBMultisensor,,2,noDebug
 Dining Chandelier,30,600,0,30,flash,,DiningRoomMultisensorB;DiningRoomMultisensorA;DownstairsHallRightAMultisensor;DownstairsHallLeftLightsAMultisensor,2,noDebug
