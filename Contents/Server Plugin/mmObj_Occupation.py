@@ -67,13 +67,13 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 			if self.deactivateDelaySeconds:
 				self.deactivationDelayTimerFrequency = self.deactivateDelaySeconds/2
 
-			mmLib_Low.subscribeToControllerEvents(self.actionControllers, [self.occupationEvent], self.receiveActivationEvent)
+			mmLib_Low.subscribeToControllerEvents(self.actionControllers, [self.occupationEvent], self.receiveActivationEvent, self.deviceName)
 
 			# Subscribe to unlatch events in all cases for debounce (the opposite of the requested occupancy event)
-			if self.occupationEvent == 'occupied': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['unoccupied'], self.receiveDeactivationEvent)
-			elif self.occupationEvent == 'unoccupied': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['occupied'], self.receiveDeactivationEvent)
-			elif self.occupationEvent == 'on': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['off'], self.receiveDeactivationEvent)
-			elif self.occupationEvent == 'off': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['on'], self.receiveDeactivationEvent)
+			if self.occupationEvent == 'occupied': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['unoccupied'], self.receiveDeactivationEvent, self.deviceName)
+			elif self.occupationEvent == 'unoccupied': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['occupied'], self.receiveDeactivationEvent, self.deviceName)
+			elif self.occupationEvent == 'on': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['off'], self.receiveDeactivationEvent, self.deviceName)
+			elif self.occupationEvent == 'off': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['on'], self.receiveDeactivationEvent, self.deviceName)
 			else: mmLib_Log.logForce("**** mmOccupation " + self.deviceName + " Initialization: Illegal Event type " + str(self.occupationEvent))
 
 			self.monitorGroup = []

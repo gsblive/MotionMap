@@ -227,7 +227,7 @@ class Plugin(indigo.PluginBase):
 			mmDev = mmLib_Low.MotionMapDeviceDict[str(cmd.address)]
 		except:
 			# Not our device
-			#mmLog.logForce( "Not our device ID: " + str(cmd.address))
+			# mmLib_Log.logForce( "Received a command, but not our device ID: " + str(cmd.address))
 			return 0
 
 		mmLib_Log.logVerbose("Received Command from " + str(mmDev.deviceName))

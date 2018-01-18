@@ -54,6 +54,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.controllerMissedCommandCount = 0
 
 			self.onDeque = deque()				# make responder deque for 'on' events
+			self.onDequeSubscribers = deque()	# NO LONGER USED we also need the names of the subscribers on this deque so the camera based controllers can debounce phantom motion detection due to light level changes when the load turns on/off
 			self.offDeque = deque()				# make responder deque for 'off' events
 			self.occupiedDeque = deque()		# make responder deque for 'occupied' events
 			self.unoccupiedDeque = deque()		# make responder deque for 'unoccupied' events
@@ -116,11 +117,12 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#		theEvent is the text representation of a single event type listed above
 	#		theControllerDev is the mmInsteon of the controller that detected the event
 	#
-	def addToControllerEventDeque(self, theEvents, theHandler):
+	def addToControllerEventDeque(self, theEvents, theHandler, theSubscriber):
 		for theEvent in theEvents:
 			mmLib_Log.logDebug("Adding handler " + str(theHandler) + " to " + theEvent + " Deque of " + self.deviceName)
 			if theEvent == 'on':
 				self.onDeque.append(theHandler)				# insert into 'on' deque
+				self.onDequeSubscribers.append(theSubscriber)				# NO LONGER USED insert into influential Lights deque
 			elif theEvent == 'off':
 				self.offDeque.append(theHandler)			# insert into 'off' deque
 			elif theEvent == 'occupied':
@@ -156,14 +158,20 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		return(int(time.mktime(time.localtime()) - theStateTime))
 
+
+	def getOnState(self):
+
+		return(self.theIndigoDevice.onState)
+
 	#
 	# setLastUpdateTimeSeconds - note the time when the device changed state
 	#
+
 	def setLastUpdateTimeSeconds(self):
 
 		super(mmMotion, self).setLastUpdateTimeSeconds()  # Call Base Class
 
-		if self.theIndigoDevice.onState == True:
+		if self.getOnState() == True:
 			self.lastOnTimeSeconds = self.lastUpdateTimeSeconds
 		else:
 			self.lastOffTimeSeconds = self.lastUpdateTimeSeconds
@@ -179,7 +187,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		timeDeltaSeconds = self.getSecondsSinceUpdate()
 		timeDeltaMinutes = int(timeDeltaSeconds/60)
 
-		if self.theIndigoDevice.onState == True:
+		if self.getOnState() == True:
 			if int(timeDeltaMinutes) < int(self.maxMovement):
 				newOccupiedState = True
 			else:
@@ -192,7 +200,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		if self.occupiedState == 2 or self.occupiedState != newOccupiedState:
 			self.occupiedState = newOccupiedState
-			mmLib_Log.logVerbose("Occupied State for " + self.deviceName + " has changed to " + str(self.occupiedState) + " OnState, Min, Max, Current: " + str(self.theIndigoDevice.onState) + " " + str(self.minMovement) + " " + str(self.maxMovement) + " " + str(timeDeltaMinutes))
+			mmLib_Log.logVerbose("Occupied State for " + self.deviceName + " has changed to " + str(self.occupiedState) + " OnState, Min, Max, Current: " + str(self.getOnState()) + " " + str(self.minMovement) + " " + str(self.maxMovement) + " " + str(timeDeltaMinutes))
 			#
 			# Tell all the loadDevices about the occupancy change
 
@@ -287,7 +295,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			addString = addString + newString + "\n"
 			mmLib_Log.logForce(newString)
 
-		if self.theIndigoDevice.onState == True:
+		if self.getOnState() == True:
 			if self.getSecondsSinceUpdate() > mmLib_Low.MOTION_MAX_ON_TIME:
 				newString =  self.deviceName + " has been on for " + str(int(self.getSecondsSinceUpdate()) / int(60*60)) + " hours. The device may need to be reset or the battery may be dead"
 				addString = addString + newString + "\n"

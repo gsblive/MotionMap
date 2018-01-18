@@ -840,10 +840,10 @@ def refreshControllers():
 #	theControllers		The list of controllers to subscribe to (motion sensors for example)
 #	theEvents			The List of events we want
 # 	theHandler			The Handler to call when the event happens
-#
+#	subscriberName		The Name of the device Subscribing
 #
 ######################################################
-def subscribeToControllerEvents(theControllers, theEvents, theHandler):
+def subscribeToControllerEvents(theControllers, theEvents, theHandler, subscriberName):
 
 	for controllerName in theControllers:
 		if not controllerName: continue
@@ -853,7 +853,7 @@ def subscribeToControllerEvents(theControllers, theEvents, theHandler):
 			mmLib_Log.logForce("Device not found. Cannot add events " + str(theEvents) + " to event Deque of " + controllerName)
 			continue
 
-		mmControllerDev.addToControllerEventDeque(theEvents, theHandler)		# subscribe to events
+		mmControllerDev.addToControllerEventDeque(theEvents, theHandler, subscriberName)		# subscribe to events
 
 
 ############################################################################################

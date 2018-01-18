@@ -53,8 +53,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.sustainControllers = filter(None, theDeviceParameters["sustainControllers"].split(';'))
 			self.combinedControllers = self.onControllers + self.sustainControllers
 			self.lastOffCommandTime = 0
-			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['on'], self.processControllerEvent)
-			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['off'], self.processControllerEvent)
+			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['on'], self.processControllerEvent, self.deviceName)
+			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['off'], self.processControllerEvent, self.deviceName)
 			self.companions = []
 			mmLib_Low.loadDeque.append(self)						# insert into loadDevice deque
 			mmLib_Low.statisticsQueue.append(self)					# insert into statistics deque
@@ -425,10 +425,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				try:
 					theController = mmLib_Low.MotionMapDeviceDict[devName]
 				except:
-					mmLib_Log.logReportLine(self.deviceName + "Check Controllers... No Such controller " + str(devName))
+					mmLib_Log.logForce(" ### For Device " + self.deviceName + ", Check Controllers in csv file... No Such controller " + str(devName))
 					continue
 
-				if theController.theIndigoDevice.onState == True:
+				if theController.getOnState() == True:
 					theList.append(theController.deviceName)
 
 		return theList

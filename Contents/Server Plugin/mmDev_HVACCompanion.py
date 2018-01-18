@@ -49,7 +49,7 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 			self.occupancySensor = theDeviceParameters["occupancySensor"]
 			self.online = 'unknown'
 			self.occupancySensors = theDeviceParameters["occupancySensor"].split(';')
-			mmLib_Low.subscribeToControllerEvents(self.occupancySensors, ['occupied', 'unoccupied'], self.processControllerEvent)
+			mmLib_Low.subscribeToControllerEvents(self.occupancySensors, ['occupied', 'unoccupied'], self.processControllerEvent, self.deviceName)
 
 			self.resetSetpoints()
 

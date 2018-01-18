@@ -64,7 +64,7 @@ class mmIndigo(object):
 				self.devIndigoAddress = str(self.theIndigoDevice.address)
 				self.devIndigoID = self.theIndigoDevice.id
 			except:
-				if self.mmDeviceType not in ["Scene","OccupationAction"]:
+				if self.mmDeviceType not in ["Scene","OccupationAction", "CamMotion"]:
 					mmLib_Log.logForce("###### Warning: " + self.mmDeviceType + " device named " + self.deviceName + " does not exist ######")
 					self.initResult = "DeviceType " + self.mmDeviceType + " does not exist."
 
@@ -400,7 +400,7 @@ class mmIndigo(object):
 	#
 	# addToControllerEventDeque - add a device to the responder deque
 	#
-	def addToControllerEventDeque(self, theEvents, theHandler):
+	def addToControllerEventDeque(self, theEvents, theHandler, theSubscriber):
 		mmLib_Log.logWarning("Invalid addToControllerEventDeque call to: " + self.deviceName + ". It\'s not a controller.")
 		return 0
 
