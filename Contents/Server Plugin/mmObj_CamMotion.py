@@ -95,11 +95,25 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 	#
 	def camMotionEvent(self, theCommandParameters):
 
+		# If we are still processing a motion event... debounce it, dont do anything
+
+		try:
+			timeForNonMotion = mmLib_Low.delayedFunctions[self.camMotionTimeout]
+		except:
+			timeForNonMotion = 0
+
+		if( timeForNonMotion ):
+			# Ignore the phantom transition/motion due to light change
+			mmLib_Log.logForce(" === Debouncing motion on " + self.deviceName + " we havent had a motionOff event yet")
+			return('Dque')
+
+		# If the motion is likely a result of a nearby influential light, exit
+
 		deltaTime = self.getChangeDeltaTime()
 
-		if( deltaTime < 11):
+		if( deltaTime < 11 ):
 			# Ignore the phantom transition/motion due to light change
-			mmLib_Log.logForce(" === Ignoring phantom motion on " + self.deviceName + " because recent transition of: " + str(deltaTime) + " seconds.")
+			mmLib_Log.logForce(" === Ignoring phantom motion on " + self.deviceName + " because recent transition of influential light occurred " + str(deltaTime) + " seconds ago.")
 			return('Dque')
 
 		try:
