@@ -206,8 +206,9 @@ class Plugin(indigo.PluginBase):
 	def shutdown(self):
 		global pluginInitialized
 
-		mmLib_Log.logDebug("shutdown called -- Shutting Down MotionMap")
-		pluginInitialized = 0
+		mmLib_Log.logDebug("### Shutdown called -- Shutting Down MotionMap")
+		pluginInitialized = 0	# Stop all processing
+		mmLib_Low.cacheNVDict()	# cache the nonvolatiles
 
 	########################################
 	#

@@ -25,6 +25,7 @@ import time
 import itertools
 import pickle
 import collections
+import random
 
 ######################################################
 #
@@ -35,6 +36,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 
 	def __init__(self, theDeviceParameters):
+
+		random.seed()
 
 		# set things that must be setup before Base Class
 		self.lastOnTimeSeconds = 0
@@ -52,6 +55,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.occupiedState = 2
 			self.supportedCommandsDict = {}
 			self.controllerMissedCommandCount = 0
+			self.previousMotionOff = 0
 
 			self.onDeque = deque()				# make responder deque for 'on' events
 			self.onDequeSubscribers = deque()	# NO LONGER USED we also need the names of the subscribers on this deque so the camera based controllers can debounce phantom motion detection due to light level changes when the load turns on/off
@@ -61,6 +65,21 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 			self.supportedCommandsDict.update({})
 
+			self.ourNonvolatileData = mmLib_Low.initializeNVDict(self.deviceName)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "motionDeltaAccumulator", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "motionNumSequentialRapidTransitions", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "motionDeltaCheckFrequency", 0)
+
+			# If we are waiting for a whole day, an email was already sent to the user.. dont send it again for another whole day
+			if self.ourNonvolatileData["motionDeltaCheckFrequency"] != int(60 * 60 * 24):
+				# We arent waiting for a whole day, make up a new random number of seconds between 61 minutes and 120 minutes
+				# this includes brand new setup where motionDeltaCheckFrequency has been initialized to 0 above
+				self.resetMotionDebounce(30, int(random.randint(60 * 61, 60 * 60 * 2)))
+			else:
+				# We were waiting for a day... keep waiting for that long
+				self.resetMotionDebounce(5, int(60 * 60 * 24))
+
+			self.supportedCommandsDict.update({'devStatus': self.devStatus})
 
 	######################################################################################
 	#
@@ -177,6 +196,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.lastOffTimeSeconds = self.lastUpdateTimeSeconds
 		return()
 
+
 	#
 	# deviceTime - do device housekeeping... this should happen once a minute
 	#
@@ -260,8 +280,20 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				super(mmMotion, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
 				self.controllerMissedCommandCount = 0			# Reset this because it looks like are controller is alive (battery report uses this)
 				if newDev.onState == True:
+					# Add time delta calculator
+					deltaSeconds = self.getSecondsSinceState('off')
+					if deltaSeconds > 5:
+						# the multisensor isnt looping, reset counters and check counters in an hour.
+						# The initial timer setup uses a random number, so going for exactly an hour is OK, the devices all had a random start time so the restarts will be staggered
+						self.resetMotionDebounce(30,int(60*60))
+					else:
+						# count the sequential transaction
+						self.ourNonvolatileData["motionDeltaAccumulator"] = self.ourNonvolatileData["motionDeltaAccumulator"] + deltaSeconds
+						self.ourNonvolatileData["motionNumSequentialRapidTransitions"] = self.ourNonvolatileData["motionNumSequentialRapidTransitions"] + 1
+					# And process the event
 					self.receivedCommandLow( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
 				else:
+					self.previousMotionOff = time.mktime(time.localtime())
 					self.receivedCommandLow(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
 			else:
 				mmLib_Log.logDebug(newDev.name + ": Received duplicate command: Onstate = " + str(newDev.onState))
@@ -269,6 +301,16 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		return(0)
 
+	#
+	# devStatus
+	#
+	def devStatus(self, theCommandParameters):
+
+		averageDebounceSeconds = self.calcMotionDebounce()
+
+		mmLib_Log.logReportLine(self.deviceName + "'s average bounce rate: " + str(averageDebounceSeconds) + "s. Count: " + str(self.ourNonvolatileData["motionNumSequentialRapidTransitions"]))
+
+		return (0)
 
 	#
 	# loadDeviceNotificationOfOn - called from Load Devices
@@ -279,6 +321,62 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		return(0)
 
+	#
+	# calcMotionDebounce - report the average debounce rate for this device
+	#
+	def calcMotionDebounce(self):
+
+		if self.ourNonvolatileData["motionNumSequentialRapidTransitions"] and self.ourNonvolatileData["motionDeltaAccumulator"]:
+			averageDebounceSeconds = self.ourNonvolatileData["motionDeltaAccumulator"] / self.ourNonvolatileData["motionNumSequentialRapidTransitions"]
+		else:
+			averageDebounceSeconds = 0
+
+		return(averageDebounceSeconds)
+
+	#
+	# resetMotionDebounce - debounce problem appears to be cleared up.. reset the motion checker back to normal
+	#
+	def resetMotionDebounce(self,initialDeltaTime, delaySeconds):
+
+		self.ourNonvolatileData["motionNumSequentialRapidTransitions"] = 1
+		self.ourNonvolatileData["motionDeltaAccumulator"] = initialDeltaTime
+		if delaySeconds == int(60*60) and self.ourNonvolatileData["motionDeltaCheckFrequency"] == int(60*60):
+			# most common case... the timer is already running
+			return(0)
+
+			# all other cases, reset the timer
+			self.ourNonvolatileData["motionDeltaCheckFrequency"] = delaySeconds
+			mmLib_Low.registerDelayedAction({'theFunction': self.motionSensorCheckDebounceTimer,'timeDeltaSeconds': self.ourNonvolatileData["motionDeltaCheckFrequency"],'theDevice': self.deviceName,'timerMessage': "motionSensorCheckDebounceTimer"})
+
+		return(0)
+	#
+	# checkMotionDebounce - report debounce Problem for this device, if any
+	#
+	def checkMotionDebounce(self):
+
+		if  self.ourNonvolatileData["motionNumSequentialRapidTransitions"] > 50 :
+			averageDebounceSeconds = self.calcMotionDebounce()
+			if self.calcMotionDebounce() < 5:
+				# send an email indicating the problem
+				theBody = str("####### " + self.deviceName + "'s average off/on cycle time of " + str(averageDebounceSeconds) + "s indicates a problem. Data sample set is " + str(self.ourNonvolatileData["motionNumSequentialRapidTransitions"]) + " itterations.")
+				mmLib_Log.logReportLine(theBody)
+				theBody = "\r" + theBody + "\r"
+				theSubject = str("MotionMap2 " + str(indigo.variables["MMLocation"].value)+ " MotionSensor Failure Report: " + self.deviceName)
+				theRecipient = "greg@GSBrewer.com"
+				indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=theBody)
+				#Error has been reported... reset the debounce check frequency to 1 day
+				self.ourNonvolatileData["motionDeltaCheckFrequency"] = int(60*60*24)
+
+		return(0)
+
+	#
+	# motionSensorCheckDebounceTimer - check to see if this motion sensor is quickly toggling between on and off (indicates a problem in Fibaro Multisensors, it needs to be reset)
+	#
+	def motionSensorCheckDebounceTimer(self, parameters):
+
+		self.checkMotionDebounce()
+
+		return int(self.ourNonvolatileData["motionDeltaCheckFrequency"])  # update the timer to do it again later
 
 	#
 	# checkBattery - report the status of this device's battery

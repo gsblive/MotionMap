@@ -25,6 +25,8 @@ import itertools
 import pickle
 import collections
 import bisect
+import random
+import os.path
 
 superClass = 0
 
@@ -91,6 +93,89 @@ DeviceDict = {}
 
 mmSubscriptions = {'isDayTime':[],'isNightTime':[],'initComplete':[]}
 
+############################################################################################
+#
+# MotionMap NonVolatile Data
+#
+############################################################################################
+
+# All the NonVolatile data... we send this to a file on quit, and reload it on start
+# each dictionary entry is set up per deviceName at the mmDevice's descretion
+
+mmNonVolatiles = {}
+mmNVFileName = ""
+
+def initializeDictEntry(theDict,theElement,theInitialValue):
+
+	try:
+		theResult = theDict[theElement]
+	except:
+		theDict[theElement] = theInitialValue
+		theResult = theDict[theElement]
+
+	return(theResult)
+
+
+def initializeNVElement(theDeviceDict, theElement, theInitialValue):
+
+	initializeDictEntry(theDeviceDict, theElement, theInitialValue)
+
+	return(theDeviceDict[theElement])
+
+
+def	cacheNVDict():
+
+	global mmNonVolatiles
+	global mmNVFileName
+
+	try:
+		mmLib_Log.logForce("=== Writing MotionMap Nonvolatile File: " + mmNVFileName )
+	except:
+		mmLib_Log.logForce(" === Error Writing Data... Nonvolatile file not found.")
+
+
+	theNVFile = open(mmNVFileName, "wb")
+	pickle.dump(mmNonVolatiles, theNVFile)
+	theNVFile.close()
+
+
+def initializeNVDict(theDevName):
+
+	global mmNonVolatiles
+	global mmNVFileName
+
+	if mmNVFileName == "":
+		# get Pathname parent of plugin... We dont want to replace the NV file every time we update the pugin
+		current_file = os.path.abspath(os.path.dirname(__file__))
+		target_dir = os.path.join(current_file, '../../../')
+		mmNVPath = os.path.abspath(target_dir)
+		mmNVFileName = mmNVPath +"/"+ _MotionMapPlugin.nvFileName
+		mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + mmNVFileName)
+
+	needsCache = 0
+
+	if mmNonVolatiles == {}:
+		try:
+			theNVFile = open(mmNVFileName, "rb")
+			mmNonVolatiles = pickle.load(theNVFile)
+			theNVFile.close()
+		except:
+			mmLib_Log.logForce("==== Creating new NonVolatile File: " + mmNVFileName)
+			needsCache = 1
+
+	initializeDictEntry(mmNonVolatiles, theDevName, {})
+
+	if needsCache:
+			cacheNVDict()
+
+	return(mmNonVolatiles[theDevName])
+
+
+############################################################################################
+#
+# resetGlobals - Reset all the globals to default state (not including nonvolatiles above)
+#
+############################################################################################
 
 def resetGlobals():
 	global MotionMapDeviceDict
@@ -947,7 +1032,12 @@ def makeSceneAddress(sceneNumber):
 ############################################################################################
 ############################################################################################
 
-
+#
+#  cacheNonVolatiles - Write out nonvolatile data to a file
+#
+def	cacheNonVolatiles(parameters):
+	cacheNVDict()
+	return(int(random.randint(60*60,60*60*2)))	# run again between 1 and 2 hours
 
 ############################################################################################
 #
@@ -955,7 +1045,7 @@ def makeSceneAddress(sceneNumber):
 #
 ############################################################################################
 def init():
-
+	random.seed()
 	# this happens before parsing config file
 	mmLib_Log.logForce("Initializing mmLow")
 	setIndigoVariable('MMDayTime', indigo.variables['isDaylight'].value)
@@ -964,4 +1054,4 @@ def init():
 	initIndigoVariable("StatisticsResetTime", time.strftime("%m/%d/%Y %I:%M:%S"))	# in this variable's case, only init it if it doesnt exist.
 	resetGlobals()
 	# now subscribe to time events
-	# mmRegisterForTimer(processStatusRequestQueue, 300)		# give us a kick every 5 minutes
+	registerDelayedAction({'theFunction': cacheNonVolatiles, 'timeDeltaSeconds': int(random.randint(60*60,60*60*2)), 'theDevice': "MotionMap System", 'timerMessage': "cacheNonVolatiles"})

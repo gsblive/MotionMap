@@ -10,8 +10,9 @@ import socket
 import platform
 import random
 import bisect
-
+import os
 import pickle
+import inspect
 
 
 # Main Code
@@ -170,23 +171,121 @@ def twoDimensionalDictTest():
 
 	return
 
-cThis = anotherClass(101234)
-print(cThis.insideVal)
+mmNonVolitiles = {"Test1":1, "Test2":2}
+nvFileName = "mmNonVolatiles"
+
+def initializeDictEntry(theDict,theElement,theInitialValue):
+
+	try: theResult = theDict[theElement]
+	except:
+		print( "Initializing '" + theElement)
+		theResult = theDict[theElement] = theInitialValue
+
+	return(theResult)
 
 
-# Save Motion, Temp, and Offline Statistics to a multi-dimensional Dict, then load and Save with Pickle.
-# Example: mmNonVolitiles{'TheDeviceName':{'DeviceSpecificErrorCount':1,'DeviceSpecificOfflineCount':2}, 'TheDeviceName2':{AListOfAccessTimes:[],'AccessTimesDeltaList':[]}}
-# Each device will be responsible for adding its parameters into the list... mmLib_Low will save/restore the list in resetOfflineStatistics/saveOfflineStatistics/restoreOfflineStatistics.
-#  Note Each device can keep pointer to of its parameter dictionary
-# in its init routine: myNonVolitileParametersDict = mmNonVolitiles['MyDevName'], then later use self.myNonVolitileParametersDict['parameterName'] = whatever
 
-twoDimensionalDictTest()
-aDict = pickle.load(open("tempTestFile.p", "rb"))
+def initializeNVElement(theDeviceDict, theElement, theInitialValue):
 
-myDict = aDict['EntryTwo']
-myList = myDict['Parameter4']
+	initializeDictEntry(theDeviceDict, theElement, theInitialValue)
 
-for x in range(1, 10):
-	myList.append(x + 2200)
+	return(theDeviceDict[theElement])
 
-print(aDict)
+
+def	cacheNVDict():
+
+	global mmNonVolitiles
+
+	theNVFile = open(nvFileName, "wb")
+	pickle.dump(mmNonVolitiles, theNVFile)
+	theNVFile.close()
+
+def initializeNVDict(theDevName):
+
+	global mmNonVolitiles
+
+	needsCache = 0
+
+	if mmNonVolitiles == {}:
+		try:
+			theNVFile = open(nvFileName, "rb")
+			mmNonVolitiles = pickle.load(theNVFile)
+			theNVFile.close()
+		except:
+			print("Creating new NV File: " + nvFileName)
+			needsCache = 1
+
+	initializeDictEntry(mmNonVolitiles, theDevName, {})
+
+	if needsCache: cacheNVDict()
+
+	return(mmNonVolitiles[theDevName])
+
+def supermakedirs(path, mode):
+    if not path or os.path.exists(path):
+        return []
+    (head, tail) = os.path.split(path)
+    res = supermakedirs(head, mode)
+    os.mkdir(path)
+    os.chmod(path, mode)
+    res += [path]
+    return res
+
+fileDir = os.path.dirname(os.path.realpath('__file__'))
+print fileDir
+
+print os.path.basename(__file__)                      # script1.py
+print os.path.basename(os.path.realpath(sys.argv[0])) # script1.py
+print os.path.abspath(__file__)                       # C:\testpath\script1.py
+print os.path.realpath(__file__)                      # C:\testpath\script1.py
+print os.getcwd()
+current_file = os.path.abspath(os.path.dirname(__file__))
+parent_of_parent_dir = os.path.join(current_file, '../../../../')
+print os.path.abspath(parent_of_parent_dir)                       # C:\testpath\script1.py
+
+#supermakedirs("/Library/Application Support/MotionMap/", 0755)
+
+#os.makedirs("/Library/Application Support/MotionMap/", 0755)
+# os.makedirs('full/path/to/new/directory', desired_permission)
+#originalMask = os.umask(0)
+#os.makedirs("/Library/Application Support/MotionMap/", 0755)
+#os.umask(originalMask)
+
+#theNVFile = open("/Library/Application Support/MotionMap/" + nvFileName, "wb")
+#pickle.dump(mmNonVolitiles, theNVFile)
+#theNVFile.close()
+
+if 0:
+
+	ourmmNonVolitiles = initializeNVDict("GregsDevice")
+	storedValue = initializeNVElement(ourmmNonVolitiles, "FirstEntry",100)
+
+	print(str(storedValue))
+
+	ourmmNonVolitiles = mmNonVolitiles["GregsDevice"]
+	ourmmNonVolitiles["FirstEntry"] = ourmmNonVolitiles["FirstEntry"] + 325
+
+	print(str(ourmmNonVolitiles["FirstEntry"]))
+
+	cacheNVDict()
+
+	cThis = anotherClass(101234)
+	print(cThis.insideVal)
+
+
+	# Save Motion, Temp, and Offline Statistics to a multi-dimensional Dict, then load and Save with Pickle.
+	# Example: mmNonVolitiles{'TheDeviceName':{'DeviceSpecificErrorCount':1,'DeviceSpecificOfflineCount':2}, 'TheDeviceName2':{AListOfAccessTimes:[],'AccessTimesDeltaList':[]}}
+	# Each device will be responsible for adding its parameters into the list... mmLib_Low will save/restore the list in resetOfflineStatistics/saveOfflineStatistics/restoreOfflineStatistics.
+	#  Note Each device can keep pointer to of its parameter dictionary
+	# in its init routine: myNonVolitileParametersDict = mmNonVolitiles['MyDevName'], then later use self.myNonVolitileParametersDict['parameterName'] = whatever
+
+	twoDimensionalDictTest()
+	aDict = pickle.load(open("tempTestFile.p", "rb"))
+
+	myDict = aDict['EntryTwo']
+	myList = myDict['Parameter4']
+
+	for x in range(1, 10):
+		myList.append(x + 2200)
+
+	print(aDict)

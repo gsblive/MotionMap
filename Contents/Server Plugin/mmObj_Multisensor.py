@@ -71,6 +71,7 @@ class mmMultisensor(object):
 		self.theIndigoAddress = self.theIndigoDevice.address
 		self.debugDevice = 0
 
+
 		try:
 			if theDeviceParameters["debugDeviceMode"] != "noDebug":
 				self.debugDevice = 1
@@ -147,6 +148,7 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 		self.theIndigoDevice = indigo.devices[self.deviceName]
 		self.theIndigoAddress = self.theIndigoDevice.address
 
+
 		# take this time to update the battery level
 		try:
 			mmLib_Low.setIndigoVariable(self.batteryLevelVar, str(self.theIndigoDevice.states["batteryLevel"]))
@@ -203,6 +205,18 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 	def deviceUpdated(self, origDev, newDev):
 
 		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
+
+		return(0)
+
+
+	#
+	# devStatus
+	#
+	def devStatus(self, theCommandParameters):
+
+		# Do any specialized status info here
+
+		super(mmMultisensorMotion, self).devStatus(theCommandParameters)
 
 		return(0)
 
