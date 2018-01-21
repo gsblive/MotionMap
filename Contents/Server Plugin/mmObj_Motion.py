@@ -343,7 +343,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		if delaySeconds == int(60*60) and self.ourNonvolatileData["motionDeltaCheckFrequency"] == int(60*60):
 			# most common case... the timer is already running
 			return(0)
-
+		else:
 			# all other cases, reset the timer
 			self.ourNonvolatileData["motionDeltaCheckFrequency"] = delaySeconds
 			mmLib_Low.registerDelayedAction({'theFunction': self.motionSensorCheckDebounceTimer,'timeDeltaSeconds': self.ourNonvolatileData["motionDeltaCheckFrequency"],'theDevice': self.deviceName,'timerMessage': "motionSensorCheckDebounceTimer"})

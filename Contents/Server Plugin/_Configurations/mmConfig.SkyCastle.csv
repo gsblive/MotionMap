@@ -166,8 +166,8 @@ deviceName,maxMovement,minMovement,influentialLights,debugDeviceMode
 CamDogRunMotion,60,5,DogRunAndWaterfallFloodLight,CarPortLights,noDebug
 CamCarPortMotion,60,5,CarPortLights;Front Porch;GarageDoorLights;DogRunAndWaterfallFloodLight;CarPortCarriageLights,noDebug
 CamLeftFrontHouseMotion,60,5,CarPortLights;Front Porch;PatioCarriageLights,noDebug
-CamGarageMotion,60,5,Front Porch;PatioCarriageLights;GarageDoorLights,noDebug
-CamRightFrontHouseMotion,60,5,Front Porch;PatioCarriageLights;GarageDoorLights,noDebug
+CamGarageMotion,60,5,GarageDoorLights,noDebug
+CamRightFrontHouseMotion,60,5,PatioCarriageLights,noDebug
 CamHouseParkingMotion,60,5,CarPortLights;DogRunAndWaterfallFloodLight,noDebug
 
 ########################################################
