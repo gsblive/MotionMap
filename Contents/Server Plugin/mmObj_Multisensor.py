@@ -32,25 +32,6 @@ import collections
 ######################################################
 class mmMultisensor(object):
 
-	######################################################################################
-	#
-	# Internally used routines for this object (mmMultisensor)
-	#
-	######################################################################################
-
-	def makeDeviceSubmodelDictionary(self):
-
-		for newDev in indigo.devices.iter("indigo.zwave, indigo.sensor"):
-
-			try:
-				temp = mmLib_Low.DeviceDict[newDev.address]
-			except:
-				mmLib_Low.DeviceDict[newDev.address] = {}
-
-			mmLib_Low.DeviceDict[newDev.address][newDev.subModel] = newDev
-
-		return
-
 
 	######################################################################################
 	#
@@ -60,9 +41,7 @@ class mmMultisensor(object):
 
 	def __init__(self, theDeviceParameters):
 
-		subTypesSupported = ["Motion Sensor", "Tilt/Tamper", "Luminance", "Temperature"]
-		subModelConversion = {'Motion Sensor': 'Motion Sensor','Tilt/Tamper': 'VibrationSensor','Luminance': 'LuminanceSensor','Temperature': 'TemperatureSensor'}
-		subModelInit = {'Motion Sensor': mmMultisensorMotion,'Tilt/Tamper': mmMultisensorVibration,'Luminance': mmMultisensorLuminance,'Temperature': mmMultisensorTemperature}
+		supportMatrixDict = {u'Multi Sensor 6 (ZW100) Humidity': mmMultisensorHumidity, u'Multi Sensor 6 (ZW100) Tamper': mmMultisensorVibration, u'Motion Sensor (FGMS001) Motion Sensor': mmMultisensorMotion, u'Multi Sensor 6 (ZW100) Motion Sensor': mmMultisensorMotion, u'Multi Sensor 6 (ZW100) Luminance': mmMultisensorLuminance, u'Multi Sensor 6 (ZW100) Temperature': mmMultisensorTemperature, u'Motion Sensor (FGMS001) Temperature': mmMultisensorTemperature, u'Motion Sensor (FGMS001) Tilt/Tamper': mmMultisensorVibration, u'Motion Sensor (FGMS001) Luminance': mmMultisensorLuminance, u'Multi Sensor 6 (ZW100) Ultraviolet': mmMultisensorUltraviolet}
 
 		self.initResult = 0
 		mmLib_Log.logVerbose("Adding multisensor with parameters: " + str(theDeviceParameters))
@@ -71,36 +50,27 @@ class mmMultisensor(object):
 		self.theIndigoAddress = self.theIndigoDevice.address
 		self.debugDevice = 0
 
-
 		try:
 			if theDeviceParameters["debugDeviceMode"] != "noDebug":
 				self.debugDevice = 1
 		except:
-			mmLib_Log.logVerbose("debugDeviceMode field is undefined in config file for " + self.deviceName + " , " + self.mmDeviceType)
+			mmLib_Log.logVerbose("debugDeviceMode field is undefined in config file for " + self.deviceName + " , " + self.theIndigoDevice.subModel)
 
-		if "FGMS001" in self.theIndigoDevice.model:
+		theDeviceDescriptor = str(self.theIndigoDevice.model) + " " + str(self.theIndigoDevice.subModel)
 
-			if mmLib_Low.DeviceDict == {}:
-				self.makeDeviceSubmodelDictionary()
+		try:
+			theInitProc = supportMatrixDict[theDeviceDescriptor]
+		except:
+			mmLib_Log.logForce("==== WARNING ==== Handler not found for " + self.deviceName + ". Descriptor: " + theDeviceDescriptor)
+			return
 
-			subDeviceParameters = theDeviceParameters
+		subDeviceParameters = theDeviceParameters
+		subDeviceParameters["deviceName"] = self.theIndigoDevice.name
+		subDeviceParameters["deviceType"] = self.theIndigoDevice.subModel
 
-			for subType in subTypesSupported:
+		if self.debugDevice != 0: mmLib_Log.logForce("Initializing: " + str(newDev.name))
 
-				try:
-					newDev = mmLib_Low.DeviceDict[str(self.theIndigoAddress)][str(subType)]
-				except:
-					mmLib_Log.logForce("===Adding multisensor with address " + str(self.theIndigoAddress) + " and unsupported sub type: " + str(subType))
-					continue
-
-				subDeviceParameters["deviceName"] = newDev.name
-				subDeviceParameters["deviceType"] = subModelConversion[subType]
-				if self.debugDevice != 0: mmLib_Log.logForce("Initializing: " + str(newDev.name))
-				subModelInit[subType](subDeviceParameters)
-
-		else:
-			mmLib_Log.logForce("#### " + self.deviceName + ": Unknown multifunction device type.")
-
+		theInitProc(subDeviceParameters)
 
 
 
@@ -372,6 +342,136 @@ class mmMultisensorLuminance(mmComm_Indigo.mmIndigo):
 
 		return(0)
 
+######################################################
+#
+# mmMultisensorHumidity - SubModel of multisensorDevice above
+#
+######################################################
+class mmMultisensorHumidity(mmComm_Indigo.mmIndigo):
+
+	#
+	# __init__
+	#
+	def __init__(self, theDeviceParameters):
+
+		super(mmMultisensorHumidity, self).__init__(theDeviceParameters)  # Initialize Base Class
+
+		s = str(self.deviceName + ".Humidity")
+		self.humidityLevelVar = s.replace(' ', '.')
+
+		# take this time to update the Humidity level
+		mmLib_Low.setIndigoVariable(self.humidityLevelVar, str(self.theIndigoDevice.sensorValue))
+
+
+	######################################################################################
+	#
+	# Externally Addessable Routines, must have a single parameter - theCommandParameters
+	#
+	######################################################################################
+
+
+	######################################################################################
+	#
+	# End Externally Addessable Routines
+	#
+	######################################################################################
+
+
+	def parseUpdate(self, origDev, newDev):
+		if self.debugDevice != 0:
+			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
+			mmLib_Log.logForce("Parsing Update for mmMultisensorHumidity: " + self.deviceName + " with Value of: " + str(diff))
+
+		if origDev.sensorValue != newDev.sensorValue:
+			# take this time to update the Humidity level
+			mmLib_Low.setIndigoVariable(self.humidityLevelVar, str(newDev.sensorValue))
+			mmLib_Log.logForce(newDev.name + ": Value = " + str(newDev.sensorValue) + " % Relative Humidity")
+		else:
+			mmLib_Log.logDebug(newDev.name + ": Received duplicate value: Humidity = " + str(newDev.sensorValue))
+		return 1	#0 means did not process
+
+	def parseCommand(self, theInsteonCommand):
+		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmMultisensorHumidity: " + self.deviceName + " with Value of " + str(theInsteonCommand))
+		return 1	#0 means did not process
+
+	def parseCompletion(self, theInsteonCommand):
+		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmMultisensorHumidity: " + self.deviceName + " with Value of " + str(theInsteonCommand))
+		return 1	#0 means did not process
+
+	#
+	# deviceUpdated
+	#
+	def deviceUpdated(self, origDev, newDev):
+
+		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
+
+		return(0)
+
+
+######################################################
+#
+# mmMultisensorUltraviolet - SubModel of multisensorDevice above
+#
+######################################################
+class mmMultisensorUltraviolet(mmComm_Indigo.mmIndigo):
+
+	#
+	# __init__
+	#
+	def __init__(self, theDeviceParameters):
+
+		super(mmMultisensorUltraviolet, self).__init__(theDeviceParameters)  # Initialize Base Class
+
+		s = str(self.deviceName + ".UV")
+		self.uvLevelVar = s.replace(' ', '.')
+
+		# take this time to update the UV level
+		mmLib_Low.setIndigoVariable(self.uvLevelVar, str(self.theIndigoDevice.sensorValue))
+
+
+	######################################################################################
+	#
+	# Externally Addessable Routines, must have a single parameter - theCommandParameters
+	#
+	######################################################################################
+
+
+	######################################################################################
+	#
+	# End Externally Addessable Routines
+	#
+	######################################################################################
+
+
+	def parseUpdate(self, origDev, newDev):
+		if self.debugDevice != 0:
+			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
+			mmLib_Log.logForce("Parsing Update for mmMultisensorUV: " + self.deviceName + " with Value of: " + str(diff))
+
+		if origDev.sensorValue != newDev.sensorValue:
+			# take this time to update the UV level
+			mmLib_Low.setIndigoVariable(self.uvLevelVar, str(newDev.sensorValue))
+			mmLib_Log.logForce(newDev.name + ": Value = " + str(newDev.sensorValue) + " mW\/cm^2")
+		else:
+			mmLib_Log.logDebug(newDev.name + ": Received duplicate value: mW\/cm^2 = " + str(newDev.sensorValue))
+		return 1	#0 means did not process
+
+	def parseCommand(self, theInsteonCommand):
+		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmMultisensorUltraviolet: " + self.deviceName + " with Value of " + str(theInsteonCommand))
+		return 1	#0 means did not process
+
+	def parseCompletion(self, theInsteonCommand):
+		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmMultisensorUltraviolet: " + self.deviceName + " with Value of " + str(theInsteonCommand))
+		return 1	#0 means did not process
+
+	#
+	# deviceUpdated
+	#
+	def deviceUpdated(self, origDev, newDev):
+
+		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
+
+		return(0)
 
 ######################################################
 #

@@ -68,8 +68,8 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 		return(self.currentOnState)
 
-	def getChangeDeltaTime(self):
-		# go through the load devices and look for the most recent on/off change
+	def getInfluentialLoadChangeDelta(self):
+		# go through the influential load devices and look for the most recent on/off change
 		theDeltaTime = 100000
 
 		for devName in self.influentialLights:
@@ -109,9 +109,9 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 		# If the motion is likely a result of a nearby influential light, exit
 
-		deltaTime = self.getChangeDeltaTime()
+		deltaTime = self.getInfluentialLoadChangeDelta()
 
-		if( deltaTime < 11 ):
+		if( deltaTime < 6 ):
 			# Ignore the phantom transition/motion due to light change
 			mmLib_Log.logForce(" === Ignoring phantom motion on " + self.deviceName + " because recent transition of influential light occurred " + str(deltaTime) + " seconds ago.")
 			return('Dque')

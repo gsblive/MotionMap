@@ -13,11 +13,13 @@ import bisect
 import os
 import pickle
 import inspect
-
+import timeit
 
 # Main Code
 
 theDict = {}
+delayQueue = []
+delayedFunctions = {}
 
 class anotherClass:
 
@@ -231,31 +233,226 @@ def supermakedirs(path, mode):
     res += [path]
     return res
 
-fileDir = os.path.dirname(os.path.realpath('__file__'))
-print fileDir
 
-print os.path.basename(__file__)                      # script1.py
-print os.path.basename(os.path.realpath(sys.argv[0])) # script1.py
-print os.path.abspath(__file__)                       # C:\testpath\script1.py
-print os.path.realpath(__file__)                      # C:\testpath\script1.py
-print os.getcwd()
-current_file = os.path.abspath(os.path.dirname(__file__))
-parent_of_parent_dir = os.path.join(current_file, '../../../../')
-print os.path.abspath(parent_of_parent_dir)                       # C:\testpath\script1.py
 
-#supermakedirs("/Library/Application Support/MotionMap/", 0755)
+def	makeDictVersion1():
 
-#os.makedirs("/Library/Application Support/MotionMap/", 0755)
-# os.makedirs('full/path/to/new/directory', desired_permission)
-#originalMask = os.umask(0)
-#os.makedirs("/Library/Application Support/MotionMap/", 0755)
-#os.umask(originalMask)
+	for i in range(100000):
+		theHeader = ["deviceName", "maxNonMotionTime", "maxOnTime", "daytimeOnLevel", "nighttimeOnLevel",
+					 "specialFeatures", "onControllers", "sustainControllers", "maxSequentialErrorsAllowed",
+					 "debugDeviceMode"]
+		theDevice = ["BackStairsLights", 5, 30, 60, 25, "flash", "GarageHall3Multisensor;BackStairsMultisensor", "", 2,
+					 "noDebug"]
+		dictionary = dict(zip(theHeader, theDevice))
 
-#theNVFile = open("/Library/Application Support/MotionMap/" + nvFileName, "wb")
-#pickle.dump(mmNonVolitiles, theNVFile)
-#theNVFile.close()
+	print(dictionary)
+
+def	makeDictVersion2():
+
+	for i in range(100000):
+		theHeader = ["deviceName", "maxNonMotionTime", "maxOnTime", "daytimeOnLevel", "nighttimeOnLevel",
+					 "specialFeatures", "onControllers", "sustainControllers", "maxSequentialErrorsAllowed",
+					 "debugDeviceMode"]
+		theDevice = ["BackStairsLights", 5, 30, 60, 25, "flash", "GarageHall3Multisensor;BackStairsMultisensor", "", 2,
+					 "noDebug"]
+		#dictionary = dict(zip(theHeader, theDevice))
+
+		#min(timeit.repeat(lambda: {k: v for k, v in zip(theHeader, theDevice)}))
+		dictionary = {k: v for k, v in zip(theHeader, theDevice)}
+
+	print(dictionary)
+
+def makeDictVersion3():
+
+	for i in range(100000):
+		theHeader = ["deviceName", "maxNonMotionTime", "maxOnTime", "daytimeOnLevel", "nighttimeOnLevel",
+					 "specialFeatures", "onControllers", "sustainControllers", "maxSequentialErrorsAllowed",
+					 "debugDeviceMode"]
+		theDevice = ["BackStairsLights", 5, 30, 60, 25, "flash", "GarageHall3Multisensor;BackStairsMultisensor", "", 2,
+					 "noDebug"]
+
+		dictionary = {}
+		for theKey in theHeader:
+			dictionary[theKey] = theDevice.pop(0)
+
+	print(dictionary)
+
+
+def makeDeviceSubmodelDictionary():
+
+	DeviceDict = {}
+
+	for newDevAddr in range(100):
+
+		for subModel in ["Sub1","Sub2", "Sub3","Sub4"]:
+			try:
+				temp = DeviceDict[newDevAddr]
+			except:
+				DeviceDict[newDevAddr] = {}
+
+			DeviceDict[newDevAddr][subModel] = "This is our Device"
+
+	#print DeviceDict
+	newDevAddr = 49
+	submodel = "Sub2"
+	for x in range(10000):
+		tempData = DeviceDict[newDevAddr][subModel]
+	return
+
+
+def makeDeviceSubmodelDictionary2():
+
+	deviceQueue = []
+	deviceInfo = []
+
+	for newDevAddr in range(100):
+
+		for subModel in ["Sub1","Sub3", "Sub9","Sub4"]:
+			bisect.insort(deviceQueue, (newDevAddr,subModel,"This is our device"))
+			#deviceInfo[newDevAddr*10 + subModel] = "This is our device"
+			#print "Insort " + str(newDevAddr) + subModel
+
+	#print deviceQueue
+	return
+
+def makeDeviceSubmodelDictionary3():
+
+	DeviceDict = {}
+
+	for newDevAddr in range(100):
+
+		for subModel in ["Sub1","Sub2", "Sub3","Sub4"]:
+			try:
+				temp = DeviceDict[newDevAddr]
+			except:
+				DeviceDict[newDevAddr] = {}
+
+			DeviceDict[str(newDevAddr) + subModel] = "This is our Device"
+
+	newDevAddr = str(49)
+	submodel = "Sub2"
+	findThis = str(newDevAddr) + subModel
+	for x in range(10000):
+		tempData = DeviceDict[findThis]
+
+	#print DeviceDict[str(newDevAddr) + subModel]
+
+	return
+
+
+theStartTime = time.clock()
+makeDeviceSubmodelDictionary()
+newTime = time.clock()
+print("makeDeviceSubmodelDictionary Time: " + str(newTime - theStartTime))
+
+theStartTime = time.clock()
+makeDeviceSubmodelDictionary3()
+newTime = time.clock()
+print("makeDeviceSubmodelDictionary3 Time: " + str(newTime - theStartTime))
+
+theStartTime = time.clock()
+makeDeviceSubmodelDictionary3()
+newTime = time.clock()
+print("makeDeviceSubmodelDictionary3 Time: " + str(newTime - theStartTime))
+
+theStartTime = time.clock()
+makeDeviceSubmodelDictionary()
+newTime = time.clock()
+print("makeDeviceSubmodelDictionary Time: " + str(newTime - theStartTime))
 
 if 0:
+
+	theStartTime = time.clock()
+	makeDictVersion1()
+	newTime = time.clock()
+	print("makeDictVersion1 Time: " + str(newTime - theStartTime))
+
+
+	theStartTime = time.clock()
+	makeDictVersion2()
+	newTime = time.clock()
+	print("makeDictVersion2 Time: " + str(newTime - theStartTime))
+
+	theStartTime = time.clock()
+	makeDictVersion3()
+	newTime = time.clock()
+	print("makeDictVersion3 Time: " + str(newTime - theStartTime))
+
+
+
+	#s = {1,2,4,5,6}
+	#theDevice = {"BackStairsLights",5,30,60,25,"flash","GarageHall3Multisensor;BackStairsMultisensor","",2,"noDebug"}
+	#theDevice = ["a","b","c","d","e"]
+	#print dict.fromkeys(s, theDevice)
+	#print dict.fromkeys(theHeader, theDevice)
+
+
+
+
+
+
+
+	myTemplate = "\'Identifyer\':@0,\'Data\':@1"
+	myValues = ['TestID','{\'field1\':001,\'field2\':002}']
+	aString = myTemplate
+
+	for index in range(0,len(myValues)):
+		indexString = '@' + str(index)
+		aString = aString.replace(indexString, myValues[index])
+
+	print(aString)
+
+
+
+
+
+	text = '000 001 002 003'
+	words = ['now','is', 'the', 'time']
+
+	print [words[int(item)] for item in text.split()]
+
+	str = "What $noun$ is $verb$?"
+	print str.replace("$noun$", "the heck")
+
+	myStr = "Identifyer:@0,Data:@1"
+	print myStr.replace("@0", "MyTest")
+
+	myTemplate = "Identifyer:@0,Data:@1"
+	myValues = ['TestID','TestVal']
+	anIndex = 0
+	for elem in enumerate(myValues):
+		#theIndex = '@'+ str(index)
+		print('@' + str(anIndex))
+	#	print(myTemplate.replace('@0', elem))
+		#myTemplate.replace("@"+str(index), str(elem))
+		anIndex = anIndex + 1
+	#print(myTemplate)
+
+
+	fileDir = os.path.dirname(os.path.realpath('__file__'))
+	print fileDir
+
+	print os.path.basename(__file__)                      # script1.py
+	print os.path.basename(os.path.realpath(sys.argv[0])) # script1.py
+	print os.path.abspath(__file__)                       # C:\testpath\script1.py
+	print os.path.realpath(__file__)                      # C:\testpath\script1.py
+	print os.getcwd()
+	current_file = os.path.abspath(os.path.dirname(__file__))
+	parent_of_parent_dir = os.path.join(current_file, '../../../../')
+	print os.path.abspath(parent_of_parent_dir)                       # C:\testpath\script1.py
+
+	#supermakedirs("/Library/Application Support/MotionMap/", 0755)
+
+	#os.makedirs("/Library/Application Support/MotionMap/", 0755)
+	# os.makedirs('full/path/to/new/directory', desired_permission)
+	#originalMask = os.umask(0)
+	#os.makedirs("/Library/Application Support/MotionMap/", 0755)
+	#os.umask(originalMask)
+
+	#theNVFile = open("/Library/Application Support/MotionMap/" + nvFileName, "wb")
+	#pickle.dump(mmNonVolitiles, theNVFile)
+	#theNVFile.close()
+
 
 	ourmmNonVolitiles = initializeNVDict("GregsDevice")
 	storedValue = initializeNVElement(ourmmNonVolitiles, "FirstEntry",100)

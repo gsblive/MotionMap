@@ -99,10 +99,9 @@ def parseConfig(theFilePath):
 			lineList.insert(0, currentmmDeviceType)
 			mmLib_Log.logVerbose("Initializing " + str(lineList[1]) + " Object: " + str(lineList[0]))
 
-			initParameters = {}
-			for theKey in currentHeader:
-				initParameters[theKey] = lineList.pop(0)
-				mmLib_Log.logVerbose(" >>>Init Parameters are " + str(initParameters))
+			if len(currentHeader) != len(lineList):	mmLib_Log.logForce(" === WARNING ==== Missing parameter for device " + lineList[1] )
+
+			initParameters = dict(zip(currentHeader, lineList))
 
 			try:
 				dispatchInit = objectJumpTable[currentmmDeviceType]
