@@ -22,6 +22,7 @@ import time
 import itertools
 import pickle
 import collections
+import random
 
 
 
@@ -123,7 +124,9 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 		try:
 			mmLib_Low.setIndigoVariable(self.batteryLevelVar, str(self.theIndigoDevice.states["batteryLevel"]))
 		except:
-			mmLib_Log.logForce("=====Initializing mmMultisensorMotion: " + self.deviceName + " no State batteryLevel: " + str(self.theIndigoDevice))
+			mmLib_Log.logForce(" ===== Initializing mmMultisensorMotion: " + self.deviceName + " no batteryLevel State")
+
+		mmLib_Low.registerDelayedAction({'theFunction': self.OnceADayTimer, 'timeDeltaSeconds': random.randint(60*60*10, 60*60*14), 'theDevice': self.deviceName, 'timerMessage': "OnceADayTimer"})
 
 	######################################################################################
 	#
@@ -138,13 +141,21 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 	#
 	######################################################################################
 
+	#
+	# OnceADayTimer - Check battery level etc
+	#
+	def OnceADayTimer(self, parameters):
+
+		# take this time to update the battery level
+		mmLib_Low.setIndigoVariable(self.batteryLevelVar, str(self.theIndigoDevice.states["batteryLevel"]))
+
+		return random.randint(60*60*10, 60*60*14)	# Between 10 and 14 hours is fine
+
+
 	def parseUpdate(self, origDev, newDev):
 		if self.debugDevice != 0:
 			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
 			mmLib_Log.logForce("Parsing Update for mmMultisensorMotion: " + self.deviceName + " with Value of: " + str(diff))
-
-		# take this time to update the battery level
-		mmLib_Low.setIndigoVariable(self.batteryLevelVar, str(newDev.states["batteryLevel"]))
 
 		super(mmMultisensorMotion, self).deviceUpdated(origDev, newDev)  # the Motion class to do motion processing
 
@@ -195,17 +206,22 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 	# 	FORCE it to the log
 	#	returns 0 if good battery, nonzero if bad
 	#
-	def checkBattery(self):
+	def checkBattery(self, theCommandParameters):
 
 		currentBatteryVal = int(mmLib_Low.getIndigoVariable(self.batteryLevelVar, "101"))
 
-		if currentBatteryVal > 100:
-			addString = ""				# Its not setup yet
-		elif currentBatteryVal > 10:
-			addString = ""
+
+		if theCommandParameters["ReportType"] == "Terse":
+			if currentBatteryVal > 100:
+				addString = ""				# Its not setup yet
+			elif currentBatteryVal > 50:
+				addString = ""
+			else:
+				addString = self.deviceName + " battery level is at " + str(currentBatteryVal) + "%"
+				mmLib_Log.logReportLine(addString)
 		else:
-			addString = self.deviceName + " battery level is at " + str(currentBatteryVal) + "%\n"
-			mmLib_Log.logForce(addString)
+			addString = self.deviceName + " battery level is at " + str(currentBatteryVal) + "%"
+			mmLib_Log.logReportLine(addString)
 
 		return(addString)
 
@@ -240,14 +256,16 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 	######################################################################################
 
 
+
 	#
-	# deviceTime - do device housekeeping... this should happen once a minute
+	# offTimer - Reset Vibration sense
 	#
 	def offTimer(self, parameters):
 
 			mmLib_Log.logForce("Device: " + self.deviceName + " Resetting onstate to 0 ")
 			indigo.device.turnOff(self.devIndigoID)
 			return 0
+
 
 	def parseUpdate(self, origDev, newDev):
 		if self.debugDevice != 0:

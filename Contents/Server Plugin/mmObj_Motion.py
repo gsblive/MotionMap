@@ -383,7 +383,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# 	FORCE it to the log
 	#	returns 0 if good battery, nonzero if bad
 	#
-	def checkBattery(self):
+	def checkBattery(self, theCommandParameters):
 
 		addString = ""
 

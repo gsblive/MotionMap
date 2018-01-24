@@ -381,7 +381,7 @@ def	mmIsDaytime():
 
 	mmLib_Log.logReportLine("*** It is now Daytime ***")
 	processOfflineReport({'theCommand': 'offlineReport', 'theDevice': 'errorCounter', 'theMode': 'Email'})
-	batteryReport({'theCommand': 'batteryReport'})
+	batteryReport({'theCommand': 'batteryReport', "ReportType":"Terse"})
 
 	return
 
@@ -864,11 +864,20 @@ def batteryReport(theCommandParameters):
 	emailString = ""
 	resultTotal = 0
 
+	try:
+		theReportType = theCommandParameters["ReportType"]
+	except:
+		theReportType = "Terse"
+
 	addString = "==============================================="
 	mmLib_Log.logReportLine(addString)
 	emailString = emailString + addString + "\n"
 
-	addString = "Display Battery Status for all Controller Devices."
+	if theReportType == "Terse":
+		addString = "Display Battery Status for Controller Devices that have low battery."
+	else:
+		addString = "Display Battery Status for all Controller Devices."
+
 	mmLib_Log.logReportLine(addString)
 	emailString = emailString + addString + "\n"
 
@@ -878,7 +887,7 @@ def batteryReport(theCommandParameters):
 
 
 	for mmDev in controllerDeque:
-		addString = mmDev.checkBattery()
+		addString = mmDev.checkBattery(theCommandParameters)
 		if addString != "":
 			emailString = emailString + addString + "\n"
 			resultTotal = resultTotal+1

@@ -339,28 +339,39 @@ def makeDeviceSubmodelDictionary3():
 
 	return
 
+aList = ["one","two", "three"]
 
-theStartTime = time.clock()
-makeDeviceSubmodelDictionary()
-newTime = time.clock()
-print("makeDeviceSubmodelDictionary Time: " + str(newTime - theStartTime))
+for i in range (0,len(aList)-1):
+	print aList[i]
 
-theStartTime = time.clock()
-makeDeviceSubmodelDictionary3()
-newTime = time.clock()
-print("makeDeviceSubmodelDictionary3 Time: " + str(newTime - theStartTime))
 
-theStartTime = time.clock()
-makeDeviceSubmodelDictionary3()
-newTime = time.clock()
-print("makeDeviceSubmodelDictionary3 Time: " + str(newTime - theStartTime))
 
-theStartTime = time.clock()
-makeDeviceSubmodelDictionary()
-newTime = time.clock()
-print("makeDeviceSubmodelDictionary Time: " + str(newTime - theStartTime))
 
 if 0:
+	theStartTime = time.clock()
+	makeDeviceSubmodelDictionary()
+	newTime = time.clock()
+	print("makeDeviceSubmodelDictionary Time: " + str(newTime - theStartTime))
+
+	theStartTime = time.clock()
+	makeDeviceSubmodelDictionary3()
+	newTime = time.clock()
+	print("makeDeviceSubmodelDictionary3 Time: " + str(newTime - theStartTime))
+
+	theStartTime = time.clock()
+	makeDeviceSubmodelDictionary3()
+	newTime = time.clock()
+	print("makeDeviceSubmodelDictionary3 Time: " + str(newTime - theStartTime))
+
+	theStartTime = time.clock()
+	makeDeviceSubmodelDictionary()
+	newTime = time.clock()
+	print("makeDeviceSubmodelDictionary Time: " + str(newTime - theStartTime))
+
+
+
+
+
 
 	theStartTime = time.clock()
 	makeDictVersion1()

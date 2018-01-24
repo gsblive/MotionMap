@@ -90,7 +90,6 @@ class mmIndigo(object):
 		self.supportedCommandsDict = {'deviceUpdated': self.mmDeviceUpdated, 'receivedCommand': self.mmReceivedCommand, 'completeCommand': self.mmCompleteCommand, 'errorCommand': self.mmErrorCommand}
 
 
-
 	######################################################################################
 	#
 	#
