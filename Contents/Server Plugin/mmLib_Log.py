@@ -12,6 +12,7 @@ import traceback
 import datetime
 import indigo
 import mmLib_Low
+import _MotionMapPlugin
 
 ##################################
 # Constants
@@ -157,10 +158,12 @@ def displayMessage(logType, logMessage, diplayProc):
 	callingTime = datetime.datetime.now().strftime("%I:%M:%S %p")
 	callingPackage = str("(" + callingFile + "." + callingProc + ":" + callingLine + ")" )
 
+	logMessage = '{0:<22} {1}'.format(str('|' * NestingDepth), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
+
 	if diplayProc == indigo.server.log:
-		diplayProc('|' * NestingDepth + "< " + callingProc + ':' + logMessage + " " + callingPackage, callingTime + " " + logType)
+		diplayProc(logMessage, _MotionMapPlugin.MM_NAME + " " + logType)
 	else:
-		diplayProc(str('|' * NestingDepth  + "< " + callingTime + " " + logType + ", " + callingProc + ':' + logMessage + " " + callingPackage))
+		diplayProc(logMessage)
 
 	return
 

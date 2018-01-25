@@ -16,6 +16,7 @@ import inspect
 import timeit
 import traceback
 import datetime
+import ntpath
 
 # Main Code
 
@@ -368,6 +369,8 @@ def displayMessage(logType, logMessage, diplayProc):
 
 	global indentList
 
+	finalString = ""
+
 	theTrace = traceback.extract_stack()
 	NestingDepth = len(theTrace) - 3
 	aLine = theTrace[NestingDepth]
@@ -382,16 +385,24 @@ def displayMessage(logType, logMessage, diplayProc):
 	callingTime = datetime.datetime.now().strftime("%I:%M:%S %p")
 	callingPackage = str("(" + callingFile + "." + callingProc + ":" + callingLine + ")" )
 
-	finalString = str(' ' * NestingDepth + callingTime + " " + logType + ", " + callingProc + ':' + logMessage + " " + callingPackage)
+	NestingDepth = random.randint(1, 20)
+
+	finalString = '{0:<22} {1}'.format(str('|' * NestingDepth), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
 
 	return finalString
 
 
+random.seed()
 
-print displayMessage('mMForce', "=== Try This Test Message", "")
+configFileName = "/Library/Application Support/Perceptive Automation/Indigo 7/Plugins/MotionMap 3.indigoPlugin/Contents/Server Plugin/_Configurations/mmConfig.SkyCastle.csv"
+logMessage = "Parsing file: " + ntpath.basename(configFileName)
 
 
+theMessage = displayMessage('mMForce', logMessage, 1)
+print '{0:<34} {1}'.format("MotionMap3" + " " + 'mmForce', theMessage)
 
+theMessage = displayMessage('mMForce', logMessage, 0)
+print '{0:<34} {1}'.format('MotionMap3 Error', theMessage)
 
 
 if 0:

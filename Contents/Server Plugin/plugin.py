@@ -48,7 +48,7 @@ def mmParseConfig(theCommands):
 
 	global pluginInitialized
 
-	mmLib_Log.logForce("Parsing config file: " + _MotionMapPlugin.MM_DEFAULT_CONFIG_FILE)
+	mmLib_Log.logForce("Parsing config file: " + str(_MotionMapPlugin.MM_Location) + ".csv")
 	savedInitValue = pluginInitialized
 	pluginInitialized = 0
 	timerQueue = deque()

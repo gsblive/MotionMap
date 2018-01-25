@@ -20,6 +20,7 @@ import mmObj_Scene
 import mmObj_Occupation
 import mmObj_CamMotion
 import time
+import ntpath
 
 ######################################################
 #
@@ -35,7 +36,8 @@ def parseConfig(theFilePath):
 
 	initialLogSensitivity = mmLib_Log.getLogSensitivity()
 
-	mmLib_Log.logTerse("Parsing file: " + theFilePath)
+	#mmLib_Log.logTerse("Parsing file: " + theFilePath)			# For Full Pathname
+	mmLib_Log.logTerse("Parsing file: " + ntpath.basename(theFilePath))			# For just file name
 
 
 	f = open(theFilePath, 'r')
@@ -130,7 +132,8 @@ def parseConfig(theFilePath):
 	f.close()
 	mmLib_Log.setLogSensitivity(initialLogSensitivity)		# restore log sensitivity (in case it changed while parsing)
 #	mmLib_Log.logForce("  +TIMETRACK:" + str(inObjectTime) + "s. Time in objects.")
-	mmLib_Log.logTerse("Complete Parsing file: " + theFilePath)
+#	mmLib_Log.logTerse("Complete Parsing file: " + theFilePath)						# For Full Pathname
+	mmLib_Log.logTerse("Complete Parsing file: " + ntpath.basename(theFilePath))			# For just file name
 
 
 ######################################################

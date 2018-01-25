@@ -150,7 +150,8 @@ def initializeNVDict(theDevName):
 		target_dir = os.path.join(current_file, '../../../')
 		mmNVPath = os.path.abspath(target_dir)
 		mmNVFileName = mmNVPath +"/"+ _MotionMapPlugin.nvFileName
-		mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + mmNVFileName)
+		#mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + mmNVFileName)	# Full Pathname
+		mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + _MotionMapPlugin.nvFileName)	# Just Filename
 
 	needsCache = 0
 
