@@ -63,68 +63,11 @@ def mmParseConfig(theCommands):
 ############################################################################################
 def mmTestCode(theCommandParameters):
 
-
-	if 0:
-		theStartTime = time.clock()
-		for theCount in range(1000):
-			#mmLib_Low.setIndigoVariable("mmTestVariable", "TestValue")
-			mmLib_Log.logForce("=== Testing SetIndigoVar")
-		newTime = time.clock()
-
-		mmLib_Log.logForce("### Plugin.py:mmTestCode Test Code Timing: " + str((newTime - theStartTime)) + " seconds.")
-
-		theStartTime = time.clock()
-		for theCount in range(1000):
-			#mmLib_Low.mmNonVolatiles["mmTestVariable"] = "TestValue"
-			mmLib_Log.logForce("=== Testing SetNVVar")
-		newTime = time.clock()
-
-		mmLib_Log.logForce("### Plugin.py:mmTestCode Test Code Timing 2: " + str((newTime - theStartTime)) + " seconds.")
-
-		mmLib_Log.logForce("=== Testing Log function")
-
-		indigo.server.log("Try logDebug")
-		mmLib_Log.logDebug("=====logDebug Demo")
-
-		indigo.server.log("Try logVerbose")
-		mmLib_Log.logVerbose("=====logVerbose Demo")
-
-		indigo.server.log("Try logTerse")
-		mmLib_Log.logTerse("=====logTerse Demo")
-
-		indigo.server.log("Try logWarning")
-		mmLib_Log.logWarning("=====logWarning Demo")
-
-		indigo.server.log("Try logError")
-		mmLib_Log.logError("=====logError Demo")
-
-		indigo.server.log("Try logForce")
-		mmLib_Log.logForce("=====logForce Demo")
-
-		indigo.server.log("Try logTimestamp")
-		mmLib_Log.logTimestamp("=====logTimestamp Demo")
-
-		indigo.server.log("Try logReportLine")
-		mmLib_Log.logReportLine("=====logReportLine Demo")
-	else:
-
-		theStartTime = time.clock()
-		for i in range(0,100):
-			mmLib_Log.logForce("=====logForce Demo " + str(i))
-		newTime = time.clock()
-		mmLib_Log.logForce("### Plugin.py:mmTestCode Test Code Timing 1: " + str((newTime - theStartTime)) + " seconds.")
-
-		theStartTime = time.clock()
-		for i in range(0,100):
-			mmLib_Log.logForceX("=====logForce Demo " + str(i))
-		newTime = time.clock()
-		mmLib_Log.logForce("### Plugin.py:mmTestCode Test Code Timing 2: " + str((newTime - theStartTime)) + " seconds.")
-
-		theStartTime = time.clock()
-		for i in range(0,100):
-			mmLib_Log.logForce("=====logForce Demo " + str(i))
-		newTime = time.clock()
-		mmLib_Log.logForce("### Plugin.py:mmTestCode Test Code Timing 1B: " + str((newTime - theStartTime)) + " seconds.")
+	theStartTime = time.clock()
+	for theCount in range(100):
+		mmLib_Log.logForce("===== New logForce   " + str(theCount))
+	newTime = time.clock()
+	mmLib_Log.logForce("### Plugin.py:mmTestCode Test Code Timing 0: " + str((newTime - theStartTime)) + " seconds.")
 
 	return(1)
 
@@ -268,57 +211,6 @@ class Plugin(indigo.PluginBase):
 		mmLib_Log.logDebug("### Shutdown called -- Shutting Down MotionMap")
 		pluginInitialized = 0	# Stop all processing
 		mmLib_Low.cacheNVDict()	# cache the nonvolatiles
-
-
-
-
-
-	########################################
-	#
-	#	initLogger	Setup logging jump table
-	#
-	########################################
-	def initLogger(self):
-
-		#
-		#  Note logger colors:
-		#
-		#  		self.logger.debug(u"Debug log message")			# Gray
-		#		self.logger.info(u"Info log message")			# Black
-		#		self.logger.warn(u"Warning log message")		# Black
-		#		self.logger.error(u"Error log message")			# Red
-		#		self.logger.critical(u"Critical log message")	# Red
-		#
-		#
-		#	MM_LOG_DEBUG_NOTE = 0
-		#	MM_LOG_VERBOSE_NOTE = 1
-		#	MM_LOG_TERSE_NOTE = 2
-		#	MM_LOG_WARNING = 3
-		#	MM_LOG_ERROR = 4
-		#	MM_LOG_FORCE_NOTE = 5
-		#	MM_LOG_TIMESTAMP = 6
-		#	MM_LOG_REPORT = 7
-		#
-
-		self.loggerDispatchTable = [self.logger.debug, self.logger.info, indigo.server.log, self.logger.warn, self.logger.error, indigo.server.log, indigo.server.log, indigo.server.log]
-
-
-	########################################
-	#
-	#	dispatchLog	The plugin is being called display a message on the indigo console
-	#
-	########################################
-	def dispatchLog(self, theMessage, indigoLogType, mmLogType):
-
-		theLogFunction = self.loggerDispatchTable[mmLogType]
-
-		if theLogFunction == indigo.server.log:
-			theLogFunction(theMessage, indigoLogType)
-		else:
-			theLogFunction(indigoLogType + theMessage)
-
-
-
 
 
 	########################################

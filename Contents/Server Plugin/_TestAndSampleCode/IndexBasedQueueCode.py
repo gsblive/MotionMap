@@ -64,7 +64,6 @@ def flushCommandQ(theDevice, theCommandParameters, matchingEntries):
 
 	n=findCommandQ(theDevice, theCommandParameters, matchingEntries)
 	if n:
-		#mmLog.write(mmLog.MM_LOG_DEBUG_NOTE, "enqueCommand - flushing queued command " + theDevice.deviceName + ": " + theCommandParameters["theCommand"])
 		qDelete(commandQueue, n)
 
 

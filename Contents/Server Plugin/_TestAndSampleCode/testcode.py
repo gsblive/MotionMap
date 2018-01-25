@@ -14,6 +14,8 @@ import os
 import pickle
 import inspect
 import timeit
+import traceback
+import datetime
 
 # Main Code
 
@@ -339,10 +341,55 @@ def makeDeviceSubmodelDictionary3():
 
 	return
 
-aList = ["one","two", "three"]
+indentList =   ['',
+				' ',
+				'  ',
+				'   ',
+				'    ',
+				'     ',
+				'      ',
+				'       ',
+				'        ',
+				'         ',
+				'          ',
+				'           ',
+				'            ',
+				'             ',
+				'              ',
+				'               ',
+				'                ',
+				'                 ',
+				'                  ',
+				'                   ',
+				'                    ',
+				'                    +']
 
-for i in range (0,len(aList)-1):
-	print aList[i]
+def displayMessage(logType, logMessage, diplayProc):
+
+	global indentList
+
+	theTrace = traceback.extract_stack()
+	NestingDepth = len(theTrace) - 3
+	aLine = theTrace[NestingDepth]
+
+	if NestingDepth < 0: NestingDepth = 0
+	elif NestingDepth > 20: NestingDepth = 21
+
+	indent = indentList[NestingDepth]
+	callingFile = os.path.basename(str(aLine[0]))
+	callingProc = str(aLine[2])
+	callingLine = str(aLine[1])
+	callingTime = datetime.datetime.now().strftime("%I:%M:%S %p")
+	callingPackage = str("(" + callingFile + "." + callingProc + ":" + callingLine + ")" )
+
+	finalString = str(' ' * NestingDepth + callingTime + " " + logType + ", " + callingProc + ':' + logMessage + " " + callingPackage)
+
+	return finalString
+
+
+
+print displayMessage('mMForce', "=== Try This Test Message", "")
+
 
 
 
