@@ -387,25 +387,209 @@ def displayMessage(logType, logMessage, diplayProc):
 
 	NestingDepth = random.randint(1, 20)
 
-	finalString = '{0:<22} {1}'.format(str('|' * NestingDepth), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
+	finalString = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22-NestingDepth)), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
 
 	return finalString
 
 
-random.seed()
-
-configFileName = "/Library/Application Support/Perceptive Automation/Indigo 7/Plugins/MotionMap 3.indigoPlugin/Contents/Server Plugin/_Configurations/mmConfig.SkyCastle.csv"
-logMessage = "Parsing file: " + ntpath.basename(configFileName)
 
 
-theMessage = displayMessage('mMForce', logMessage, 1)
-print '{0:<34} {1}'.format("MotionMap3" + " " + 'mmForce', theMessage)
+#================================================================================================================
+#
+#		Event Notification Code
+#
+#================================================================================================================
 
-theMessage = displayMessage('mMForce', logMessage, 0)
-print '{0:<34} {1}'.format('MotionMap3 Error', theMessage)
+
+
+
+eventRegistry = {}
+
+
+#
+#	subscribeToEventNotification
+#
+# 	Note: You can subscribe to the same event(s) with multiple procs
+#
+#		whatProvidor = the device yiou are subscribing to
+#		whatEvents = a list of events you are requesting
+#		eventRequestor = what your device name is (this is purely for debugging and reporting)
+#		eventHandlerProc = the proc to call when one of your requested events occurs
+#		procDefinedData = a list of data that will be fed to your proc (proc parameters as needed)
+#			note: eventRequestor is automatically echoed into this Dict as 'SubscriberName'
+#			also, the event whatProvidor is simoilarly echoed as 'ProvidorName'
+#
+def subscribeToEventNotification(whatProvidor,whatEvents, eventRequestor, eventHandlerProc, procDefinedData):
+
+
+	try:
+		providorsEventDict = eventRegistry[whatProvidor]
+	except:
+		# Providor is not set up yet, do it now
+		eventRegistry[whatProvidor] = {}
+		providorsEventDict = eventRegistry[whatProvidor]
+
+	for anEvent in whatEvents:
+
+		try:
+			specificEventList = providorsEventDict[anEvent]
+		except:
+			# a new event type is set up
+			providorsEventDict[anEvent] = []
+			specificEventList = providorsEventDict[anEvent]
+
+		procDefinedData["SubscriberName"] = eventRequestor
+		procDefinedData["ProvidorName"] = whatProvidor
+		specificEventList.append([eventHandlerProc,procDefinedData])
+
+
+
+#	unSubscribeByEventHandlerProc	Only used internally by routine below.
+#
+def	unSubscribeByEventHandlerProc(specificEventList, eventHandlerProc):
+
+		t = [y for y in specificEventList if y[0] != eventHandlerProc]
+		del specificEventList[:]
+		specificEventList.extend(t)
+
+
+#	unSubscribeFromProvidorDict	Only used internally by routine below.
+#
+def	unSubscribeFromProvidorDict(providorsEventDict, whatEvents, eventHandlerProc):
+
+	if not len(whatEvents):
+		# Do all the events
+		for theEventType, specificEventList in providorsEventDict.items():
+			unSubscribeByEventHandlerProc(specificEventList, eventHandlerProc)
+		return
+	else:
+		for anEvent in whatEvents:
+			try:
+				specificEventList = providorsEventDict[anEvent]
+			except:
+				continue
+
+			unSubscribeByEventHandlerProc(specificEventList, eventHandlerProc)
+
+#
+#	unSubscribeFromEvent
+#
+# 		Unsubscribe from all the supplied events that use the given eventHandlerProc
+#			note: If no events are listed, unscribe from all occurances of 'eventHandlerProc' for the given 'whatProvidor'
+#				also, if no providor is given, unsubscribe from all occurances of 'eventHandlerProc'
+#
+#		whatProvidor = the device yiou are subscribing to
+#		whatEvents = a list of events you are requesting
+#		eventRequestor = what your device name is (this is purely for debugging and reporting)
+#		eventHandlerProc = the proc to call when one of your requested events occurs
+#		procDefinedData = a list of data that will be fed to your proc (proc parameters as needed)
+#			note: eventRequestor is automatically echoed into this Dict as 'SubscriberName'
+#			also, the event whatProvidor is simoilarly echoed as 'ProvidorName'
+#
+def	unSubscribeFromEvent(whatProvidor, whatEvents, eventHandlerProc):
+
+	if not whatProvidor:
+		#for aProvidor in eventRegistry:
+		for aProvidor, providorData in eventRegistry.items():
+				unSubscribeFromProvidorDict(providorData, whatEvents, eventHandlerProc)
+		return
+	else:
+		try:
+			providorsEventDict = eventRegistry[whatProvidor]
+		except:
+			# does not exist
+			return
+
+		unSubscribeFromProvidorDict(providorsEventDict, whatEvents, eventHandlerProc)
+
+#
+#	dispatchEvent
+#
+# 		Dispatch event notifications of type 'theEvent' to all clients registered for them
+#
+#
+def	dispatchEvent(theProvidor, theEvent):
+
+	try:
+		theEventList = eventRegistry[theProvidor][theEvent]
+	except:
+		return
+
+
+	for eventDispatchRecord in theEventList:
+		print "Executing " + eventDispatchRecord[0] + " with data " + str(eventDispatchRecord[1])
+		#eventDispatchRecord[0](eventDispatchRecord[1])
+
+
+
+
+#
+#	printEventRegistry
+#
+# 		Output the EventRegistery to the log
+#
+def	printEventRegistry():
+	total = 0
+	print
+	print "Printing Event Registry"
+	print "==========================="
+	for theProvidor in eventRegistry:
+		for supportedEvent in eventRegistry[theProvidor]:
+			for eventHandler in eventRegistry[theProvidor][supportedEvent]:
+				total = total + 1
+				print '{0:<20} {1:<10} {2}'.format(theProvidor, supportedEvent, eventHandler)
+	print "==========================="
+	print "End of report. " + str(total) + " Total Devices found."
+	print
+
+
+
+
+
+subscribeToEventNotification("MotionSensor1",['On','Off'],"GregsLoadDevice", "EventHandler1()",{"eventNote":"Receiving Any Event from Motion Sensor"})
+subscribeToEventNotification("MotionSensor1",['On','Off'],"MikesLoadDevice", "EventHandler4()",{"eventNote":"Mike Wants this info"})
+subscribeToEventNotification("MotionSensor2",['On'],"FranksLoadDevice", "EventHandler1()",{"eventNote":"Receiving Any Event from Motion Sensor"})
+subscribeToEventNotification("MotionSensor3",['On'],"FranksLoadDevice", "EventHandler3()",{"eventNote":"Receiving Any Event from Motion Sensor"})
+
+dispatchEvent("MotionSensor1",'On')
+
+printEventRegistry()
+
+
+unSubscribeFromEvent("",[],"EventHandler1()")
+
+
+printEventRegistry()
+
+
+
 
 
 if 0:
+	theList = [[1, "test1"], [2, "test2"], [2, "test3"], [4, "test4"], [5, "test5"]]
+
+
+	def removeall_replace(x):
+		global theList
+		t = [y for y in theList if y[0] != x]
+		del theList[:]
+		theList.extend(t)
+
+
+	print theList
+	removeall_replace(2)
+	print theList
+	random.seed()
+
+	configFileName = "/Library/Application Support/Perceptive Automation/Indigo 7/Plugins/MotionMap 3.indigoPlugin/Contents/Server Plugin/_Configurations/mmConfig.SkyCastle.csv"
+	logMessage = "Parsing file: " + ntpath.basename(configFileName)
+
+	theMessage = displayMessage('mMForce', logMessage, 1)
+	print '{0:<34} {1}'.format("MotionMap3" + " " + 'mmForce', theMessage)
+
+	theMessage = displayMessage('mMForce', logMessage, 0)
+	print '{0:<34} {1}'.format('MotionMap3 Error', theMessage)
+
 	theStartTime = time.clock()
 	makeDeviceSubmodelDictionary()
 	newTime = time.clock()

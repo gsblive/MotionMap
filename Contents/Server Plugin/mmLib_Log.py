@@ -158,7 +158,8 @@ def displayMessage(logType, logMessage, diplayProc):
 	callingTime = datetime.datetime.now().strftime("%I:%M:%S %p")
 	callingPackage = str("(" + callingFile + "." + callingProc + ":" + callingLine + ")" )
 
-	logMessage = '{0:<22} {1}'.format(str('|' * NestingDepth), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
+	#logMessage = '{0:<22} {1}'.format(str('|' * NestingDepth), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
+	logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22-NestingDepth)), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
 
 	if diplayProc == indigo.server.log:
 		diplayProc(logMessage, _MotionMapPlugin.MM_NAME + " " + logType)
@@ -183,7 +184,7 @@ def displayMessage(logType, logMessage, diplayProc):
 #
 def mmDebugNote(logMessage):
 	displayMessage(MM_LOG_DEBUG_NOTE, logMessage, loggerDispatchTable[MM_LOG_DEBUG_NOTE])
-	writeToLogFile(MM_LOG_TERSE_NOTE, logMessage, 1, 1)
+	#writeToLogFile(MM_LOG_TERSE_NOTE, logMessage, 1, 1)
 	return
 
 

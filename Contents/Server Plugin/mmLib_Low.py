@@ -10,6 +10,7 @@ __author__ = 'gbrewer'
 #import os
 #import traceback
 #import datetime
+import ntpath
 
 try:
 	import indigo
@@ -129,7 +130,8 @@ def	cacheNVDict():
 	global mmNVFileName
 
 	try:
-		mmLib_Log.logForce("=== Writing MotionMap Nonvolatile File: " + mmNVFileName )
+		#mmLib_Log.logForce("=== Writing MotionMap Nonvolatile File: " + mmNVFileName )		# Full pathname
+		mmLib_Log.logForce("=== Writing MotionMap Nonvolatile File: " + ntpath.basename(mmNVFileName) )	# Only File Name
 	except:
 		mmLib_Log.logForce(" === Error Writing Data... Nonvolatile file not found.")
 
@@ -161,7 +163,8 @@ def initializeNVDict(theDevName):
 			mmNonVolatiles = pickle.load(theNVFile)
 			theNVFile.close()
 		except:
-			mmLib_Log.logForce("==== Creating new NonVolatile File: " + mmNVFileName)
+			#mmLib_Log.logForce("==== Creating new NonVolatile File: " + mmNVFileName)		# Full pathname
+			mmLib_Log.logForce("==== Creating new NonVolatile File: " + ntpath.basename(mmNVFileName))	# ony file Name
 			needsCache = 1
 
 	initializeDictEntry(mmNonVolatiles, theDevName, {})
@@ -458,7 +461,6 @@ def cancelDelayedAction(theFunction):
 			delayedFunctions[theFunction] = 0	# Reset delayedFunctions... to no function waiting
 		else: return
 	except: return	# no function waiting
-
 	# now we have thetime to do the bisect_right (saves a bunch of time)
 
 	index = bisect.bisect_left(delayQueue, theTime)

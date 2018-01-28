@@ -225,6 +225,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		theResult = 0
 
+		#mmLib_Log.logForce( self.deviceName + " is being called to turn on Bedtime mode. Current Mode is: " + str(self.bedtimeMode))
+
 		if self.bedtimeMode == mmLib_Low.BEDTIMEMODE_OFF and indigo.variables['MMDayTime'].value == 'false':
 			mmLib_Log.logReportLine("Bedtime Mode ON for device: " + self.deviceName)
 			self.bedtimeMode = mmLib_Low.BEDTIMEMODE_ON

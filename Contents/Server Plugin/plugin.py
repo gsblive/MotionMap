@@ -79,7 +79,19 @@ def mmTestCode(theCommandParameters):
 #
 ############################################################################################
 
-supportedControlCommandsDict = {'resetOfflineStatistics':mmLib_Low.resetOfflineStatistics, 'printCommandQueue':mmLib_CommandQ.printQ, 'printDelayQueue':mmLib_Low.mmPrintDelayedProcs, 'emptyCommandQ':mmLib_CommandQ.emptyQ, 'popCommandQ':mmLib_CommandQ.popQ, 'restartCommandQ':mmLib_CommandQ.restartQ, 'reparseConfig':mmParseConfig, 'testCode':mmTestCode, 'SetLogSensitivity':mmLib_Log.setLogSensitivityMMCommand, 'motionStatus': mmLib_Low.displayMotionStatus, 'offlineReport': mmLib_Low.processOfflineReport, 'verifyLogMode':mmLib_Log.verifyLogMode, 'batteryReport':mmLib_Low.batteryReport}
+supportedControlCommandsDict = {'resetOfflineStatistics':mmLib_Low.resetOfflineStatistics,
+								'printCommandQueue':mmLib_CommandQ.printQ,
+								'printDelayQueue':mmLib_Low.mmPrintDelayedProcs,
+								'emptyCommandQ':mmLib_CommandQ.emptyQ,
+								'popCommandQ':mmLib_CommandQ.popQ,
+								'restartCommandQ':mmLib_CommandQ.restartQ,
+								'reparseConfig':mmParseConfig,
+								'testCode':mmTestCode,
+								'SetLogSensitivity':mmLib_Log.setLogSensitivityMMCommand,
+								'motionStatus': mmLib_Low.displayMotionStatus,
+								'offlineReport': mmLib_Low.processOfflineReport,
+								'verifyLogMode':mmLib_Log.verifyLogMode,
+								'batteryReport':mmLib_Low.batteryReport}
 
 
 ############################################################################################
@@ -196,7 +208,7 @@ class Plugin(indigo.PluginBase):
 		mmLib_Low.mmSubscribeToEvent('isDayTime', mmLib_Low.mmIsDaytime)
 		mmLib_Low.mmSubscribeToEvent('isNightTime', mmLib_Low.mmIsNighttime)
 
-		mmLib_Log.logError("--- " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
+		mmLib_Log.mmDebugNote("--- " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
 
 		return
 
