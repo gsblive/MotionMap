@@ -43,8 +43,22 @@ kInsteonHVACCoolSetpoint = 108
 kInsteonHVACHeatSetpoint = 109
 
 
-mapCmdFuncToInsteon = {'cool setpoint changed': kInsteonHVACCoolSetpoint,'heat setpoint changed': kInsteonHVACHeatSetpoint}
-mapCommandToInsteon = {'setHVACMode': [kInsteonHVACMode],'setHVACFanMode': [kInsteonHVACMode],'setHVACHeatSetpoint': [kInsteonHVACHeatSetpoint],'setHVACCoolSetpoint': [kInsteonHVACCoolSetpoint],'brighten': [kInsteonOn,kInsteonOff], 'onOffDevice': [kInsteonOn,kInsteonOff], 'sceneOn': [kInsteonOn], 'sceneOff': [kInsteonOff], 'beep': [kInsteonBeep],  'toggle': [kInsteonOff,kInsteonOn],  'flash': [kInsteonOff,kInsteonOn], 'check': [],'sendStatusRequest': [kInsteonStatusRequest] }
+mapCmdFuncToInsteon = {	'cool setpoint changed': kInsteonHVACCoolSetpoint,
+						'heat setpoint changed': kInsteonHVACHeatSetpoint}
+
+mapCommandToInsteon = {	'setHVACMode': [kInsteonHVACMode],
+						'setHVACFanMode': [kInsteonHVACMode],
+						'setHVACHeatSetpoint': [kInsteonHVACHeatSetpoint],
+						'setHVACCoolSetpoint': [kInsteonHVACCoolSetpoint],
+						'brighten': [kInsteonOn,kInsteonOff],
+						'onOffDevice': [kInsteonOn,kInsteonOff],
+						'sceneOn': [kInsteonOn],
+						'sceneOff': [kInsteonOff],
+						'beep': [kInsteonBeep],
+						'toggle': [kInsteonOff,kInsteonOn],
+						'flash': [kInsteonOff,kInsteonOn],
+						'check': [],
+						'sendStatusRequest': [kInsteonStatusRequest] }
 
 mapInsteonToCommand = {kInsteonOn:['brighten','toggle', 'flash', 'onOffDevice','sceneOn'],\
 					   kInsteonOnFast:['brighten','toggle', 'flash', 'onOffDevice'],\

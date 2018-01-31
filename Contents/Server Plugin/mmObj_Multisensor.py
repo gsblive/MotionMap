@@ -33,6 +33,26 @@ import random
 ######################################################
 class mmMultisensor(object):
 
+	######################################################################################
+	#
+	# Internally used routines for this object (mmMultisensor)
+	#
+	######################################################################################
+
+	def makeDeviceSubmodelDictionary(self):
+
+		for newDev in indigo.devices.iter("indigo.zwave, indigo.sensor"):
+
+			try:
+				subModelDevs = mmLib_Low.SubmodelDeviceDict[newDev.address]
+			except:
+				mmLib_Low.SubmodelDeviceDict[newDev.address] = {}
+				subModelDevs = mmLib_Low.SubmodelDeviceDict[newDev.address]
+
+			subModelDevs[str(newDev.name)] = newDev
+
+		return
+
 
 	######################################################################################
 	#
@@ -42,7 +62,16 @@ class mmMultisensor(object):
 
 	def __init__(self, theDeviceParameters):
 
-		supportMatrixDict = {u'Multi Sensor 6 (ZW100) Humidity': mmMultisensorHumidity, u'Multi Sensor 6 (ZW100) Tamper': mmMultisensorVibration, u'Motion Sensor (FGMS001) Motion Sensor': mmMultisensorMotion, u'Multi Sensor 6 (ZW100) Motion Sensor': mmMultisensorMotion, u'Multi Sensor 6 (ZW100) Luminance': mmMultisensorLuminance, u'Multi Sensor 6 (ZW100) Temperature': mmMultisensorTemperature, u'Motion Sensor (FGMS001) Temperature': mmMultisensorTemperature, u'Motion Sensor (FGMS001) Tilt/Tamper': mmMultisensorVibration, u'Motion Sensor (FGMS001) Luminance': mmMultisensorLuminance, u'Multi Sensor 6 (ZW100) Ultraviolet': mmMultisensorUltraviolet}
+		supportMatrixDict = {	 u'Multi Sensor 6 (ZW100) Humidity': mmMultisensorHumidity,
+								 u'Multi Sensor 6 (ZW100) Tamper': mmMultisensorVibration,
+								 u'Motion Sensor (FGMS001) Motion Sensor': mmMultisensorMotion,
+								 u'Multi Sensor 6 (ZW100) Motion Sensor': mmMultisensorMotion,
+								 u'Multi Sensor 6 (ZW100) Luminance': mmMultisensorLuminance,
+								 u'Multi Sensor 6 (ZW100) Temperature': mmMultisensorTemperature,
+								 u'Motion Sensor (FGMS001) Temperature': mmMultisensorTemperature,
+								 u'Motion Sensor (FGMS001) Tilt/Tamper': mmMultisensorVibration,
+								 u'Motion Sensor (FGMS001) Luminance': mmMultisensorLuminance,
+								 u'Multi Sensor 6 (ZW100) Ultraviolet': mmMultisensorUltraviolet}
 
 		self.initResult = 0
 		mmLib_Log.logVerbose("Adding multisensor with parameters: " + str(theDeviceParameters))
@@ -56,22 +85,32 @@ class mmMultisensor(object):
 				self.debugDevice = 1
 		except:
 			mmLib_Log.logVerbose("debugDeviceMode field is undefined in config file for " + self.deviceName + " , " + self.theIndigoDevice.subModel)
+			theDeviceParameters["debugDeviceMode"] = "noDebug"
 
-		theDeviceDescriptor = str(self.theIndigoDevice.model) + " " + str(self.theIndigoDevice.subModel)
 
-		try:
-			theInitProc = supportMatrixDict[theDeviceDescriptor]
-		except:
-			mmLib_Log.logForce("==== WARNING ==== Handler not found for " + self.deviceName + ". Descriptor: " + theDeviceDescriptor)
-			return
+		# Now as a courtesy, add all the submodels
+
+		if mmLib_Low.SubmodelDeviceDict == {}:
+			self.makeDeviceSubmodelDictionary()
+			#mmLib_Log.logForce( str(mmLib_Low.SubmodelDeviceDict))
 
 		subDeviceParameters = theDeviceParameters
-		subDeviceParameters["deviceName"] = self.theIndigoDevice.name
-		subDeviceParameters["deviceType"] = self.theIndigoDevice.subModel
+		subModelDevs = mmLib_Low.SubmodelDeviceDict[self.theIndigoAddress]
 
-		if self.debugDevice != 0: mmLib_Log.logForce("Initializing: " + str(newDev.name))
+		for newDevName, newDev in subModelDevs.iteritems():
+			try:
+				theDeviceDescriptor = str(newDev.model) + " " + str(newDev.subModel)
+				theInitProc = supportMatrixDict[theDeviceDescriptor]
+			except:
+				mmLib_Log.logForce("==== WARNING ==== Handler not found for " + newDevName + ". Descriptor: " + theDeviceDescriptor)
+				return
 
-		theInitProc(subDeviceParameters)
+			subDeviceParameters["deviceName"] = newDevName
+			subDeviceParameters["deviceType"] = newDev.subModel
+
+			if self.debugDevice != 0: mmLib_Log.logForce("Initializing: " + str(newDevName))
+
+			theInitProc(subDeviceParameters)
 
 
 
@@ -126,7 +165,10 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 		except:
 			mmLib_Log.logForce(" ===== Initializing mmMultisensorMotion: " + self.deviceName + " no batteryLevel State")
 
-		mmLib_Low.registerDelayedAction({'theFunction': self.OnceADayTimer, 'timeDeltaSeconds': random.randint(60*60*10, 60*60*14), 'theDevice': self.deviceName, 'timerMessage': "OnceADayTimer"})
+		mmLib_Low.registerDelayedAction(	{'theFunction': self.OnceADayTimer,
+											 'timeDeltaSeconds': random.randint(60*60*10, 60*60*14),
+											 'theDevice': self.deviceName,
+											 'timerMessage': "OnceADayTimer"})
 
 	######################################################################################
 	#
@@ -238,9 +280,13 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 	#
 	def __init__(self, theDeviceParameters):
 
+
 		super(mmMultisensorVibration, self).__init__(theDeviceParameters)  # Initialize Base Class
 
+		#mmLib_Log.logForce("### Initializing Vibration sensor " + self.deviceName )
+
 		if self.theIndigoDevice.onState == True: indigo.device.turnOff(self.devIndigoID)
+
 
 	######################################################################################
 	#
@@ -274,7 +320,10 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 
 		if self.theIndigoDevice.onState == True:
 			mmLib_Log.logForce("Device: " + self.deviceName + " is vibrating. Setting callback timer to reset onstate: ")
-			mmLib_Low.registerDelayedAction({'theFunction': self.offTimer, 'timeDeltaSeconds': 30, 'theDevice': self.deviceName, 'timerMessage': "offTimer"})
+			mmLib_Low.registerDelayedAction(	{'theFunction': self.offTimer,
+												 'timeDeltaSeconds': 30,
+												 'theDevice': self.deviceName,
+												 'timerMessage': "offTimer"})
 
 		return 1	#0 means did not process
 
@@ -292,6 +341,20 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 	def deviceUpdated(self, origDev, newDev):
 
 		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
+
+		return(0)
+
+	#
+	# devStatus
+	#
+	def devStatus(self, theCommandParameters):
+
+		# Do any specialized status info here
+
+		if self.theIndigoDevice.onState == True:
+			mmLib_Log.logReportLine(self.deviceName + " is vibrating")
+		else:
+			mmLib_Log.logReportLine(self.deviceName + " is not vibrating")
 
 		return(0)
 
@@ -360,6 +423,17 @@ class mmMultisensorLuminance(mmComm_Indigo.mmIndigo):
 
 		return(0)
 
+	# devStatus
+	#
+	def devStatus(self, theCommandParameters):
+
+		# Do any specialized status info here
+
+		mmLib_Log.logReportLine(self.deviceName + " LUX is: " + mmLib_Low.getIndigoVariable(self.luxLevelVar, "0"))
+
+
+		return(0)
+
 ######################################################
 #
 # mmMultisensorHumidity - SubModel of multisensorDevice above
@@ -425,6 +499,15 @@ class mmMultisensorHumidity(mmComm_Indigo.mmIndigo):
 
 		return(0)
 
+	# devStatus
+	#
+	def devStatus(self, theCommandParameters):
+
+		# Do any specialized status info here
+
+		mmLib_Log.logReportLine(self.deviceName + " Humidity is: " + mmLib_Low.getIndigoVariable(self.humidityLevelVar, "0"))
+
+		return(0)
 
 ######################################################
 #
@@ -491,6 +574,16 @@ class mmMultisensorUltraviolet(mmComm_Indigo.mmIndigo):
 
 		return(0)
 
+	# devStatus
+	#
+	def devStatus(self, theCommandParameters):
+
+		# Do any specialized status info here
+
+		mmLib_Log.logReportLine(self.deviceName + " UVLevel is: " + mmLib_Low.getIndigoVariable(self.uvLevelVar, "0"))
+
+		return(0)
+
 ######################################################
 #
 # mmMultisensorTemperature - SubModel of multisensorDevice above
@@ -504,6 +597,12 @@ class mmMultisensorTemperature(mmComm_Indigo.mmIndigo):
 	def __init__(self, theDeviceParameters):
 
 		super(mmMultisensorTemperature, self).__init__(theDeviceParameters)  # Initialize Base Class
+
+		if "ZW100" in self.theIndigoDevice.model:
+			if self.debugDevice: mmLib_Log.logForce("Aeon Detected: " + self.deviceName)
+			self.TempDefaultFormat = 'F'
+		else:
+			self.TempDefaultFormat = 'C'
 
 		s = str(self.deviceName + ".F")
 		self.tempFLevelVar = s.replace(' ', '.')
@@ -528,7 +627,12 @@ class mmMultisensorTemperature(mmComm_Indigo.mmIndigo):
 	# setTemperature - set the indigo related temperature variable to the device temperature
 	#
 	def setTemperature(self):
-		theDegrees = (float(self.theIndigoDevice.sensorValue) * 1.8) + 32.0
+
+		if self.TempDefaultFormat == 'C':
+			theDegrees = (float(self.theIndigoDevice.sensorValue) * 1.8) + 32.0
+		else:
+			theDegrees = self.theIndigoDevice.sensorValue
+
 		mmLib_Low.setIndigoVariable(self.tempFLevelVar, str(theDegrees) + 'F')
 		return(theDegrees)
 
@@ -564,3 +668,12 @@ class mmMultisensorTemperature(mmComm_Indigo.mmIndigo):
 		return(0)
 
 
+	# devStatus
+	#
+	def devStatus(self, theCommandParameters):
+
+		# Do any specialized status info here
+
+		mmLib_Log.logReportLine(self.deviceName + " Temperature (F) is: " + mmLib_Low.getIndigoVariable(self.tempFLevelVar, "0"))
+
+		return(0)

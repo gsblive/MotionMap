@@ -157,6 +157,7 @@ WineRoomMultisensor,60,10,noDebug
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off
 #   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed
 #   influentialLights – list of lights that may create false motion events for this camera at night
+#   exclusionLights - Dont provide motion events if these lights are already on
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 #   IMPORTANT – Keep Multi sensors Before all other devices because the other devices will register with the motion sensors during initialization (one pass)
@@ -164,13 +165,13 @@ WineRoomMultisensor,60,10,noDebug
 ########################################################
 
 -h,CamMotion
-deviceName,maxMovement,minMovement,influentialLights,debugDeviceMode
-CamDogRunMotion,60,5,DogRunAndWaterfallFloodLight;CarPortLights,noDebug
-CamCarPortMotion,60,5,CarPortLights;DogRunAndWaterfallFloodLight;CarPortCarriageLights,noDebug
-CamLeftFrontHouseMotion,60,5,Front Porch;Main Stairs Chandelier,noDebug
-CamGarageMotion,60,5,GarageDoorLights;PatioCans,noDebug
-CamRightFrontHouseMotion,60,5,PatioCarriageLights;Front Porch,noDebug
-CamHouseParkingMotion,60,5,CarPortLights;DogRunAndWaterfallFloodLight,noDebug
+deviceName,maxMovement,minMovement,influentialLights,exclusionLights,debugDeviceMode
+CamDogRunMotion,60,5,DogRunAndWaterfallFloodLight;CarPortLights,,noDebug
+CamCarPortMotion,60,5,CarPortLights;DogRunAndWaterfallFloodLight;CarPortCarriageLights,,noDebug
+CamLeftFrontHouseMotion,60,5,Front Porch;Main Stairs Chandelier,,noDebug
+CamGarageMotion,60,5,GarageDoorLights;PatioCans,,noDebug
+CamRightFrontHouseMotion,60,5,PatioCarriageLights;Front Porch,PatioChandelier,noDebug
+CamHouseParkingMotion,60,5,CarPortLights;DogRunAndWaterfallFloodLight,,noDebug
 
 ########################################################
 #
@@ -199,14 +200,14 @@ deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFea
 BackStairsLights,5,30,60,25,flash,GarageHall3Multisensor;BackStairsMultisensor,,2,noDebug
 ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensor,,2,noDebug
 CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor;CamCarPortMotion,,2,noDebug
-CarPortLights,5,360,100,100,flash,CamHouseParkingMotion,,2,noDebug
-DogRunAndWaterfallFloodLight,30,31,100,100,flash,CamDogRunMotion,,2,noDebug
+CarPortLights,5,360,0,100,flash,CamHouseParkingMotion,,2,noDebug
+DogRunAndWaterfallFloodLight,5,60,0,100,flash,CamDogRunMotion,,2,noDebug
 DownstairsHallLeftLights,5,60,0,30,flash,DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor,,2,noDebug
 DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensor;DownstairsHallRightBMultisensor,,2,noDebug
 Dining Chandelier,30,600,0,30,flash,,DiningRoomMultisensorB;DiningRoomMultisensorA;DownstairsHallRightAMultisensor;DownstairsHallLeftLightsAMultisensor,2,noDebug
 DiningRoomCans,10,600,0,30,flash,DownstairsHallRightAMultisensor;DiningRoomMultisensorA;DownstairsHallLeftLightsAMultisensor,DiningRoomMultisensorB,2,noDebug
 FamilyRoomBathVanityLight,20,60,100,30,flash,FamilyRoomBathMultisensor,,2,noDebug
-DrivewayPostCarriageLights1,600,600,100,100,flash,,,2,noDebug
+DrivewayPostCarriageLights,600,600,100,100,flash,,,2,noDebug
 FamilyRoomBathFan,20,60,100,100,flash,,FamilyRoomBathMultisensor,2,noDebug
 FamilyRoomBathFanLight,20,60,100,30,flash,,FamilyRoomBathMultisensor,2,noDebug
 FamilyRoomCanLights,60,300,0,40,flash,DownstairsHallRightBMultisensor;FamilyRoomMultisensor,,2,noDebug
@@ -221,8 +222,8 @@ FoyerLeftOutletBottom,360,0,100,100,,,,2,noDebug
 #FoyerLeftOutletTop,360,0,60,30,,,,2,noDebug
 FrontPondOutletTop,480,480,100,100,,,,2,noDebug
 FrontPondOutletBottom,480,480,100,100,,,,2,noDebug
-Front Porch,5,360,100,100,flash,CamLeftFrontHouseMotion,,2,noDebug
-GarageDoorLights,5,360,100,100,flash,CamGarageMotion,,2,noDebug
+Front Porch,5,360,0,100,flash,CamLeftFrontHouseMotion,,2,noDebug
+GarageDoorLights,5,360,0,100,flash,CamGarageMotion,,2,noDebug
 GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;GarageHall3Multisensor,,2,noDebug
 GregsOfficeClosetDimmer,5,60,100,20,flash,GregsOfficeClosetMultisensor,,2,noDebug
 #GregsOfficeShelfLights,5,60,100,100,flash,AeonMultisensorTest1,,2,noDebug
@@ -277,7 +278,7 @@ MJShowerSconce,5,60,100,50,flash,MJBedroomShowerMultisensor,,2,noDebug
 #OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
 PatioCarriageLights,60,300,0,20,flash,,PatioMultisensor,2,noDebug
 PatioChandelier,60,300,0,44,flash,PatioMultisensor,,2,noDebug
-PatioCans,6,300,100,100,flash,CamRightFrontHouseMotion,,2,noDebug
+PatioCans,6,300,0,100,flash,CamRightFrontHouseMotion,,2,noDebug
 RearDeckCarriage,240,240,100,30,,,,2,noDebug
 RearDeckCarraigeB,240,240,100,30,,,,2,noDebug
 QuadMasterHallLight,5,60,0,20,flash,MasterHallMultisensor;QuadMasterHallLightMultisensor,,2,noDebug
@@ -310,7 +311,7 @@ BackStairsLights1,BackStairsLights,2,noDebug
 DiningRoomCans1,DiningRoomCans,2,noDebug
 DownstairsHallRightLights1,DownstairsHallRightLights,2,noDebug
 DownstairsHallLeftLights1,DownstairsHallLeftLights,2,noDebug
-DrivewayPostCarriageLights,DrivewayPostCarriageLights1,2,noDebug
+DrivewayPostCarriageLights1,DrivewayPostCarriageLights,2,noDebug
 FamilyRoomCanLights1,FamilyRoomCanLights,2,noDebug
 FamilyRoomCanLights2,FamilyRoomCanLights,2,noDebug
 FrontPondOutletTopSwitch,FrontPondOutletTop,2,noDebug
@@ -438,7 +439,7 @@ GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOffice
 #
 #   deviceName – The name of the OccupationAction
 #   occupationEvent -  'on', 'off', 'occupied' or 'unoccupied'
-#	when - When this occupationAction is valid ... 'day','night','anyTime'
+#   when - When this occupationAction is valid ... 'day','night','anyTime'
 #   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
 #   activateDelayMinutes - The amount that must transpire (in minutes) after the occupationEvent before executing the action
 #   deactivateAction – The name of the ActionGroup to perform when this occupation becomes deactivated

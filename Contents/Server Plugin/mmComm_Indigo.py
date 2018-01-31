@@ -87,7 +87,7 @@ class mmIndigo(object):
 			self.setLastUpdateTimeSeconds()
 			self.onlineState = 'on'
 
-		self.supportedCommandsDict = {'deviceUpdated': self.mmDeviceUpdated, 'receivedCommand': self.mmReceivedCommand, 'completeCommand': self.mmCompleteCommand, 'errorCommand': self.mmErrorCommand}
+		self.supportedCommandsDict = {'deviceUpdated': self.mmDeviceUpdated, 'receivedCommand': self.mmReceivedCommand, 'completeCommand': self.mmCompleteCommand, 'errorCommand': self.mmErrorCommand, 'devStatus': self.devStatus}
 
 
 	######################################################################################
@@ -498,6 +498,9 @@ class mmIndigo(object):
 		try:
 			theHandler = self.validateCommand(theCommandParameters['theCommand'])
 		except:
+			pass
+
+		if not theHandler:
 			mmLib_Log.logVerbose(self.deviceName + " Has no Handler for command " + theCommandParameters['theCommand'])
 			return resultCode
 

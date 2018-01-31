@@ -50,6 +50,8 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 		self.supportedCommandsDict.update({'motionEvent': self.camMotionEvent})
 
+		self.exclusionLights = theDeviceParameters["exclusionLights"]
+
 
 	######################################################################################
 	#
@@ -77,6 +79,10 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 				theDev = mmLib_Low.MotionMapDeviceDict[devName]
 				timeDeltaStruct = (datetime.now() - theDev.theIndigoDevice.lastChanged)
 				timeDelta = timeDeltaStruct.seconds
+				# Only care when lights are going off... If a light goes on and makes another light go on... thats OK
+				if theDev.theIndigoDevice.onState == True:
+					# we dont care about this light for now, it is on so OK if we dont report it on the influential list
+					continue
 				# mmLib_Log.logForce("=== " + self.deviceName + "\'s Time delta for " + devName + " is: " + str(timeDelta))
 			except:
 				mmLib_Log.logForce(self.deviceName + " Check Load Devices... No Such device " + str(devName))
@@ -107,14 +113,24 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 			mmLib_Log.logForce(" === Debouncing motion on " + self.deviceName + " we havent had a motionOff event yet")
 			return('Dque')
 
-		# If the motion is likely a result of a nearby influential light, exit
+		# At night, If the motion is likely a result of a nearby influential light, exit
+		if indigo.variables['MMDayTime'].value == 'false':
+			deltaTime = self.getInfluentialLoadChangeDelta()
 
-		deltaTime = self.getInfluentialLoadChangeDelta()
+			if( deltaTime < 6 ):
+				# Ignore the phantom transition/motion due to light change
+				mmLib_Log.logForce(" === Ignoring phantom motion on " + self.deviceName + " because recent transition of influential light occurred " + str(deltaTime) + " seconds ago.")
+				return('Dque')
 
-		if( deltaTime < 6 ):
-			# Ignore the phantom transition/motion due to light change
-			mmLib_Log.logForce(" === Ignoring phantom motion on " + self.deviceName + " because recent transition of influential light occurred " + str(deltaTime) + " seconds ago.")
-			return('Dque')
+		# If any of the exclusion lights are on, exit
+		for aLight in self.exclusionLights:
+			try:
+				lightDev = indigo.devices[aLight]
+				if lightDev.onState == True:
+					mmLib_Log.logForce( " === Ignoring motion on " + self.deviceName + " because exclusion light " + lightDev + " is already on.")
+					return('Dque')
+			except:
+				mmLib_Log.logWarning(self.deviceName + " is referencing an unknown exclusion light named " + aLight + ".")
 
 		try:
 			camDev = indigo.devices[theCommandParameters["theCam"]]
