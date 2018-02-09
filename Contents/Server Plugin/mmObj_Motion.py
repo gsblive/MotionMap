@@ -50,8 +50,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			#
 			self.maxMovement = theDeviceParameters["maxMovement"]	# the amount of time (in minutes) that the motion sense can stay "ON" for sustained occupancy
 			self.minMovement = theDeviceParameters["minMovement"]	# the amount of time (in minutes) that motion sense is "OFF" that constitutes no occupancy
-			mmLib_Low.mmRegisterForTimer(self.deviceTime, 60)		# give us a kick every minute
 			mmLib_Low.controllerDeque.append(self)		# insert into device-time deque
+
 			self.occupiedState = 2
 			self.supportedCommandsDict = {}
 			self.controllerMissedCommandCount = 0
@@ -197,8 +197,31 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		return()
 
 
+	# delayProcForMaxOccupancy - the device has been marked as occupied for the max amount of time
 	#
-	# deviceTime - do device housekeeping... this should happen once a minute
+	def	delayProcForMaxOccupancy(self, theParameters):
+
+		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " has been occupied for the maximum amount of time.")
+		mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)  # Its unoccupied, clear non occupied timer too
+		self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
+
+		return 0		# Cancel timer
+
+
+
+	# delayProcForNonOccupancy - the device seems to indicate area vacant
+	#
+	def delayProcForNonOccupancy(self, theParameters):
+
+		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is indicating non-occupied.")
+		mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)  # Its unoccupied, clear max occupation timer too
+		self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
+
+		return 0		# Cancel timer
+
+
+	#
+	# deviceTime - check to see if the area is occupied or not, dispatch events accordingly
 	#
 	def deviceTime(self):
 
@@ -257,9 +280,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		# process Insteon Motion command received here
 		try:
 			theCommandByte = theInsteonCommand.cmdBytes[0]
-			mmLib_Log.logVerbose("Motion Sensor " + self.deviceName + " received command " + str(theCommandByte))
+			if self.debugDevice: mmLib_Log.logForce("Motion Sensor " + self.deviceName + " received command " + str(theCommandByte))
 		except:
-			mmLib_Log.logVerbose("Motion Sensor " + self.deviceName + " received command unrecognized by MotionMap")
+			mmLib_Log.logWarning("Motion Sensor " + self.deviceName + " received command unrecognized by MotionMap")
 			theCommandByte = "unknown"
 
 		# In order for us to be able to respond to server events, we have to handle this event in the deviceUpdated Routine below
@@ -280,6 +303,18 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				super(mmMotion, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
 				self.controllerMissedCommandCount = 0			# Reset this because it looks like are controller is alive (battery report uses this)
 				if newDev.onState == True:
+
+					# we are detecting motion
+					if self.debugDevice: mmLib_Log.logForce( "Motion Sensor " + self.deviceName + " received update event: ON")
+
+					mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)	# its definitely occupied now
+					if mmLib_Low.findDelayedAction(self.delayProcForNonOccupancy):
+						mmLib_Log.logForce("Motion Sensor " + self.deviceName + " Deletion of NonOccupancy Timer FAILED ####")
+
+					# if we dont already have a max-on proc, go ahead and add it now. If we did have one... its timer is still valid
+					if mmLib_Low.findDelayedAction(self.delayProcForMaxOccupancy) == 0:
+						mmLib_Low.registerDelayedAction({'theFunction': self.delayProcForMaxOccupancy,'timeDeltaSeconds': int(self.maxMovement) * 60,'theDevice': self.deviceName,'timerMessage': "Motion Sensor MaxOccupancy Timer"})
+
 					# Add time delta calculator
 					deltaSeconds = self.getSecondsSinceState('off')
 					if deltaSeconds > 5:
@@ -292,7 +327,17 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 						self.ourNonvolatileData["motionNumSequentialRapidTransitions"] = self.ourNonvolatileData["motionNumSequentialRapidTransitions"] + 1
 					# And process the event
 					self.receivedCommandLow( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
+
+					self.dispatchEventToDeque(self.occupiedDeque, 'occupied')  # process occupancy
+
 				else:
+
+					# We are detecting non-motion
+					if self.debugDevice: mmLib_Log.logForce("Motion Sensor " + self.deviceName + " received update event: OFF")
+
+					# Update Non Occupancy Timer
+					mmLib_Low.registerDelayedAction({'theFunction': self.delayProcForNonOccupancy,'timeDeltaSeconds': int(self.minMovement) * 60,'theDevice': self.deviceName,'timerMessage': "Motion Sensor NonOccupancy Timer"})
+
 					self.previousMotionOff = time.mktime(time.localtime())
 					self.receivedCommandLow(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
 			else:

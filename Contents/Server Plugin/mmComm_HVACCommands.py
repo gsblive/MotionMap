@@ -63,9 +63,6 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 
 		self.statusMessage = "Unitialized."
 
-		if self.updateFrequency > 0: mmLib_Low.mmRegisterForTimer(self.deviceTime, int(60 * int(self.updateFrequency)))		# give us a kick every once in a while
-
-
 
 	######################################################################################
 	#
@@ -129,7 +126,7 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 			mmLib_Log.logForce("setHVACMode Requires an operationMode value in \'theValue\'. Device: " + self.deviceName)
 			return("missingOperationMode")
 
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return('unresponsive')
 
@@ -161,7 +158,7 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 			mmLib_Log.logForce("setHVACFanMode Requires a fanmode value in \'theValue\'. Device: " + self.deviceName)
 			return("missingFanMode")
 
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return('unresponsive')
 
@@ -190,7 +187,7 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 			mmLib_Log.logForce("setHVACCoolSetpoint Requires Setpoint amount in \'theValue\'. Device: " + self.deviceName)
 			return(0)
 
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return('unresponsive')
 
@@ -217,7 +214,7 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 			mmLib_Log.logForce("setHVACHeatSetpoint Requires Setpoint amount in \'theValue\'. Device: " + self.deviceName)
 			return(0)
 
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return('unresponsive')
 

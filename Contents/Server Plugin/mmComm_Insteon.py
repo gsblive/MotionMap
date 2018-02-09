@@ -99,19 +99,6 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 			self.updateTimeStamp = 0		#time.clock()		# fresh start... assume updated
 			self.defeatTimerUpdate = 0
 
-			# For Offline report
-
-			self.errorCounter = 0
-			self.timeoutCounter = 0
-			self.sequentialErrors = 0
-			self.unresponsive = 0
-			self.highestSequentialErrors = 0
-
-			try:
-				self.maxSequentialErrors = int(theDeviceParameters["maxSequentialErrorsAllowed"])
-			except:
-				self.maxSequentialErrors = mmLib_Low.MAX_SEQUENTIAL_ERRORS_DEFAULT
-
 			self.supportedCommandsDict.update({'sendRawInsteonCommand': self.sendRawInsteonCommand, 'brighten': self.brightenDevice, 'beep': self.beepDevice,  'toggle': self.toggleDevice, 'flash': self.flashDevice, 'sendStatusRequest':self.sendStatusRequest, 'devStatus':self.devStatus})
 
 
@@ -252,7 +239,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 
 		resultCode = 0
 
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return('unresponsive')
 

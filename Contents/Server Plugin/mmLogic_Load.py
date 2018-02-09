@@ -474,7 +474,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		theMessage = '\n\n==== DeviceStatus for ' + self.deviceName + '====\n'
 
 		if self.theIndigoDevice.onState == True:
-			scheduledOffTime = mmLib_Low.delayedFunctions[self.offTimerCallback]
+			scheduledOffTime = mmLib_Low.delayedFunctionKeys[self.offTimerCallback]
 			if scheduledOffTime:
 				theTimeString = mmLib_Low.minutesAndSecondsTillTime(scheduledOffTime)
 				theMessage = theMessage + str("\'" + self.deviceName + "\'" + " is scheduled to turn off in " + str(theTimeString) + ".\n")

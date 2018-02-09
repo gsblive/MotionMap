@@ -192,6 +192,7 @@ CamHouseParkingMotion,60,5,CarPortLights;DogRunAndWaterfallFloodLight,,noDebug
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 #	Note: if a load device doesnt have any motions sensors defined, they will stay on for maxOnTime before auto Off
+# Note2: Some of the devices are commented out... that is because we are not using them for anything at the moment (or they are temporarilly disconnected) and we have no need to process them
 #
 ########################################################
 
@@ -232,7 +233,7 @@ GregsOfficeBathVanityLight,10,60,100,0,flash,GregsOfficeBathMultisensor,,2,noDeb
 GregsOfficeBathFanLight,10,60,0,30,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathShowerLight,5,60,100,30,flash,GregsOfficeBathShowerMultisensor,,2,noDebug
 GregsOfficeBathFan,5,60,100,100,,GregsOfficeBathShowerMultisensor,,2,noDebug
-GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor,,2,noDebug
+GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor,,2,debug
 GuestBedroomFanLight,30,180,0,30,flash;bedtime,,GuestMultisensor,2,noDebug
 GuestBathVanityLight,30,120,100,25,flash,GuestBathMultisensor,,2,noDebug
 GuestBathFan,30,60,0,0,flash,,GuestBathMultisensor,2,noDebug
@@ -258,7 +259,7 @@ MasterBathCenterLight,5,60,0,20,flash,,MasterBathMultiSensor;MasterBathShowerMul
 MasterBathRightVanityLight,15,90,70,30,flash,,MasterBathMultiSensor;MasterBathShowerMultisensor;MasterBathLavMultisensor,2,noDebug
 MasterBathLeftVanityLight,5,60,70,30,flash,,MasterBathMultiSensor;MasterBathShowerMultisensor;MasterBathLavMultisensor,2,noDebug
 MasterBathTubLight,5,60,0,23,flash,MasterBathMultiSensor,MasterBathShowerMultisensor;MasterBathLavMultisensor,2,noDebug
-MasterGregsClosetLight,5,60,100,20,flash,MasterGregsClosetMultisensor,,2,noDebug
+MasterGregsClosetLight,5,60,100,30,flash,MasterGregsClosetMultisensor,,2,noDebug
 MJBathroom,10,60,100,10,flash,,,2,noDebug
 MJCloset,5,60,100,20,flash,MJBedroomClosetMultisensor,,2,noDebug
 MJBedroomLights,30,300,0,40,flash,,MJBedroomMainMultisensor;MJBedroomNookMultisensor,2,noDebug
@@ -277,7 +278,7 @@ MJShowerSconce,5,60,100,50,flash,MJBedroomShowerMultisensor,,2,noDebug
 #OutdoorTempDriveway,360,360,100,100,,,,2,noDebug
 #OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
 PatioCarriageLights,60,300,0,20,flash,,PatioMultisensor,2,noDebug
-PatioChandelier,60,300,0,44,flash,PatioMultisensor,,2,noDebug
+PatioChandelier,60,300,0,54,flash,PatioMultisensor,,2,noDebug
 PatioCans,6,300,0,100,flash,CamRightFrontHouseMotion,,2,noDebug
 RearDeckCarriage,240,240,100,30,,,,2,noDebug
 RearDeckCarraigeB,240,240,100,30,,,,2,noDebug
@@ -308,6 +309,7 @@ WineRoomLight,5,60,40,40,flash,WineRoomMultisensor,,2,noDebug
 -h,Companion
 deviceName,loadDeviceName,maxSequentialErrorsAllowed,debugDeviceMode
 BackStairsLights1,BackStairsLights,2,noDebug
+CarPortLights1,CarPortLights,2,noDebug
 DiningRoomCans1,DiningRoomCans,2,noDebug
 DownstairsHallRightLights1,DownstairsHallRightLights,2,noDebug
 DownstairsHallLeftLights1,DownstairsHallLeftLights,2,noDebug

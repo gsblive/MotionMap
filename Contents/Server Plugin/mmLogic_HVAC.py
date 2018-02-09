@@ -74,7 +74,6 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 			self.supportedCommandsDict.update({'updateThermostatSetings':self.updateThermostatSetings})
 
 			self.resetSetpoints()
-			#mmLib_Low.initCompletionQueue.append(self.initializationComplete)
 
 			mmLib_Low.mmSubscribeToEvent('initComplete', self.initializationComplete)
 

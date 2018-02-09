@@ -33,6 +33,7 @@ class mmILoad(mmLogic_Load.mmLoad):
 
 	def parseUpdate(self, origDev, newDev):
 		if self.debugDevice != 0:
+			#mmLib_Log.logForce("Parsing Update for mmILoad: " + self.deviceName + " with Value of: " + str(newDev))
 			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
 			mmLib_Log.logForce("Parsing Update for mmILoad: " + self.deviceName + " with Value of: " + str(diff))
 		return 0	#0 means did not process

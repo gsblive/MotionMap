@@ -51,7 +51,6 @@ def mmParseConfig(theCommands):
 	mmLib_Log.logForce("Parsing config file: " + str(_MotionMapPlugin.MM_Location) + ".csv")
 	savedInitValue = pluginInitialized
 	pluginInitialized = 0
-	timerQueue = deque()
 	mmLib_CommandQ.qInit()
 	mmLib_Config.init(_MotionMapPlugin.MM_DEFAULT_CONFIG_FILE)
 	pluginInitialized = savedInitValue
@@ -172,10 +171,6 @@ class Plugin(indigo.PluginBase):
 	#	deltaTime = time.time()
 		result = mmParseConfig({'theCommand':'reparseConfig'})
 	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. mmParseConfig() completed.")
-
-	#	deltaTime = time.time()
-		mmLib_Low.restoreOfflineStatistics()
-	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. restoreOfflineStatistics() completed.")
 
 	#	deltaTime = time.time()
 		indigo.insteon.subscribeToIncoming()
@@ -310,24 +305,30 @@ class Plugin(indigo.PluginBase):
 		if pluginInitialized == 0: return()
 
 
-		try:
-			mmSignature = mmLib_Low.makeMMSignature(newDev.id, newDev.address)
-		except:
-			mmLib_Log.logForce("Device Update. Cannot make signature for device: " + str(newDev))
-			return 0
+		#try:
+		#	mmSignature = mmLib_Low.makeMMSignature(newDev.id, newDev.address)
+		#except:
+		#	mmLib_Log.logForce("Device Update. Cannot make signature for device: " + str(newDev))
+		#	return 0
 
-
 		try:
-			mmDev = mmLib_Low.MotionMapDeviceDict[mmSignature]
+			mmDev = mmLib_Low.MotionMapDeviceDict[newDev.name]
 		except:
+			#mmLib_Log.logForce("Device Update. Device is not ours: " + str(newDev.name))
 			# Not our device
 			return 0
+
+		#try:
+		#	mmDev = mmLib_Low.MotionMapDeviceDict[mmSignature]
+		#except:
+			# Not our device
+		#	return 0
 
 		#mmLib_Log.logForce("Device Update. Signature: " + str(mmSignature) + " " + mmDev.deviceName)
 
 		#if newDev.__class__ == indigo.DimmerDevice:mmLog.logForce( str(mmDev.deviceName) + " has been updated to " + str(newDev.brightness))
 
-		# lets copy over the data points of interest
+		# Update the indigo device in case it changed out behind our back
 		mmDev.theIndigoDevice = newDev
 
 		# Update the timestamp of the device, and move him to the end of the update queue
@@ -353,11 +354,8 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def runConcurrentThread(self):
 
-		global timerQueue
-
 		localIsDaylight = indigo.variables['MMDayTime'].value
 
-		loopCounter = 0
 		try:
 			while True:
 				if pluginInitialized == 0:
@@ -374,8 +372,7 @@ class Plugin(indigo.PluginBase):
 
 		except self.StopThread:
 			# do any cleanup here
-			mmLib_Low.saveOfflineStatistics()
-
+			pass
 
 ########################################
 #
@@ -438,7 +435,8 @@ class Plugin(indigo.PluginBase):
 				try:
 					theDevice = mmLib_Low.MotionMapDeviceDict[theDeviceName]
 				except:
-					mmLib_Log.logWarning("Couldnt find device named: " + theDeviceName)
+					mmLib_Log.logWarning("Couldnt find device named: " + theDeviceName )
+					#mmLib_Log.logWarning("Couldnt find device named: " + theDeviceName + " \r" + str(mmLib_Low.MotionMapDeviceDict) )
 					return(0)
 
 				# check to see if it should be queued or executed

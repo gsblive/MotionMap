@@ -50,8 +50,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 		self.supportedCommandsDict.update({'motionEvent': self.camMotionEvent})
 
-		self.exclusionLights = theDeviceParameters["exclusionLights"]
-
+		self.exclusionLights = filter(None, theDeviceParameters["exclusionLights"].split(';'))
 
 	######################################################################################
 	#
@@ -104,7 +103,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		# If we are still processing a motion event... debounce it, dont do anything
 
 		try:
-			timeForNonMotion = mmLib_Low.delayedFunctions[self.camMotionTimeout]
+			timeForNonMotion = mmLib_Low.delayedFunctionKeys[self.camMotionTimeout]
 		except:
 			timeForNonMotion = 0
 

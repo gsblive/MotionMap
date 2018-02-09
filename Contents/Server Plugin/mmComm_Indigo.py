@@ -73,15 +73,28 @@ class mmIndigo(object):
 				self.devIndigoAddress = self.mmDeviceType + ".addr." + self.deviceName
 				self.devIndigoID = self.mmDeviceType + ".id." + self.deviceName
 
-			self.mmSignature = mmLib_Low.makeMMSignature(self.devIndigoID, self.devIndigoAddress )
+			#self.mmSignature = mmLib_Low.makeMMSignature(self.devIndigoID, self.devIndigoAddress )
 
 			# Enqueue in search dictionary
 			mmLib_Low.MotionMapDeviceDict[self.devIndigoID] = self
 			mmLib_Low.MotionMapDeviceDict[self.devIndigoAddress] = self
 			mmLib_Low.MotionMapDeviceDict[self.deviceName] = self
-			mmLib_Low.MotionMapDeviceDict[self.mmSignature] = self
+			#mmLib_Low.MotionMapDeviceDict[self.mmSignature] = self
 
 			mmLib_Log.logDebug("Processing Device Entry: " + self.deviceName + " with address of " + self.devIndigoAddress)
+
+			self.ourNonvolatileData = mmLib_Low.initializeNVDict(self.deviceName)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "timeoutCounter", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "errorCounter", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "highestSequentialErrors", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "unresponsive", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "sequentialErrors", 0)
+
+			try:
+				self.maxSequentialErrors = int(theDeviceParameters["maxSequentialErrorsAllowed"])
+			except:
+				self.maxSequentialErrors = mmLib_Low.MAX_SEQUENTIAL_ERRORS_DEFAULT
+
 
 			self.lastUpdateTimeSeconds = 0
 			self.setLastUpdateTimeSeconds()
@@ -105,7 +118,7 @@ class mmIndigo(object):
 	def deviceUpdated(self, origDev, newDev):
 
 		# the device appears to be alive, reset the unresponsive flag
-		self.unresponsive = 0
+		self.ourNonvolatileData["unresponsive"] = 0
 
 		# and reset the lastupdatetime timers
 		self.setLastUpdateTimeSeconds()
@@ -159,7 +172,7 @@ class mmIndigo(object):
 	def mmDeviceUpdated(self, theCommand):
 
 		# the device appears to be alive, reset the unresponsive flag
-		self.unresponsive = 0
+		self.ourNonvolatileData["unresponsive"] = 0
 
 		# and reset the lastupdatetime timers
 		self.setLastUpdateTimeSeconds()
@@ -229,7 +242,7 @@ class mmIndigo(object):
 	#  Toggle Device
 	#
 	def toggleDevice(self, theCommandParameters):
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return 'unresponsive'
 
@@ -240,7 +253,7 @@ class mmIndigo(object):
 	#
 	def brightenDevice(self, theCommandParameters):
 
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return 'unresponsive'
 
@@ -530,16 +543,16 @@ class mmIndigo(object):
 	def errorCommandLow(self, theCommandParameters, errorType):
 
 		if errorType == 'Error':
-			self.errorCounter = self.errorCounter + 1
-			self.sequentialErrors = self.sequentialErrors + 1
+			self.ourNonvolatileData["errorCounter"] = self.ourNonvolatileData["errorCounter"] + 1
+			self.ourNonvolatileData["sequentialErrors"] = self.ourNonvolatileData["sequentialErrors"] + 1
 
-			if self.sequentialErrors > self.highestSequentialErrors: self.highestSequentialErrors = self.sequentialErrors
+			if self.ourNonvolatileData["sequentialErrors"] > self.ourNonvolatileData["highestSequentialErrors"]: self.ourNonvolatileData["highestSequentialErrors"] = self.ourNonvolatileData["sequentialErrors"]
 
-			if self.sequentialErrors > self.maxSequentialErrors:
+			if self.ourNonvolatileData["sequentialErrors"] > self.maxSequentialErrors:
 				mmLib_Log.logVerbose("Too many sequential errors for " + self.deviceName + " it\'s going offline")
-				self.unresponsive = 1
+				self.ourNonvolatileData["unresponsive"] = 1
 		elif errorType == 'Timeout':
-			self.timeoutCounter = self.timeoutCounter + 1
+			self.ourNonvolatileData["timeoutCounter"] = self.ourNonvolatileData["timeoutCounter"] + 1
 		else:
 			mmLib_Log.logForce("Unknown error type " + str(errorType) + " for " + self.deviceName + ".")
 
@@ -575,7 +588,7 @@ class mmIndigo(object):
 	#
 	def flashDeviceLow(self, theCommandParameters):
 
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return 'done'  # pop our old command off and Restart the Queue
 
@@ -637,7 +650,7 @@ class mmIndigo(object):
 	#
 	def onOffDevice(self, theCommandParameters):
 
-		if self.unresponsive:
+		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return 'unresponsive'
 
@@ -697,8 +710,8 @@ class mmIndigo(object):
 	#
 	def completeCommandByte(self, theCommandByte):
 
-		self.sequentialErrors = 0
-		self.unresponsive = 0
+		self.ourNonvolatileData["sequentialErrors"] = 0
+		self.ourNonvolatileData["unresponsive"] = 0
 
 		if mmLib_CommandQ.pendingCommands:
 			qHead = mmLib_CommandQ.pendingCommands[0]

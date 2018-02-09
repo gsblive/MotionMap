@@ -46,14 +46,6 @@ class mmScene(mmComm_Insteon.mmInsteon):
 			self.members = theDeviceParameters["members"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
 			self.expectedOnState = False
 
-			# For Offline report
-
-			self.errorCounter = 0
-			self.timeoutCounter = 0
-			self.sequentialErrors = 0
-			self.unresponsive = 0
-			self.highestSequentialErrors = 0
-
 			self.testDevAddress = self.devIndigoAddress
 
 			self.supportedCommandsDict.update({'sceneOn': self.sendSceneOn, 'sceneOff': self.sendSceneOff, 'devStatus':self.devStatus})
@@ -87,7 +79,6 @@ class mmScene(mmComm_Insteon.mmInsteon):
 			theCommandParameters['repeat'] = 1
 
 		indigo.insteon.sendSceneOff(self.sceneNumber, sendCleanUps=False)	# does not honor unresponsive because this is not really a device
-		#verifySceneQueue.append(self.verifyScene)
 		self.expectedOnState = False
 
 		return(0)
@@ -105,7 +96,6 @@ class mmScene(mmComm_Insteon.mmInsteon):
 			theCommandParameters['repeat'] = 1
 
 		indigo.insteon.sendSceneOn(self.sceneNumber, sendCleanUps=False) # does not honor unresponsive because this isnt really a device
-		#verifySceneQueue.append(self.verifyScene)
 		self.expectedOnState = True
 
 		return(0)

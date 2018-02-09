@@ -28,6 +28,7 @@ import collections
 import bisect
 import random
 import os.path
+import ast
 
 superClass = 0
 
@@ -76,21 +77,14 @@ statisticsQueue = deque()
 
 # Delay Queue related stuff
 delayQueue = []
-delayedFunctions = {}
+delayedFunctionKeys = {}
 lastDelayProcRunTime = 0
+FractionalGranularity = .000001
+fractionalIndex = FractionalGranularity
 
-# Timer Queue related stuff
-timerQueue = deque()
-timerQueueLoopCounter = 0
 TIMER_QUEUE_GRANULARITY = 5
 
-# scene verification stuff
-verifySceneQueue = deque()
-
 SubmodelDeviceDict = {}
-
-# One shot initialization routines (executed after 1 minute). Obsolete... we now use 'initComplete' subscription below
-# initCompletionQueue = deque()
 
 mmSubscriptions = {'isDayTime':[],'isNightTime':[],'initComplete':[]}
 
@@ -130,7 +124,6 @@ def	cacheNVDict():
 	global mmNVFileName
 
 	try:
-		#mmLib_Log.logForce("=== Writing MotionMap Nonvolatile File: " + mmNVFileName )		# Full pathname
 		mmLib_Log.logForce("=== Writing MotionMap Nonvolatile File: " + ntpath.basename(mmNVFileName) )	# Only File Name
 	except:
 		mmLib_Log.logForce(" === Error Writing Data... Nonvolatile file not found.")
@@ -185,13 +178,9 @@ def resetGlobals():
 	global MotionMapDeviceDict
 	global mmSubscriptions
 	global deviceTimeDeque
-	global verifySceneQueue
 	global loadDeque
 	global controllerDeque
 	global statisticsQueue
-	global timerQueue
-	global timerQueueLoopCounter
-	global initCompletionQueue
 
 	mmLib_Log.logForce("Resetting Globals")
 
@@ -199,13 +188,8 @@ def resetGlobals():
 	mmSubscriptions = {'isDayTime':[],'isNightTime':[],'initComplete':[]}
 
 	deviceTimeDeque	= deque()
-	verifySceneQueue = deque()
-	initCompletionQueue = deque()
 
 	loadDeque	= deque()
-
-	timerQueue = deque()
-	timerQueueLoopCounter = 0
 
 	controllerDeque	= deque()
 
@@ -269,39 +253,6 @@ def getIndigoVariable(theVarName, theDefaultValue):
 	return(theVarValue)
 
 
-############################################################################################
-# mmRegisterForTimer - call theFunction provided every numSeconds seconds (granularity of TIMER_QUEUE_GRANULARITY seconds)
-#
-############################################################################################
-def mmRegisterForTimer(theFunction, numSeconds):
-
-	global timerQueue
-	global timerQueueLoopCounter
-
-	if numSeconds < TIMER_QUEUE_GRANULARITY: floorNumber = TIMER_QUEUE_GRANULARITY
-	else: floorNumber = numSeconds
-	modifiedNum = floorNumber - (floorNumber % TIMER_QUEUE_GRANULARITY)
-
-	timerQueue.append((theFunction, modifiedNum))		# insert into timer deque, make sure it is divisible by TIMER_QUEUE_GRANULARITY
-
-	return(0)
-
-########################################
-#
-#	runOneShotQueue
-#
-#  	Periodic time to process single-shot routines
-#
-########################################
-def runOneShotQueue(theDeque):
-
-	while 1:
-		if theDeque:
-			theProc = theDeque[0]                   # iterate over the scene list
-			theProc()
-			theDeque.popleft()
-		else:
-			break
 
 ############################################################################################
 #
@@ -422,27 +373,25 @@ def	mmDaylightTransition(isNowDaytime):
 ############################################################################################
 def	mmRunTimer():
 
-	global timerQueue
-	global timerQueueLoopCounter
-	global verifySceneQueue
 	global delayQueue
-
-	mmLib_Log.logDebug("MM " + str(TIMER_QUEUE_GRANULARITY) + " second Timer starting with Q " + str(timerQueue))
-
-	if verifySceneQueue: runOneShotQueue(verifySceneQueue)
-
-	timerQueueLoopCounter = timerQueueLoopCounter + TIMER_QUEUE_GRANULARITY	# Do your stuff here
-
-	#if initCompletionQueue and (timerQueueLoopCounter % 60) == 0:
-	#	mmLib_Log.logDebug("Running 1 minute initialization completion routines ")
-	#	runOneShotQueue(initCompletionQueue)
-
-	for elem in timerQueue:
-		if (timerQueueLoopCounter % elem[1]) == 0:
-			elem[0]()
 
 	if delayQueue: mmRunDelayedProcs()
 
+############################################################################################
+# findDelayedAction -  find first instance of registered DelayedAction, return its trigger time
+#
+############################################################################################
+def findDelayedAction(theFunction):
+
+	global delayQueue
+
+
+	try:
+	 	bisectKey = delayedFunctionKeys[theFunction]
+	except:
+		bisectKey = 0
+
+	return bisectKey
 
 ############################################################################################
 # cancelDelayedAction - cancel all occurances of previously registered DelayedAction
@@ -451,29 +400,17 @@ def	mmRunTimer():
 def cancelDelayedAction(theFunction):
 
 	global delayQueue
-
-	# GB Fix me... use an additional dictionary that converts theFunction to time to run... lookup time and start this loop at bisect.bisect_right()
+	global delayedFunctionKeys
 
 	try:
-	 	theTime = delayedFunctions[theFunction]
-		if theTime :
+	 	bisectKey = delayedFunctionKeys[theFunction]
+		if bisectKey :
 			# There is a function waiting
-			delayedFunctions[theFunction] = 0	# Reset delayedFunctions... to no function waiting
+			delayedFunctionKeys[theFunction] = 0	# Reset delayedFunctionKeys... to no function waiting
 		else: return
 	except: return	# no function waiting
-	# now we have thetime to do the bisect_right (saves a bunch of time)
 
-	index = bisect.bisect_left(delayQueue, theTime)
-
-	count = len(delayQueue)
-	while index < count:
-		elem = delayQueue[index]
-		theParameters = elem[1]
-		elemFunction = theParameters['theFunction']
-		if theFunction == elemFunction:
-			delayQueue.pop(index)
-			return
-		index = index + 1
+	delayQueue.pop(bisect.bisect_left(delayQueue, (bisectKey, )))
 
 
 ############################################################################################
@@ -492,9 +429,16 @@ def registerDelayedAction(parameters):
 	
 	global delayQueue
 	global lastDelayProcRunTime
+	global delayedFunctionKeys
+	global fractionalIndex
+	global FractionalGranularity
+
+	fractionalIndex = fractionalIndex+FractionalGranularity
+	if fractionalIndex >= 1.0: fractionalIndex = FractionalGranularity
 
 	theFunction = parameters['theFunction']
 	whenSeconds = parameters['timeDeltaSeconds'] + time.mktime(time.localtime())
+	bisectKey = whenSeconds + fractionalIndex
 
 	cancelDelayedAction(theFunction)		# we only support one entry for this function at a time
 
@@ -502,8 +446,9 @@ def registerDelayedAction(parameters):
 		# Time already expired, do it now
 		theFunction(parameters)
 	else:
-		bisect.insort(delayQueue, (whenSeconds,parameters))
-		delayedFunctions[theFunction] = whenSeconds		# We now mark this function as waiting
+		parameters['executionTime'] = whenSeconds
+		bisect.insort(delayQueue, (bisectKey, parameters))
+		delayedFunctionKeys[theFunction] = bisectKey  # We now mark this function as waiting
 
 	if lastDelayProcRunTime:
 		# Round the time up to the next timer run and return it for the convenience of the caller
@@ -553,10 +498,12 @@ def	mmGetDelayedProcsList(theCommandParameters):
 	numShown = 0
 
 	while index < count:
-		elem = delayQueue[index]
-		theParameters = elem[1]
+		bisectTuple = delayQueue[index]
+		bisectKey = bisectTuple[0]
+		theParameters = bisectTuple[1]
+
 		if (not specificDevice or specificDevice == theParameters['theDevice']) and (not specificProc or specificProc in theParameters['timerMessage']):
-			theMessage = theMessage + str('{0:<3} {1:<14} {2:<46} {3:<80}'.format(" ", str(minutesAndSecondsTillTime(elem[0])), theParameters['theDevice'], theParameters['timerMessage']))
+			theMessage = theMessage + str('{0:<3} {1:<14} {2:<46} {3:<80}'.format(" ", str(minutesAndSecondsTillTime(theParameters['executionTime'])), theParameters['theDevice'], theParameters['timerMessage']))
 			theMessage = theMessage + "\n"
 			numShown = numShown + 1
 		index = index+1
@@ -589,13 +536,15 @@ def	mmRunDelayedProcs():
 
 	count = len(delayQueue)
 	while count:
-		elem = delayQueue[0]
-		theParameters = elem[1]
-		elemFunction = theParameters['theFunction']
-		if (time.mktime(time.localtime()) >= elem[0]):
+		bisectTuple = delayQueue[0]
+		bisectKey = bisectTuple[0]
+		theParameters = bisectTuple[1]
+		when = theParameters['executionTime']
+		if (time.mktime(time.localtime()) >= when):
+			DelayedFunction = theParameters['theFunction']
 			delayQueue.pop(0)
-			delayedFunctions[elemFunction] = 0  # We now mark this function as waiting
-			resetDelta = elemFunction(theParameters)
+			delayedFunctionKeys[DelayedFunction] = 0  # We now mark this function as waiting
+			resetDelta = DelayedFunction(theParameters)
 			if resetDelta:
 				theParameters['timeDeltaSeconds'] = resetDelta
 				# if we got here, there is a reset value... queue it up again. Otherwise, its been deleted above, so ready to continue
@@ -606,18 +555,6 @@ def	mmRunDelayedProcs():
 
 
 
-############################################################################################
-#
-# getStatFileName
-#	Return the name of the Statistics file.
-#
-#
-#############################################################################################
-def getStatFileName():
-
-	theStatFileName = str("mmStat." + indigo.variables["MMLocation"].value) + ".p"
-
-	return theStatFileName
 
 ############################################################################################
 #
@@ -629,83 +566,20 @@ def getStatFileName():
 #############################################################################################
 def resetOfflineStatistics(theCommandParameters):
 
-	devDict = {}
+	global mmNVFileName
 
-	theStatFileName = getStatFileName()
-	mmLib_Log.logForce("Resetting onine statistics file " + theStatFileName)
+	mmLib_Log.logForce("Resetting onine statistics in NVFile " + mmNVFileName)
 	setIndigoVariable("StatisticsResetTime", time.strftime("%m/%d/%Y %I:%M:%S"))
 
 	for mmDev in statisticsQueue:
-		mmDev.timeoutCounter = 0
-		mmDev.errorCounter = 0
-		mmDev.highestSequentialErrors = 0
-		mmDev.unresponsive = 0
-		mmDev.sequentialErrors = 0
-
+		mmDev.ourNonvolatileData["timeoutCounter"] = 0
+		mmDev.ourNonvolatileData["errorCounter"] = 0
+		mmDev.ourNonvolatileData["highestSequentialErrors"] = 0
+		mmDev.ourNonvolatileData["unresponsive"] = 0
+		mmDev.ourNonvolatileData["sequentialErrors"] = 0
 	return(0)
 
-############################################################################################
-#
-# saveOfflineStatistics
-#	Save all the offline Statistics to a file. Operates for every device in StatusQueue that have had errors
-#
-#
-#############################################################################################
-def saveOfflineStatistics():
 
-	devDict = {}
-	for mmDev in statisticsQueue:
-		entryName = mmDev.deviceName
-		if mmDev.timeoutCounter or mmDev.errorCounter:
-			entryStatistics = {"timeoutCounter": mmDev.timeoutCounter, "errorCounter": mmDev.errorCounter, "highestSequentialErrors":mmDev.highestSequentialErrors}
-			devDict[entryName] = entryStatistics
-
-	theStatFileName = getStatFileName()
-	pickle.dump( devDict, open( theStatFileName, "wb" ) )
-
-	return(0)
-
-############################################################################################
-#
-# restoreOfflineStatistics
-#	Restore all the offline Statistics from a file. Operates for every device in StatusQueue that have had errors
-#
-#
-#############################################################################################
-def restoreOfflineStatistics():
-
-	devDict = {}
-
-	theStatFileName = getStatFileName()
-	try:
-		devDict = pickle.load(open(theStatFileName, "rb"))
-	except:
-		pass
-	
-	if devDict:
-
-		mmLib_Log.logForce("Loading Statistics file: " + theStatFileName)
-		mmLib_Log.logVerbose("  Contents: " + str(devDict))
-
-
-		for mmDev in statisticsQueue:
-			entryName = mmDev.deviceName
-
-			try:
-				entryStatistics = devDict[entryName]
-			except:
-				continue
-
-			try:mmDev.timeoutCounter = entryStatistics["timeoutCounter"]
-			except: pass
-
-			try:mmDev.errorCounter = entryStatistics["errorCounter"]
-			except: pass
-
-			try:mmDev.highestSequentialErrors = entryStatistics["highestSequentialErrors"]
-			except: pass
-
-	return(0)
 
 ############################################################################################
 #
@@ -787,15 +661,15 @@ def processOfflineReport(theCommandParameters):
 
 		for mmDev in newList:
 			if whichDevices == 'all': showIt = 1
-			elif whichDevices == 'sequentialErrors' and mmDev.sequentialErrors > 0: showIt = 1
-			elif whichDevices == 'offline' and mmDev.unresponsive > 0: showIt = 1
-			elif whichDevices == 'errorCounter' and int(mmDev.errorCounter) > 0: showIt = 1
+			elif whichDevices == 'sequentialErrors' and mmDev.ourNonvolatileData["sequentialErrors"] > 0: showIt = 1
+			elif whichDevices == 'offline' and mmDev.ourNonvolatileData["unresponsive"] > 0: showIt = 1
+			elif whichDevices == 'errorCounter' and int(mmDev.ourNonvolatileData["errorCounter"]) > 0: showIt = 1
 			else: showIt = 0
 
 			if showIt:
 				numberShown = numberShown + 1
-				theLine = str(mmDev.deviceName + ". TimeoutCount: " + str(mmDev.timeoutCounter) + ". ErrorCount: " + str(mmDev.errorCounter) + " Highest Sequential Errors: " + str(mmDev.highestSequentialErrors) + " of " + str(mmDev.maxSequentialErrors) + ". Current Sequential Errors: " + str(mmDev.sequentialErrors) + ". " )
-				if mmDev.unresponsive:
+				theLine = str(mmDev.deviceName + ". TimeoutCount: " + str(mmDev.ourNonvolatileData["timeoutCounter"]) + ". ErrorCount: " + str(mmDev.ourNonvolatileData["errorCounter"]) + " Highest Sequential Errors: " + str(mmDev.ourNonvolatileData["highestSequentialErrors"]) + " of " + str(mmDev.maxSequentialErrors) + ". Current Sequential Errors: " + str(mmDev.ourNonvolatileData["sequentialErrors"]) + ". " )
+				if mmDev.ourNonvolatileData["unresponsive"]:
 					theLine = theLine + "*** Is Offline ***"
 				mmLib_Log.logReportLine(theLine)
 				theEmail = theEmail + '\n' +  theLine
@@ -1016,8 +890,8 @@ def calculateControllerOccupancyTimeout(theControllers, theMode):
 #
 # 	makeMMSignature
 #
-def makeMMSignature(anID, anAddr):
-	return 'id.' + str(anID) + '.addr.' + str(anAddr)
+#def makeMMSignature(anID, anAddr):
+#	return 'id.' + str(anID) + '.addr.' + str(anAddr)
 
 #
 # 	makeSceneAddress
@@ -1045,7 +919,7 @@ def makeSceneAddress(sceneNumber):
 ############################################################################################
 
 #
-#  cacheNonVolatiles - Write out nonvolatile data to a file
+#  cacheNonVolatiles - Write out nonvolatile data to a file (periodic routine)
 #
 def	cacheNonVolatiles(parameters):
 	cacheNVDict()

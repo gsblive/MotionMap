@@ -48,15 +48,13 @@ def qInit():
 	mmLib_Log.logForce("Initializing command queue")
 	pendingCommands = deque()
 
-	# now subscribe to time events
-	mmLib_Low.mmRegisterForTimer(qTimer, 15)		# give us a kick every 15 seconds
 
 	return(0)
 
 ############################################################################################
 # qTimer - periodic time to check to see if we are stuck
 ############################################################################################
-def qTimer():
+def qTimer(theParameters):
 
 	mmLib_Log.logDebug(">>>CommandQ qTimer")
 	if pendingCommands:
@@ -65,15 +63,14 @@ def qTimer():
 			dispatchTime = theCommandParameters["dispatchTime"]
 		except:
 			mmLib_Log.logForce(">>>CommandQ command was never dispatched: " + str(theCommandParameters))
-			dispatchQ() # kick the command and exit
-			return(0)
+			startQ() 		# start the command queue again
+			return(0)		# if a command was dispatched, the timer should have already been reset, so return 0 to not reset it again
 
+		# The command on top of the queue simply timed out
 
-		if time.time() - theCommandParameters["dispatchTime"] >= MM_DISPATCH_TIMEOUT:
-			mmLib_Log.logForce(">>>CommandQ stuck for more than " + str(MM_DISPATCH_TIMEOUT) + " seconds... process Timeout")
-			timeoutQ()
+		timeoutQ()
 
-	return(0)
+	return(0)		# Nothing Pending.. No need for timer
 
 ############################################################################################
 # qPrint - print given deque (deck)
@@ -201,13 +198,13 @@ def dispatchQ():
 		mmLib_Log.logDebug("dispatchQ: " + theMMDevice.deviceName + " " + theCommandParameters['theCommand'])
 		qEntry["dispatchTime"] = time.time()
 		localError = theMMDevice.dispatchCommand(theCommandParameters)
-		if localError == 'Dque':
-			mmLib_Log.logVerbose("*** dispatchQ Dequeue async command: " + theMMDevice.deviceName + " " + theCommandParameters['theCommand'])
-		elif localError:
-			if localError in ['one','two']: return 0	# this is normal, the command is still in process
-			if localError != 'done':
-				# this is a normal completion, the command is done, so pass the 'done' message up so the command gets dequeued
-				mmLib_Log.logForce("*** dispatchQ Error: " + str(localError) + " from " + theMMDevice.deviceName + " on command: " + theCommandParameters['theCommand'])
+
+		if localError in ['one', 'two']:
+			localError = 0  # this is normal, the command is still in process
+
+		if localError:
+			# All other error codes are going to result in dequeue... typically this will be 'Dque' (meaning command is running async, no reason to wait) or 'Done' (meaning the command completed)
+			mmLib_Log.logVerbose("*** Dispatching command " + theCommandParameters['theCommand'] + " for " + theMMDevice.deviceName + " yielded result code " + str(localError))
 	else:
 		mmLib_Log.logDebug("dispatchQ called with empty queue")
 
@@ -220,13 +217,19 @@ def dispatchQ():
 def startQ():
 
 	while pendingCommands:
-
+		# Keep looping until you get a 0 result code (means in process), or you run out of pending commands
 		if dispatchQ():
 			# there was an error dispatching the command... dequeue it and try the next command
 			pendingCommands.popleft()
 		else:
+			# The command is in the queue and running, start the timeout timer
+			qEntry = pendingCommands[0]
+
+			mmLib_Low.registerDelayedAction({'theFunction': qTimer, 'timeDeltaSeconds': MM_DISPATCH_TIMEOUT, 'theDevice': "CommandQueue", 'timerMessage': "15 second timeout for: " + qEntry["theDevice"] + " " + qEntry["theCommand"]})
 			break
 
+	if not pendingCommands:
+		mmLib_Low.cancelDelayedAction(qTimer)
 
 	return(0)
 
