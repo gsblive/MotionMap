@@ -305,11 +305,9 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		if indigo.variables['MMDefeatMotion'].value == 'true': return(0)
 
 		if self.lastOffCommandTime and theEvent == 'on':
-			if int(time.mktime(time.localtime())) - self.lastOffCommandTime < 3:
-				mmLib_Log.logForce( "=== " + self.deviceName + " is ignoring ON controller event due to last user event within 3 seconds")
+			if int(time.mktime(time.localtime())) - self.lastOffCommandTime < 10:
+				mmLib_Log.logForce( "=== " + self.deviceName + " is ignoring ON controller event from " + theControllerDev.deviceName + " " + str(int(time.mktime(time.localtime())) - self.lastOffCommandTime) + " seconds after user off command.")
 				return(0)
-			elif int(time.mktime(time.localtime())) - self.lastOffCommandTime < 10:
-				mmLib_Log.logForce( "=== " + self.deviceName + " received ON controller event " + str(int(time.mktime(time.localtime())) - self.lastOffCommandTime) + " seconds after user off command.")
 
 		mmLib_Log.logVerbose(self.deviceName + " is being asked to process \'" + theEvent + "\' event by " + theControllerDev.deviceName)
 

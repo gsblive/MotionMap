@@ -83,36 +83,18 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 		if self.loadDeviceName:
 
 			try:
+				# just pass the message to the load device to note the command
 				theLoadDev = mmLib_Low.MotionMapDeviceDict[self.loadDeviceName]
 				theLoadDev.receivedCommand(theInsteonCommand)
 
 			except:
 				mmLib_Log.logVerbose("===Companion: Load Device " + self.loadDeviceName + " not found.")
 
+			# In previous versions, we repeated the command to the load device to make sure they stay in sync... it doesnt appear to be necessary
 
-			return
+		return
 
 
-			#
-			# The folowing code may be obsolete... stay tuned... above casues the load device to receive the event as if it was clicked directly... we will see how that works
-			#
-
-			# notify load device of timing for this command
-			if theCommandByte in [mmComm_Insteon.kInsteonOn, mmComm_Insteon.kInsteonOnFast]:
-				try:
-					theLoadDev = mmLib_Low.MotionMapDeviceDict[self.loadDeviceName]
-					theLoadDev.lastOffCommandTime = int(time.mktime(time.localtime()))
-				except:
-					mmLib_Log.logVerbose("===Companion: Load Device " + self.loadDeviceName + " does not support self.loadDeviceName.")
-
-			try:
-				theLoadDevice = mmLib_Low.MotionMapDeviceDict[self.loadDeviceName]
-				if theCommandByte in [mmComm_Insteon.kInsteonOn, mmComm_Insteon.kInsteonOff, mmComm_Insteon.kInsteonOnFast, mmComm_Insteon.kInsteonOffFast]:
-					newBrightness = self.getBrightness()
-					mmLib_Log.logVerbose("Device " + self.deviceName + " brightness is now " + str(newBrightness) + " Update Maseter " + self.loadDeviceName + " to " + str(newBrightness))
-					theLoadDevice.queueCommand({'theCommand':'brighten', 'theDevice':self.loadDeviceName, 'theValue':newBrightness, 'retry':2})
-			except:
-				mmLib_Log.logVerbose("Device " + self.deviceName + " cannot queue status request for loadDevice " + self.loadDeviceName + ", because loadDevice does not exist")
 
 	#
 	# deviceUpdated

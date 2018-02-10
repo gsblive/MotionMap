@@ -126,7 +126,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 			try:
 				lightDev = indigo.devices[aLight]
 				if lightDev.onState == True:
-					mmLib_Log.logForce( " === Ignoring motion on " + self.deviceName + " because exclusion light " + lightDev + " is already on.")
+					mmLib_Log.logForce( " === Ignoring motion on " + self.deviceName + " because exclusion light " + lightDev.name + " is already on.")
 					return('Dque')
 			except:
 				mmLib_Log.logWarning(self.deviceName + " is referencing an unknown exclusion light named " + aLight + ".")

@@ -235,7 +235,10 @@ def startQ():
 
 ############################################################################################
 # findQ = does not look into first queue element, its already being processed
-############################################################################################
+#
+#	Search PendingCommands for entries whos device is theDevice(name) and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
+#
+#  ############################################################################################
 def findQ(theDevice, theCommandParameters, findDirective):
 
 	n=0
@@ -254,7 +257,9 @@ def findQ(theDevice, theCommandParameters, findDirective):
 #
 # flushQ - note we only look for a single entry because we only support 1 queue entry per command type per device
 #
-############################################################################################
+#	Flush all PendingCommands entries whos device name matches theCommandParameters["theDevice"] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
+#
+# ############################################################################################
 def flushQ(theDevice, theCommandParameters, matchingEntries):
 
 	n=findQ(theDevice, theCommandParameters, matchingEntries)
@@ -303,11 +308,11 @@ def enqueQ(theTargetDevice, theCommandParameters, flushDirective ): # theCommand
 
 ############################################################################################
 #
-# dequeQ
+# dequeQ - Dequeue first pendingCommand (optional) and restart the queue
 #
 ############################################################################################
-def dequeQ( dequeueFirst ): # theCommandParameters is a dictionary
-
+def dequeQ( dequeueFirst ):
+	# queue entries are commandParameter dictionaries
 	if dequeueFirst:
 		try:
 			pendingCommands.popleft()		# pop if needed
