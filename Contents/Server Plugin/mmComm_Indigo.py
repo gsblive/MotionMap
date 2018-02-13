@@ -744,7 +744,7 @@ class mmIndigo(object):
 					mmLib_Log.logVerbose("Successful " + theCommand + " command to " + self.deviceName + " RepeatVal: " + str(repeatVal))
 					mmLib_CommandQ.dequeQ(0)  # all is well, but we have to do a repeat
 				else:
-					mmLib_Log.logForce("Successful " + theCommand + " command to " + self.deviceName)
+					mmLib_Log.logVerbose("Successful " + theCommand + " command to " + self.deviceName)
 					mmLib_CommandQ.dequeQ(1)  # all is well, pop our old command off and Restart the Queue
 			else:
 				# someone else sent a similar command while our commands were waiting, delete all of our commands (defer to other process)

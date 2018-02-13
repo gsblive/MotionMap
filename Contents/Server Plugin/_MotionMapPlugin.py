@@ -35,8 +35,8 @@
 #							x added delay timer report for debugging
 #							x use bisect for timer management
 #							x no longer itterate through all devices when initializing multisensors' sub functions (a list is made first tiem through (10x speed increase in init)
-#							Obsolete Timer Queue, use Delay Queue
-#							Average on/off trasition times for multisensors to detect bouncing (a common problem with fibaro multisensors)
+#							x Obsolete Timer Queue, use Delay Queue
+#							x Average on/off trasition times for multisensors to detect bouncing (a common problem with fibaro multisensors)
 #							On companion brightness change, send new change to Master(but ignore change response for the companion)
 #							Log all changes(button Pressing) by device
 #							Link validation tool

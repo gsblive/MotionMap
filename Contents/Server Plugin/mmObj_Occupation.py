@@ -224,5 +224,7 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 					mmLib_Low.registerDelayedAction({'theFunction': self.doDeactivation, 'timeDeltaSeconds': self.deactivateDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "doDeactivation"})
 
 
+	def parseUpdate(self, origDev, newDev):
+		mmLib_Log.logForce("ParseUpdate called for OccupationAction. The name must match a device. Change configuration file to change the name of Occupation Action: " + self.deviceName )
 
 

@@ -229,7 +229,7 @@ TopFloorFoyerLight,TopFloorFoyerLightP,2,noDebug
 
 -h,HVAC_Insteon
 deviceName,operationalMode,onControllers,sustainControllers,coolSetpoint,heatSetpoint,updateFrequency,fanOnThreshold,maxSequentialErrorsAllowed,allowAsync,debugDeviceMode
-HVACMiddleFloor,HvacHeatMode,MiddleFloorBathToiletMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor,TopFloorMasterMultisensor,76,66,15,7,3,0,noDebug
+HVACMiddleFloor,HvacHeatMode,MiddleFloorBathToiletMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor,TopFloorMasterMultisensor,76,66,15,7,3,1,noDebug
 
 ########################################################
 #
@@ -318,4 +318,4 @@ UpperDoorLockControl,unoccupied,anyTime,_Security UpperDoorLock,30,,0,all,Middle
 LowerDoorLockControl,unoccupied,anyTime,_Security LowerDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;GregsDeskMultisensor
 TopFireplaceOffControl,unoccupied,anyTime,_MotionMap Top Floor Fireplace Off,30,,0,all,TopFloorMasterBathMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterMultisensor;GregsDeskMultisensor
 MiddleFireplaceOffControl,unoccupied,anyTime,_MotionMap Middle Floor Fireplace Off,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
-BottomFloorHeatCutoff,occupied,anyTime,BottomFloorHeatOn,0,BottomFloorHeatOff,120,any,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
+BottomFloorHeatCutoffControl,occupied,anyTime,BottomFloorHeatOn,0,BottomFloorHeatOff,120,any,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
