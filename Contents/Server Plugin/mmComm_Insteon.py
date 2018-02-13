@@ -259,7 +259,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 		#indigo.iodevice.statusRequest(self.theIndigoDevice.id)
 		indigo.insteon.sendStatusRequest(self.theIndigoDevice.address,waitUntilAck=False)
 
-		return(0)
+		return('Dque')	# We aere done, tell dispatch to qeque
 
 
 	############################################################################################
@@ -362,11 +362,13 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 
 		try:
 			potentialCommandList = mapInsteonToCommand[theCommandByte]
-			for theCommand in potentialCommandList:
-				if mmLib_CommandQ.flushQ(self, {'theIndigoDeviceID':self.devIndigoID, 'theCommand':theCommand}, ["theCommand"]):
-					mmLib_Log.logForce("=== Waiting comands flushed due to user interaction with: " + self.deviceName)
 		except:
-			mmLib_Log.logWarning("Command Error. The insteon command: " + str(theCommandByte))
+			mmLib_Log.logWarning("Command Error. The insteon command: " + str(theCommandByte) + " Does not have a potential command list.")
+			potentialCommandList = []
+
+		for theCommand in potentialCommandList:
+			if mmLib_CommandQ.flushQ(self, {'theDevice':self.deviceName,'theIndigoDeviceID':self.devIndigoID, 'theCommand':theCommand}, ["theCommand"]):
+				mmLib_Log.logForce("=== Waiting comands flushed due to user interaction with: " + self.deviceName)
 
 		# Now that we processed all the waiting commands, if we are the active queued command, the new incomming command received probably sabatoged
 		# our efforts to send anything, so restart the queue

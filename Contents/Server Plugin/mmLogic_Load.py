@@ -140,7 +140,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 					# debounce the command, dont send it if the value is already correct
 					if theCompanion.getBrightness() == initialBrightness :
 						mmLib_Log.logVerbose("Device: " + theCompanion.deviceName + " already has the appropriate value: " + str(initialBrightness))
-						mmLib_CommandQ.flushQ(theCompanion, {'theCommand': 'brighten'}, ["theCommand"])
+						mmLib_CommandQ.flushQ(theCompanion, {'theDevice':theCompanion.deviceName,'theCommand': 'brighten'}, ["theCommand"])
 					else:
 						theCompanion.queueCommand({'theCommand':'brighten', 'theDevice':theCompanion.deviceName, 'theValue':initialBrightness, 'retry':2})
 		return(0)

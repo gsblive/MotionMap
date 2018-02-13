@@ -222,7 +222,8 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 			if self.allowAsync:
 				resultCode = self.sendRawInsteonCommandLow([mmComm_Insteon.kInsteonHVACHeatSetpoint, int(newSetPoint) * 2, int(newSetPoint) * 2, 4, 0], False, True)
 			else:
-				resultCode = indigo.thermostat.setHeatSetpoint(self.devIndigoID, value=int(newSetPoint))
+				indigo.thermostat.setHeatSetpoint(self.devIndigoID, value=int(newSetPoint))
+				resultCode = 'Dque'		# Tell dispatch have to qdueue... we are not waiting
 
 		return(resultCode)
 

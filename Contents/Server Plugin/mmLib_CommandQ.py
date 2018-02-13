@@ -25,6 +25,8 @@ MM_DISPATCH_TIMEOUT = 15
 
 # The command Queue
 pendingCommands = deque()
+timeTagDict = {}
+canceledTimeTags = {}
 
 ############################################################################################
 #
@@ -60,7 +62,7 @@ def qTimer(theParameters):
 	if pendingCommands:
 		theCommandParameters = pendingCommands[0]
 		try:
-			dispatchTime = theCommandParameters["dispatchTime"]
+			dispatchTime = theCommandParameters['dispatchTime']
 		except:
 			mmLib_Log.logForce(">>>CommandQ command was never dispatched: " + str(theCommandParameters))
 			startQ() 		# start the command queue again
@@ -79,32 +81,6 @@ def qTimer(theParameters):
 def qPrint(theQ):
 	map( pprint.pprint ,theQ)
 
-############################################################################################
-# qDelete - delete n entry from queue deque (deck)
-############################################################################################
-def qDelete(theQ, n):
-	theQ.rotate(-n)
-	theQ.popleft()
-	theQ.rotate(n)
-
-############################################################################################
-# qMatch - compare given entry to deque (deck) entry
-############################################################################################
-def qMatch(qEntry, theCommandParameters, findDirective):
-
-	if not findDirective: return(1)	# yes it matches
-
-	for directive in findDirective:
-		try:
-			passedDirectiveValue = theCommandParameters[directive]
-			queuedDirectiveValue = qEntry[directive]
-		except:
-			return(0)	# if the directive isnt found in theCommandParameters, or qEntry, no match
-
-		if queuedDirectiveValue != passedDirectiveValue:
-			return(0)	# values were found, but they dont match
-
-	return(1)	# aha it matches!
 
 ############################################################################################
 # emptyQ - empty the whole Queue
@@ -141,35 +117,39 @@ def printQ(theCommandParameters):
 	theCount = 0
 	for theCommandParameters in pendingCommands:                   # iterate over the deque's elements
 
-		try:
-			theDevice = mmLib_Low.MotionMapDeviceDict[theCommandParameters['theDevice']]
-			theDeviceName = theDevice.deviceName
-		except:
-			theDeviceName = "none"
+		timeTag = theCommandParameters['enqueueTime']
 
-		try:
-			theCommand = theCommandParameters["theCommand"]
-		except:
-			theCommand = "none"
-
-		try:
-			theValue = theCommandParameters['theValue']
-		except:
-			theValue = "none"
+		theDeviceName = theCommandParameters.get('theDevice', 'Unknown')
+		theCommand = theCommandParameters.get('theCommand', 'Unknown')
+		theValue = theCommandParameters.get('theValue', 'Unknown')
 
 		displayQueue = displayQueue + '\n' + str(theCount) + ') ' + theDeviceName + ", " + theCommand + ", " + str(theValue)
+		if canceledTimeTags.get(timeTag, None) != None: displayQueue = displayQueue + " CANCELLED"
+
 		if theCount == 0:
 			try:
-				dispatchTime = theCommandParameters["dispatchTime"]
-				displayQueue = displayQueue + " (Running for " + str(time.time() - dispatchTime) + " seconds, Enqueued " + str(time.time() - theCommandParameters["enqueueTime"]) + " seconds ago)"
+				dispatchTime = theCommandParameters['dispatchTime']
+				displayQueue = displayQueue + " (Running for " + str(time.time() - dispatchTime) + " seconds, Enqueued " + str(time.time() - theCommandParameters['enqueueTime']) + " seconds ago)"
 			except:
-				displayQueue = displayQueue + " (Not dispatched yet, Enqueued " + str(time.time() - theCommandParameters["enqueueTime"]) + " seconds ago)"
+				displayQueue = displayQueue + " (Not dispatched yet, Enqueued " + str(time.time() - theCommandParameters['enqueueTime']) + " seconds ago)"
 		else:
-			displayQueue = displayQueue + " (Enqueued " + str(time.time() - theCommandParameters["enqueueTime"]) + " seconds ago)"
+			displayQueue = displayQueue + " (Enqueued " + str(time.time() - theCommandParameters['enqueueTime']) + " seconds ago)"
 
 		theCount = theCount + 1
+	displayQueue = displayQueue + "\n=========================================\n"
+	if theCount:
+		displayQueue = displayQueue + str(theCount)
+		if theCount == 1:
+			displayQueue = displayQueue + " Entry reported."
+		else:
+			displayQueue = displayQueue + " Entries reported."
+	else:
+		displayQueue = displayQueue + "\n=========================================\nNo Entries to report."
 
 	mmLib_Log.logReportLine("Display MotionMap Queue\n" + displayQueue + "\n\n")
+
+
+	mmLib_Log.logReportLine("\ntimeTagDict:\n" + str(timeTagDict) + "\n\n" + "canceledTimeTags:\n" + str(canceledTimeTags) + "\n\n")
 
 ############################################################################################
 # timeoutQ - the entry in the top of the command queue timed out
@@ -178,7 +158,7 @@ def timeoutQ():
 
 	if pendingCommands:
 		theCommandParameters = pendingCommands[0]
-		theMMDevice = mmLib_Low.MotionMapDeviceDict[theCommandParameters['theDevice']]
+		theMMDevice = theCommandParameters['theMMDevice']
 		mmLib_Log.logForce("*** timeoutQ Error: " + theMMDevice.deviceName + " " + theCommandParameters['theCommand'])
 		theMMDevice.errorCommandLow(theCommandParameters, 'Timeout' )
 	else:
@@ -189,25 +169,48 @@ def timeoutQ():
 ############################################################################################
 # dispatchQ - dispatch the first entry in the queue... on error, return nonzero
 ############################################################################################
-def dispatchQ():
+def	dispatchQ():
+
+	global pendingCommands
+	global timeTagDict
+	global canceledTimeTags
+
 	localError = 0
-	if pendingCommands:
-		qEntry = pendingCommands[0]
-		theMMDevice = mmLib_Low.MotionMapDeviceDict[qEntry['theDevice']]
-		theCommandParameters = qEntry
-		mmLib_Log.logDebug("dispatchQ: " + theMMDevice.deviceName + " " + theCommandParameters['theCommand'])
-		qEntry["dispatchTime"] = time.time()
-		localError = theMMDevice.dispatchCommand(theCommandParameters)
 
-		if localError in ['one', 'two']:
-			localError = 0  # this is normal, the command is still in process
+	while pendingCommands:
+		# Keep looping to skip all cancelled commands
 
-		if localError:
-			# All other error codes are going to result in dequeue... typically this will be 'Dque' (meaning command is running async, no reason to wait) or 'Done' (meaning the command completed)
-			mmLib_Log.logVerbose("*** Dispatching command " + theCommandParameters['theCommand'] + " for " + theMMDevice.deviceName + " yielded result code " + str(localError))
-	else:
-		mmLib_Log.logDebug("dispatchQ called with empty queue")
+		theCommandParameters = pendingCommands[0]
+		theMMDevice = theCommandParameters['theMMDevice']
+		timeTag = theCommandParameters['enqueueTime']
+		CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters['theCommand']
 
+		if canceledTimeTags.get(timeTag, None) != None:
+			# commandQueue entry was in cancelled list... Dequeue it
+			canceledTimeTags.pop(timeTag, None)
+			timeTagDict.pop(CommandID, None)
+			if len(pendingCommands) == 1:
+				return(1)	# the caller StartQ() will dequeue this final command based on this error
+			else:
+				# Dequeue the command ourselves and Continue looking for a valid command
+				pendingCommands.popleft()
+		else:
+			# not in cancel list, run the proc
+			theCommandParameters['dispatchTime'] = time.time()
+			mmLib_Log.logDebug("dispatchQ: " + theMMDevice.deviceName + " " + theCommandParameters['theCommand'])
+			#run the proc
+			localError = theMMDevice.dispatchCommand(theCommandParameters)
+			if localError in ['one', 'two', 'None']:
+				localError = 0  # this is normal, the command is still in process
+
+			if localError == 'Dque':
+				# the pendingCommands.popleft will happen in StartQ below... do the rest of the cleanup here
+				canceledTimeTags.pop(timeTag, None)
+				timeTagDict.pop(CommandID, None)
+			elif localError:
+				mmLib_Log.logForce(CommandID + " Resulted in ErrorCode: " + str(localError))
+
+			break	# Either way, we found the proc and are done processing it, so we are done with the loop
 	return localError
 
 
@@ -215,6 +218,8 @@ def dispatchQ():
 # startQ - Start Queue Processing, remove entries on top of the queue when there was an error dispatching commands
 ############################################################################################
 def startQ():
+
+	global pendingCommands
 
 	while pendingCommands:
 		# Keep looping until you get a 0 result code (means in process), or you run out of pending commands
@@ -225,7 +230,7 @@ def startQ():
 			# The command is in the queue and running, start the timeout timer
 			qEntry = pendingCommands[0]
 
-			mmLib_Low.registerDelayedAction({'theFunction': qTimer, 'timeDeltaSeconds': MM_DISPATCH_TIMEOUT, 'theDevice': "CommandQueue", 'timerMessage': "15 second timeout for: " + qEntry["theDevice"] + " " + qEntry["theCommand"]})
+			mmLib_Low.registerDelayedAction({'theFunction': qTimer, 'timeDeltaSeconds': MM_DISPATCH_TIMEOUT, 'theDevice': "CommandQueue", 'timerMessage': "15 second timeout for: " + qEntry['theDevice'] + " " + qEntry['theCommand']})
 			break
 
 	if not pendingCommands:
@@ -234,40 +239,33 @@ def startQ():
 	return(0)
 
 ############################################################################################
-# findQ = does not look into first queue element, its already being processed
-#
-#	Search PendingCommands for entries whos device is theDevice(name) and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
-#
-#  ############################################################################################
-def findQ(theDevice, theCommandParameters, findDirective):
-
-	n=0
-	targetID = theDevice.deviceName
-	for qEntry in pendingCommands:                   # iterate over the deque's elements
-		# theDevice is already implied
-		if n and qEntry['theDevice'] == targetID:
-			if findDirective != 0 and qMatch(qEntry,theCommandParameters, findDirective):
-				return(n)
-		n=n+1
-
-	return(0)                                   # we dont care about elem 0, its already being processed
-
-
-############################################################################################
 #
 # flushQ - note we only look for a single entry because we only support 1 queue entry per command type per device
 #
-#	Flush all PendingCommands entries whos device name matches theCommandParameters["theDevice"] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
+#	Flush all PendingCommands entries whos device name matches theCommandParameters['theDevice'] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
 #
 # ############################################################################################
-def flushQ(theDevice, theCommandParameters, matchingEntries):
+def flushQ(theDeviceName, theCommandParameters, matchingEntries):
 
-	n=findQ(theDevice, theCommandParameters, matchingEntries)
-	if n:
-		mmLib_Log.logForce("flushQ - flushing queued command " + theDevice.deviceName + ": " + theCommandParameters["theCommand"])
-		qDelete(pendingCommands, n)
+	#All you need to do is move the timeTag (if one) to canceledTimeTags
 
-	return n
+	global pendingCommands
+	global timeTagDict
+	global canceledTimeTags
+
+	# Look up the commandID
+	CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters['theCommand']
+
+	try:
+		timeTag = timeTagDict[CommandID]
+	except:
+		#Not found, No work to do
+		return 0
+
+	timeTagDict.pop(CommandID, None)			# take the entry out of the time tag queue so it wont be found again
+	canceledTimeTags[timeTag] = 1				# and mark this found entry cancelled
+
+	return 0
 
 ############################################################################################
 #
@@ -275,14 +273,18 @@ def flushQ(theDevice, theCommandParameters, matchingEntries):
 #
 ############################################################################################
 def getQTopDev():
+
+	global pendingCommands
+
 	theDev = 0
 
 	if pendingCommands:
 		qEntry = pendingCommands[0]
-		theName = qEntry["theDevice"]
+		theName = qEntry['theDevice']
 		try:
 			theDev = mmLib_Low.MotionMapDeviceDict[theName]
 		except:
+			# It can never get here... dont do anything
 			pass
 
 	return theDev
@@ -292,16 +294,32 @@ def getQTopDev():
 # enqueQ
 #
 ############################################################################################
-def enqueQ(theTargetDevice, theCommandParameters, flushDirective ): # theCommandParameters is a dictionary
+def enqueQ(theTargetDevice, theCommandParameters, flushDirective):
+
+
+	global pendingCommands
+	global timeTagDict
+	global canceledTimeTags
+
+	# theCommandParameters is a dictionary
 
 	startTheQueue = not pendingCommands
 
-	if flushDirective: flushQ(theTargetDevice, theCommandParameters, flushDirective)    # Get rid of the old ones if asked
+	timeTag = time.time()
+	CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters['theCommand']
+
 	qEntry = theCommandParameters
+	qEntry['theMMDevice'] = theTargetDevice
 	qEntry['theIndigoDeviceID'] = theTargetDevice.devIndigoID
-	qEntry["enqueueTime"] = time.time()
+	qEntry['enqueueTime'] = timeTag
+
+	if flushDirective:
+		flushQ(theTargetDevice, qEntry, flushDirective)  # Get rid of the old ones if asked
+	else:
+		print("No flush Directive")
 
 	pendingCommands.append(qEntry)
+	timeTagDict[CommandID] = timeTag	# this will be used to cancel this command by timeTag in the future if need be
 
 	if startTheQueue:
 		startQ() # Start Command Queue Processing
@@ -312,11 +330,22 @@ def enqueQ(theTargetDevice, theCommandParameters, flushDirective ): # theCommand
 #
 ############################################################################################
 def dequeQ( dequeueFirst ):
+	global pendingCommands
+	global timeTagDict
+	global canceledTimeTags
 	# queue entries are commandParameter dictionaries
 	if dequeueFirst:
-		try:
-			pendingCommands.popleft()		# pop if needed
-		except:
+		if pendingCommands:
+			theCommandParameters = pendingCommands[0]
+			timeTag = theCommandParameters['enqueueTime']
+			CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters['theCommand']
+
+			canceledTimeTags.pop(timeTag, None)
+			timeTagDict.pop(CommandID, None)
+			pendingCommands.popleft()		# pop the command
+		else:
 			mmLib_Log.logWarning("dequeQ: Pop called, but the queue is empty")
 
 	startQ() 				# Start Command Queue Processing
+
+

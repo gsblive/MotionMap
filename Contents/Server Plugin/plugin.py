@@ -429,8 +429,8 @@ class Plugin(indigo.PluginBase):
 		if theFunction != 0:
 			return(theFunction(pluginAction.props))
 		else:
-			if "theDevice" in pluginAction.props:
-				theDeviceName = str(pluginAction.props.get("theDevice"))
+			if 'theDevice' in pluginAction.props:
+				theDeviceName = str(pluginAction.props.get('theDevice'))
 
 				try:
 					theDevice = mmLib_Low.MotionMapDeviceDict[theDeviceName]

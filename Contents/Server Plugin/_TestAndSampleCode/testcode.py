@@ -419,7 +419,7 @@ def findQ(targetID, theCommandParameters, findDirective):
 #
 # flushQ - note we only look for a single entry because we only support 1 queue entry per command type per device
 #
-#	Flush all PendingCommands entries whos device name matches theCommandParameters["theDevice"] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
+#	Flush all PendingCommands entries whos device name matches theCommandParameters['theDevice'] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
 #
 # ############################################################################################
 def flushQ(theDeviceName, theCommandParameters, matchingEntries):
@@ -536,7 +536,7 @@ def findQ2(targetID, theCommandParameters, findDirective):
 #
 # flushQ - note we only look for a single entry because we only support 1 queue entry per command type per device
 #
-#	Flush all PendingCommands entries whos device name matches theCommandParameters["theDevice"] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
+#	Flush all PendingCommands entries whos device name matches theCommandParameters['theDevice'] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
 #
 # ############################################################################################
 def flushQ2(theDeviceName, theCommandParameters, matchingEntries):
@@ -661,7 +661,7 @@ def findQ3(targetID, theCommandParameters, findDirective):
 #
 # flushQ - note we only look for a single entry because we only support 1 queue entry per command type per device
 #
-#	Flush all PendingCommands entries whos device name matches theCommandParameters["theDevice"] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
+#	Flush all PendingCommands entries whos device name matches theCommandParameters['theDevice'] and the other elements listed in matchingEntries match the provided commandParameters Entry (theCommandParameters)
 #
 # ############################################################################################
 def flushQ3(theDeviceName, theCommandParameters, matchingEntries):
@@ -673,7 +673,7 @@ def flushQ3(theDeviceName, theCommandParameters, matchingEntries):
 	global canceledTimeTags
 
 	# Look up the commandID
-	CommandID = theCommandParameters["theDevice"] + "." + theCommandParameters["theCommand"]
+	CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters["theCommand"]
 
 	try:
 		timeTag = timeTagDict[CommandID]
@@ -730,7 +730,7 @@ def	runCommands3():
 		# Keep looping until you get a 0 result code (means in process), or you run out of pending commands
 		theCommandParameters = pendingCommands[0]
 		timeTag = theCommandParameters["enqueueTime"]
-		CommandID = theCommandParameters["theDevice"] + "." + theCommandParameters["theCommand"]
+		CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters["theCommand"]
 
 		if canceledTimeTags.pop(timeTag, None) == None:
 			#run the proc
@@ -771,7 +771,13 @@ def test6():
 
 random.seed()
 
-#quit()
+potentialCommandList = ['one','two','three']
+potentialCommandList = []
+
+for aCommand in potentialCommandList:
+	print aCommand
+
+quit()
 
 accumulator = 0
 for i in range(0,10):
