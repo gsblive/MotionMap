@@ -159,7 +159,7 @@ def timeoutQ():
 	if pendingCommands:
 		theCommandParameters = pendingCommands[0]
 		theMMDevice = theCommandParameters['theMMDevice']
-		mmLib_Log.logForce("*** timeoutQ Error: " + theMMDevice.deviceName + " " + theCommandParameters['theCommand'])
+		mmLib_Log.logForce("*** timeoutQ Error: " + theCommandParameters['theDevice'] + " " + theCommandParameters['theCommand'])
 		theMMDevice.errorCommandLow(theCommandParameters, 'Timeout' )
 	else:
 		mmLib_Log.logDebug("timeoutQ called with empty queue")
@@ -197,7 +197,7 @@ def	dispatchQ():
 		else:
 			# not in cancel list, run the proc
 			theCommandParameters['dispatchTime'] = time.time()
-			mmLib_Log.logDebug("dispatchQ: " + theMMDevice.deviceName + " " + theCommandParameters['theCommand'])
+			mmLib_Log.logDebug("dispatchQ: " + theCommandParameters['theDevice'] + " " + theCommandParameters['theCommand'])
 			#run the proc
 			localError = theMMDevice.dispatchCommand(theCommandParameters)
 			if localError in ['one', 'two', 'None']:
@@ -301,6 +301,8 @@ def enqueQ(theTargetDevice, theCommandParameters, flushDirective):
 	global timeTagDict
 	global canceledTimeTags
 
+	localParameters = {}
+
 	# theCommandParameters is a dictionary
 
 	startTheQueue = not pendingCommands
@@ -308,17 +310,19 @@ def enqueQ(theTargetDevice, theCommandParameters, flushDirective):
 	timeTag = time.time()
 	CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters['theCommand']
 
-	qEntry = theCommandParameters
-	qEntry['theMMDevice'] = theTargetDevice
-	qEntry['theIndigoDeviceID'] = theTargetDevice.devIndigoID
-	qEntry['enqueueTime'] = timeTag
+	try:
+		theCommandParameters['theMMDevice'] = theTargetDevice
+		theCommandParameters['theIndigoDeviceID'] = theTargetDevice.devIndigoID
+		theCommandParameters['enqueueTime'] = timeTag
+	except Exception as err:
+		mmLib_Log.logError("Cannot Enqueue MDevice: " + str(theTargetDevice) + " Error: " + str(err))
 
 	if flushDirective:
-		flushQ(theTargetDevice, qEntry, flushDirective)  # Get rid of the old ones if asked
+		flushQ(theTargetDevice, theCommandParameters, flushDirective)  # Get rid of the old ones if asked
 	else:
 		print("No flush Directive")
 
-	pendingCommands.append(qEntry)
+	pendingCommands.append(theCommandParameters)
 	timeTagDict[CommandID] = timeTag	# this will be used to cancel this command by timeTag in the future if need be
 
 	if startTheQueue:

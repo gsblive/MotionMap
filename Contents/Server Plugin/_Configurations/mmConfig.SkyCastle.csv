@@ -144,6 +144,9 @@ QuadMasterHallLightMultisensor,60,5,noDebug
 QuadMultisensorA,60,5,noDebug
 QuadMultisensorB,60,5,noDebug
 ServerClosetMultisensor,60,10,noDebug
+TheaterBackMultisensor,120,10,noDebug
+TheaterBathMultisensor,60,10,noDebug
+TheaterFrontMultisensor,120,10,noDebug
 UpstairsHallRightAMultisensor,60,5,noDebug
 UpstairsHallRightBMultisensor,60,5,noDebug
 UpstairsHallRightCMultisensor,60,5,noDebug
@@ -201,8 +204,8 @@ deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFea
 BackStairsLights,5,30,60,25,flash,GarageHall3Multisensor;BackStairsMultisensor,,2,noDebug
 ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensor,,2,noDebug
 CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensor;CamCarPortMotion,,2,noDebug
-CarPortLights,5,360,0,100,flash,CamHouseParkingMotion,,2,noDebug
-DogRunAndWaterfallFloodLight,5,60,0,100,flash,CamDogRunMotion,,2,noDebug
+CarPortLights,5,360,0,100,,CamHouseParkingMotion,,2,noDebug
+DogRunAndWaterfallFloodLight,5,60,0,100,,CamDogRunMotion,,2,noDebug
 DownstairsHallLeftLights,5,60,0,30,flash,DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor,,2,noDebug
 DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensor;DownstairsHallRightBMultisensor,,2,noDebug
 Dining Chandelier,30,600,0,30,flash,,DiningRoomMultisensorB;DiningRoomMultisensorA;DownstairsHallRightAMultisensor;DownstairsHallLeftLightsAMultisensor,2,noDebug
@@ -223,8 +226,8 @@ FoyerLeftOutletBottom,360,0,100,100,,,,2,noDebug
 #FoyerLeftOutletTop,360,0,60,30,,,,2,noDebug
 FrontPondOutletTop,480,480,100,100,,,,2,noDebug
 FrontPondOutletBottom,480,480,100,100,,,,2,noDebug
-Front Porch,5,360,0,100,flash,CamLeftFrontHouseMotion,,2,noDebug
-GarageDoorLights,5,360,0,100,flash,CamGarageMotion,,2,noDebug
+Front Porch,5,360,0,100,,CamLeftFrontHouseMotion,,2,noDebug
+GarageDoorLights,5,360,0,100,,CamGarageMotion,,2,noDebug
 GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;GarageHall3Multisensor,,2,noDebug
 GregsOfficeClosetDimmer,5,60,100,20,flash,GregsOfficeClosetMultisensor,,2,noDebug
 #GregsOfficeShelfLights,5,60,100,100,flash,AeonMultisensorTest1,,2,noDebug
@@ -279,13 +282,20 @@ MJShowerSconce,5,60,100,50,flash,MJBedroomShowerMultisensor,,2,noDebug
 #OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
 PatioCarriageLights,60,300,0,20,flash,,PatioMultisensor,2,noDebug
 PatioChandelier,60,300,0,54,flash,PatioMultisensor,,2,noDebug
-PatioCans,6,300,0,100,flash,CamRightFrontHouseMotion,,2,noDebug
+PatioCans,6,300,0,100,,CamRightFrontHouseMotion,,2,noDebug
 RearDeckCarriage,240,240,100,30,,,,2,noDebug
 RearDeckCarraigeB,240,240,100,30,,,,2,noDebug
 QuadMasterHallLight,5,60,0,20,flash,MasterHallMultisensor;QuadMasterHallLightMultisensor,,2,noDebug
 Quad Front,5,120,0,20,flash,QuadMultisensorA,,2,noDebug
 Quad Back,5,120,0,20,flash,QuadMasterHallLightMultisensor;UpstairsHallRightAMultisensor;QuadMultisensorB,QuadMultisensorA,2,noDebug
 ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensor,,2,noDebug
+TheaterBalconyLight,60,60,100,100,flash,,,2,noDebug
+TheaterBathFan,15,60,100,100,flash,,TheaterBathMultisensor,2,noDebug
+TheaterBathFanLight,15,60,0,24,flash,TheaterBathMultisensor,,2,noDebug
+TheaterBackLight,60,300,0,24,flash,,TheaterBackMultisensor;TheaterFrontMultisensor,2,noDebug
+TheaterKitchenLight,60,300,0,24,flash,,TheaterBackMultisensor;TheaterFrontMultisensor,2,noDebug
+TheaterMainLight,60,300,0,24,flash,,TheaterBackMultisensor;TheaterFrontMultisensor,2,noDebug
+TheaterBathVanityLight,15,60,100,65,flash,,TheaterBathMultisensor,2,noDebug
 UnderRearDeckOutletWallLights - Top,240,240,100,100,,,,2,noDebug
 UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
 UpstairsHallRightA,5,30,0,24,flash,UpstairsHallRightAMultisensor;UpstairsHallRightBMultisensor,,2,noDebug
@@ -342,6 +352,8 @@ QuadMasterHallLight1,QuadMasterHallLight,2,noDebug
 RearDeckCarraige 1,RearDeckCarriage,2,noDebug
 RearDeckWallLightA,UnderRearDeckOutletWallLights - Bottom,2,noDebug
 RearDeckWallLightB,UnderRearDeckOutletWallLights - Bottom,2,noDebug
+TheaterBackLight2,TheaterBackLight,2,noDebug
+TheaterKitchenLight2,TheaterKitchenLight,2,noDebug
 UpstairsHallRightA1,UpstairsHallRightA,2,noDebug
 UpstairsHallRightC1,UpstairsHallRightC,2,noDebug
 

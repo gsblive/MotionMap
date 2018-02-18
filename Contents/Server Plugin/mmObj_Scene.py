@@ -34,6 +34,7 @@ class mmScene(mmComm_Insteon.mmInsteon):
 
 	def __init__(self, theDeviceParameters):
 		super(mmScene, self).__init__(theDeviceParameters)
+
 		if self.initResult == 0:
 
 			#
@@ -131,3 +132,6 @@ class mmScene(mmComm_Insteon.mmInsteon):
 
 		return(0)
 
+	def parseCompletion(self, theInsteonCommand):
+		#self.verifyScene()	# we can reactivate this in completeCommand, but we should first fix verifyScene to not do on/off command for devices that dont handle it
+		return 0	#0 means did not process completion message... default handler will take care of it

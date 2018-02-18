@@ -768,6 +768,24 @@ def test6():
 #======================= MAIN
 #=======================
 
+theDict = {}
+
+def addToDict(theNewDict):
+	global theDict
+
+	theDict[str(theNewDict['theName'] + "alt")] = theNewDict
+	theDict['AdditionalData'] = 1234
+	#print theDict
+
+
+#for x in range(100):
+x = 1
+aDict = {'theName':str('EntryName'+str(x)), 'theVal':x}
+print str(aDict)
+addToDict(aDict)
+print str(aDict)
+
+quit()
 
 random.seed()
 

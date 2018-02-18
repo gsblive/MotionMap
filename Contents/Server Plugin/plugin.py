@@ -412,8 +412,20 @@ class Plugin(indigo.PluginBase):
 
 		# Parse the command
 
-		if "theCommand" in pluginAction.props:
-			doCommand = str(pluginAction.props.get("theCommand"))
+		theCommandParameters = {}
+
+		# for some reason, if you just do theCommandParameters = pluginAction.props, you cant set anything in the
+		# dict to an object pointer, so we have to make a copy of the parameters one by one. It must be the way
+		# indigo makes their dict, it cant convert an object... you grt an error like this:
+		#   Error: No registered converter was able to produce a C + + rvalue of type CCString from this Python object of type mmScene
+
+		for key, value in pluginAction.props.iteritems():
+			theCommandParameters[key] = value
+
+		#mmLib_Log.logForce("executeMMCommand: " + str(theCommandParameters))
+
+		if "theCommand" in theCommandParameters:
+			doCommand = theCommandParameters['theCommand']
 		else:
 			mmLib_Log.logWarning("No command given in executeMMCommand")
 			return(0)
@@ -422,15 +434,18 @@ class Plugin(indigo.PluginBase):
 		# All control commands are immediate
 
 		try:
+			# Is it a system command?
 			theFunction = supportedControlCommandsDict[doCommand]
 		except:
 			theFunction = 0
 
 		if theFunction != 0:
-			return(theFunction(pluginAction.props))
+			# Yes System Command, just do it
+			return(theFunction(theCommandParameters))
 		else:
-			if 'theDevice' in pluginAction.props:
-				theDeviceName = str(pluginAction.props.get('theDevice'))
+			# Not a system Command, load the object and dispatch the command
+			if 'theDevice' in theCommandParameters:
+				theDeviceName = theCommandParameters['theDevice']
 
 				try:
 					theDevice = mmLib_Low.MotionMapDeviceDict[theDeviceName]
@@ -441,11 +456,11 @@ class Plugin(indigo.PluginBase):
 
 				# check to see if it should be queued or executed
 				theMode = "QUEUE"
-				if "theMode" in pluginAction.props: theMode = pluginAction.props.get("theMode")
+				if "theMode" in theCommandParameters: theMode = theCommandParameters['theMode']
 
 				if theMode == "IMMED":
-					return(theDevice.dispatchCommand(pluginAction.props))	# do the command now
+					return(theDevice.dispatchCommand(theCommandParameters))	# do the command now
 				else:
-					return(theDevice.queueCommand(pluginAction.props))	# queue it for later
+					return(theDevice.queueCommand(theCommandParameters))	# queue it for later
 
 

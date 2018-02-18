@@ -80,7 +80,6 @@ class mmIndigo(object):
 			mmLib_Low.MotionMapDeviceDict[self.devIndigoAddress] = self
 			mmLib_Low.MotionMapDeviceDict[self.deviceName] = self
 			#mmLib_Low.MotionMapDeviceDict[self.mmSignature] = self
-
 			mmLib_Log.logDebug("Processing Device Entry: " + self.deviceName + " with address of " + self.devIndigoAddress)
 
 			self.ourNonvolatileData = mmLib_Low.initializeNVDict(self.deviceName)
@@ -467,32 +466,32 @@ class mmIndigo(object):
 		theResult = 1
 
 		try:
-			theTargetDeviceName = theCommandParameters['theDevice']
+			theMMDeviceName = theCommandParameters['theDevice']
 		except:
 			theResult = 0
 			mmLib_Log.logError("No device Name given")
 
 		try:
-			theTargetDevice = mmLib_Low.MotionMapDeviceDict[theTargetDeviceName]
+			theMMDevice = mmLib_Low.MotionMapDeviceDict[theMMDeviceName]
 		except:
 			theResult = 0
-			mmLib_Log.logError(" No MM Device Named \"" + theTargetDeviceName + "\".")
+			mmLib_Log.logError(" No MM Device Named \"" + theMMDeviceName + "\".")
 
 		try:
-			theTargetDevice.validateCommand(theCommandParameters['theCommand'])
+			theMMDevice.validateCommand(theCommandParameters['theCommand'])
 			# note: check for valid parameters eventually when the command actually gets dispatched
 		except:
 			theResult = 0
-			mmLib_Log.logForce(theTargetDevice.deviceName + " Command \"" + str(theCommandParameters) + "\" could not be queued. NO HANDLER")
+			mmLib_Log.logForce(theMMDevice.deviceName + " Command \"" + str(theCommandParameters) + "\" could not be queued. NO HANDLER")
 
 		if(theResult):
 			# note: The following can't fail. However if the queue was previously empty, the command will execute which may fail.
 			#    we dont have this in a try statement because we dont want to mask the failures, we want to fix them (as they present themselves as errors)
 
 			if "NoFlush" in theCommandParameters:
-				mmLib_CommandQ.enqueQ(theTargetDevice, theCommandParameters, 0)
+				mmLib_CommandQ.enqueQ(theMMDevice, theCommandParameters, 0)
 			else:
-				mmLib_CommandQ.enqueQ(theTargetDevice, theCommandParameters, ['theCommand'])
+				mmLib_CommandQ.enqueQ(theMMDevice, theCommandParameters, ['theCommand'])
 
 		return theResult
 

@@ -83,6 +83,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			mmLib_Low.mmSubscribeToEvent('isNightTime', self.mmDayNightTransition)
 			mmLib_Low.mmSubscribeToEvent('initComplete', self.completeInit)
 
+
 	######################################################################################
 	#
 	#
