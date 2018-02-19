@@ -416,6 +416,7 @@ class Plugin(indigo.PluginBase):
 
 		theCommandParameters = {}
 
+
 		# for some reason, if you just do theCommandParameters = pluginAction.props, you cant set anything in the
 		# dict to an object pointer, so we have to make a copy of the parameters one by one. It must be the way
 		# indigo makes their dict, it cant convert an object... you grt an error like this:
@@ -426,9 +427,9 @@ class Plugin(indigo.PluginBase):
 
 		#mmLib_Log.logForce("executeMMCommand: " + str(theCommandParameters))
 
-		if "theCommand" in theCommandParameters:
-			doCommand = theCommandParameters['theCommand']
-		else:
+		doCommand = theCommandParameters.get('theCommand', 0)
+
+		if not doCommand:
 			mmLib_Log.logWarning("No command given in executeMMCommand")
 			return(0)
 
@@ -446,14 +447,13 @@ class Plugin(indigo.PluginBase):
 			return(theFunction(theCommandParameters))
 		else:
 			# Not a system Command, load the object and dispatch the command
-			if 'theDevice' in theCommandParameters:
 
+			theDeviceName = theCommandParameters.get('theDevice', 0)
+			if theDeviceName:
 				try:
-					mmLib_Log.logForce("Trying to get device name: " + theCommandParameters.get('theDevice'),"UnknownDevice" )
-					theDeviceName = theCommandParameters['theDevice']
 					theDevice = mmLib_Low.MotionMapDeviceDict[theDeviceName]
 				except:
-					mmLib_Log.logWarning("Couldnt find device named: " + theDeviceName )
+					mmLib_Log.logForce("Couldnt find device named: " + theDeviceName )
 					#mmLib_Log.logWarning("Couldnt find device named: " + theDeviceName + " \r" + str(mmLib_Low.MotionMapDeviceDict) )
 					return(0)
 
@@ -465,5 +465,6 @@ class Plugin(indigo.PluginBase):
 					return(theDevice.dispatchCommand(theCommandParameters))	# do the command now
 				else:
 					return(theDevice.queueCommand(theCommandParameters))	# queue it for later
-
+			else:
+				mmLib_Log.logForce("executeMMCommand: No device Name given for " + str(doCommand))
 
