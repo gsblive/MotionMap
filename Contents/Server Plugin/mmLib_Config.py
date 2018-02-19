@@ -143,5 +143,4 @@ def parseConfig(theFilePath):
 ######################################################
 def init(configFileName):
 	parseConfig(configFileName)
-	mmLib_Low.refreshControllers()
-	
+

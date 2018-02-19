@@ -48,7 +48,6 @@ def mmParseConfig(theCommands):
 
 	global pluginInitialized
 
-	mmLib_Log.logForce("Parsing config file: " + str(_MotionMapPlugin.MM_Location) + ".csv")
 	savedInitValue = pluginInitialized
 	pluginInitialized = 0
 	mmLib_CommandQ.qInit()
@@ -152,36 +151,16 @@ class Plugin(indigo.PluginBase):
 		global startTime
 
 		startTime = time.time()
-	#	deltaTime = time.time()
 
 		mmLib_Log.logForce("---" + _MotionMapPlugin.MM_NAME + " plugin version " + _MotionMapPlugin.MM_VERSION + ". Startup called")
 
-	#	deltaTime = time.time()
 		mmLib_Log.start()
-	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. mmLib_Log.start() completed.")
-
-	#	deltaTime = time.time()
 		mmLib_Low.init()
-	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. mmLib_Log.start() completed.")
-
-	#	deltaTime = time.time()
-		mmLib_Low.mmSubscribeToEvent('initComplete', self.initComplete)
-	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. initcompleteSubscribe() completed.")
-
-	#	deltaTime = time.time()
 		result = mmParseConfig({'theCommand':'reparseConfig'})
-	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. mmParseConfig() completed.")
-
-	#	deltaTime = time.time()
 		indigo.insteon.subscribeToIncoming()
 		indigo.insteon.subscribeToOutgoing()
 		indigo.devices.subscribeToChanges()
-	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. messageSubscriptions() completed.")
 
-		# Run subscriptions for all objects in the init queue
-	#	deltaTime = time.time()
-		mmLib_Low.mmRunSubscriptions('initComplete')
-	#	mmLib_Log.logForce("  +TIMETRACK:" + str(round(time.time() - deltaTime, 2)) + "s. initSubscribeRUN() completed.")
 
 
 	########################################
@@ -192,8 +171,14 @@ class Plugin(indigo.PluginBase):
 	def initComplete(self):
 
 		global pluginInitialized
+		global startTime
 
-		pluginInitialized = 1
+
+		pluginInitialized = 10
+		mmLib_Log.logForce("  System Initialization completed. Running Device INIT subscriptions")
+		# Run subscriptions for all objects in the init queue
+		mmLib_Low.refreshControllers()
+		mmLib_Low.mmRunSubscriptions('initComplete')
 
 
 		# initialize daytime value for all devices that care. We do this before the following
@@ -230,6 +215,8 @@ class Plugin(indigo.PluginBase):
 	#
 	########################################
 	def insteonCommandReceived(self, cmd):
+		global pluginInitialized
+
 		if pluginInitialized == 0: return()
 
 		#mmLog.logForce( "Command Received for ID: " + str(cmd.address) )
@@ -260,6 +247,8 @@ class Plugin(indigo.PluginBase):
 	#
 	########################################
 	def insteonCommandSent(self, cmd):
+
+		global pluginInitialized
 		if pluginInitialized == 0: return()
 		#indigo.server.log(str(cmd))
 
@@ -302,6 +291,8 @@ class Plugin(indigo.PluginBase):
 	#
 	########################################
 	def deviceUpdated(self, origDev, newDev):
+		global pluginInitialized
+
 		if pluginInitialized == 0: return()
 
 
@@ -354,13 +345,23 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def runConcurrentThread(self):
 
+		global pluginInitialized
+
 		localIsDaylight = indigo.variables['MMDayTime'].value
 
 		try:
 			while True:
 				if pluginInitialized == 0:
-					mmLib_Log.logForce(">>> calling runConcurrentThread before initialization")
-					self.sleep(5) # in seconds
+#					pluginInitialized = pluginInitialized + 1
+#					mmLib_Log.logForce("Waiting for System stabilization")
+#					self.sleep(5) # in seconds
+					try:
+						self.initComplete()
+					except:
+						mmLib_Log.logForce("Failed to initialize in initComplete(). Trying again in 5 seconds.")
+						pluginInitialized = 0
+						self.sleep(5) # in seconds
+
 				else:
 					self.sleep(mmLib_Low.TIMER_QUEUE_GRANULARITY) # in seconds
 					mmLib_Low.mmRunTimer()
@@ -370,7 +371,8 @@ class Plugin(indigo.PluginBase):
 						localIsDaylight = newDaylightValue
 						mmLib_Low.mmDaylightTransition(newDaylightValue)
 
-		except self.StopThread:
+#		except self.StopThread:
+		except:
 			# do any cleanup here
 			pass
 
@@ -445,9 +447,10 @@ class Plugin(indigo.PluginBase):
 		else:
 			# Not a system Command, load the object and dispatch the command
 			if 'theDevice' in theCommandParameters:
-				theDeviceName = theCommandParameters['theDevice']
 
 				try:
+					mmLib_Log.logForce("Trying to get device name: " + theCommandParameters.get('theDevice'),"UnknownDevice" )
+					theDeviceName = theCommandParameters['theDevice']
 					theDevice = mmLib_Low.MotionMapDeviceDict[theDeviceName]
 				except:
 					mmLib_Log.logWarning("Couldnt find device named: " + theDeviceName )

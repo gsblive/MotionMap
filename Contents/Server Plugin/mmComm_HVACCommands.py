@@ -196,6 +196,7 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 				resultCode = self.sendRawInsteonCommandLow([mmComm_Insteon.kInsteonHVACCoolSetpoint, int(newSetPoint) * 2, int(newSetPoint) * 2, 4, 0], False, True)
 			else:
 				resultCode = indigo.thermostat.setCoolSetpoint(self.devIndigoID, value=int(newSetPoint))
+				resultCode = 'Dque'		# Tell dispatch have to qdueue... we are not waiting
 
 		return(resultCode)
 
@@ -218,7 +219,7 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return('unresponsive')
 
-		if int(self.theIndigoDevice.coolSetpoint) != int(newSetPoint):
+		if int(self.theIndigoDevice.heatSetpoint) != int(newSetPoint):
 			if self.allowAsync:
 				resultCode = self.sendRawInsteonCommandLow([mmComm_Insteon.kInsteonHVACHeatSetpoint, int(newSetPoint) * 2, int(newSetPoint) * 2, 4, 0], False, True)
 			else:

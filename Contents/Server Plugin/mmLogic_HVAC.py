@@ -73,7 +73,6 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 		if self.initResult == 0:
 			self.supportedCommandsDict.update({'updateThermostatSetings':self.updateThermostatSetings})
 
-			self.resetSetpoints()
 
 			mmLib_Low.mmSubscribeToEvent('initComplete', self.initializationComplete)
 
@@ -535,6 +534,7 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 		# The following is done here because we set a number of the thermostat's baseline settings at init
 		# time that need to be updated before final temp calculations done in updateThermostatSettingsLow()
 		mmLib_Log.logVerbose( "Finalizing Initialization. " + self.deviceName + " is calling updateThermostatSetingsLogic")
+		self.resetSetpoints()
 		self.updateThermostatSetingsLogic()
 
 		return 0
