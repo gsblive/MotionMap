@@ -5,10 +5,12 @@ import os
 
 myPath = os.path.realpath(__file__)
 indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
+#indigoPlugin = indigoPlugin + '/'
+print str(indigoPlugin)
 indigoPlugin = indigoPlugin.replace(' ', '\\ ')
-theCommand = "rsync -av " + str(indigoPlugin) + " /Volumes/MotionMapStagingSkyCastle-2"
+theCommand = "rsync -av --exclude .git --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + str(indigoPlugin) + " /Volumes/MotionMapStagingSkyCastle-2"
 #theCommand = "ditto -v " + str(indigoPlugin) + " /Volumes/MotionMapStagingSkyCastle-2/MotionMap\ 3.IndigoPlugin"
-#print str(theCommand)
+print str(theCommand)
 os.system(theCommand)
 #os.system("rsync -av indigoPlugin /Volumes/MotionMapStagingSkyCastle-2")
 #os.system("rsync -av /MotionMap\ 3.indigoPlugin /Volumes/MotionMapStagingSkyCastle-2")
