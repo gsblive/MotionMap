@@ -8,7 +8,7 @@ indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
 indigoPlugin = indigoPlugin + '/'
 print str(indigoPlugin)
 indigoPlugin = indigoPlugin.replace(' ', '\\ ')
-theCommand = "rsync -av --exclude .git --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + str(indigoPlugin) + " /Volumes/MotionMapStagingSandCastle-1/MotionMap\ 3.IndigoPlugin"
+theCommand = "rsync -av --exclude .git --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + str(indigoPlugin) + " /Volumes/MotionMapStagingSandCastle/MotionMap\ 3.IndigoPlugin"
 #theCommand = "ditto -v " + str(indigoPlugin) + " /Volumes/MotionMapStagingSandCastle-1/MotionMap\ 3.IndigoPlugin"
 print str(theCommand)
 os.system(theCommand)

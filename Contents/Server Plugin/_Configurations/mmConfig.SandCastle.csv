@@ -149,7 +149,7 @@ TopFloorStairwellLightP,5,20,0,60,flash,TopFloorStairsMultisensor,,2,noDebug
 TopFloorFoyerLightP,5,20,0,60,flash,TopFloorStairsMultisensor,,2,noDebug
 TopFloorMasterLightsP,60,180,0,60,flash,,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;GregsDeskMultisensor,2,noDebug
 TopFloorMasterUnderBedOutletTop,60,300,0,100,flash;bedtime,TopFloorMasterMultisensor,TopFloorMasterBathMultisensor;GregsDeskMultisensor,2,noDebug
-TopFloorMasterBathLavFanLightP,10,60,100,60,flash,,TopFloorMasterBathLavMultisensor,2,noDebug
+TopFloorMasterBathLavLight,10,60,0,14,flash,,TopFloorMasterBathLavMultisensor,2,noDebug
 TopFloorMasterShowerLightP,10,60,0,100,flash,TopFloorMasterBathShowerMultisensor,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;TopFloorMasterBathLavMultisensor;GregsDeskMultisensor,2,noDebug
 TopFloorMasterBathVanityLightP,10,60,100,60,flash,,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor,2,noDebug
 TopFloorMasterBathLinenP,10,60,100,60,flash,,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor,2,noDebug
@@ -162,7 +162,6 @@ MiddleFloorKitchenCabinetLeftLightSwitchP,120,360,0,30,flash;bedtime,,MiddleFloo
 MiddleFloorKitchenCabinetLightSwitchRightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
 MiddleFloorKitchenMainLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
 MiddleFloorKitchenSinkLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-#TopFloorMasterBedLightP,60,360,0,30,flash;bedtime,TopFloorMasterMultisensor,,2,noDebug
 
 ########################################################
 #
@@ -208,6 +207,7 @@ MiddleFloorLowerStairsLight,BottomFloorStairsLightP,2,noDebug
 TopFloorMasterBathVanityLight,TopFloorMasterBathVanityLightP,2,noDebug
 TopFloorMasterLights,TopFloorMasterLightsP,2,noDebug
 TopFloorFoyerLight,TopFloorFoyerLightP,2,noDebug
+TopFloorMasterBathLavFanLight1,TopFloorMasterBathLavFanLight,2,noDebug
 
 ########################################################
 #
