@@ -229,15 +229,15 @@ FrontPondOutletBottom,480,480,100,100,,,,2,noDebug
 Front Porch,5,360,0,100,,CamLeftFrontHouseMotion,,2,noDebug
 GarageDoorLights,5,360,0,100,,CamGarageMotion,,2,noDebug
 GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;GarageHall3Multisensor,,2,noDebug
-GregsOfficeClosetDimmer,5,60,100,20,flash,,GregsOfficeClosetMultisensor,2,noDebug
-GregsOfficeClosetCabinets - Top,5,60,100,100,flash,GregsOfficeClosetMultisensor,,2,noDebug
+GregsOfficeClosetDimmer,5,360,100,20,flash,GregsOfficeClosetMultisensor,,2,noDebug
+GregsOfficeClosetCabinets - Top,5,60,0,100,flash,GregsOfficeClosetMultisensor;GregsOfficeMultisensor;GregsOfficeDoorMultisensor;AeonMultisensorTest1,,2,noDebug
 #GregsOfficeShelfLights,5,60,100,100,flash,AeonMultisensorTest1,,2,noDebug
 GregsOfficeOutlet,5,60,100,100,flash,AeonMultisensorTest1,,2,noDebug
 GregsOfficeBathVanityLight,10,60,100,0,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathFanLight,10,60,0,30,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathShowerLight,5,60,100,30,flash,GregsOfficeBathShowerMultisensor,,2,noDebug
 GregsOfficeBathFan,5,60,100,100,,GregsOfficeBathShowerMultisensor,,2,noDebug
-GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor,,2,noDebug
+GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensor;GregsOfficeDoorMultisensor;AeonMultisensorTest1,,2,noDebug
 GuestBedroomFanLight,30,180,0,30,flash;bedtime,,GuestMultisensor,2,noDebug
 GuestBathVanityLight,30,120,100,25,flash,GuestBathMultisensor,,2,noDebug
 GuestBathFan,30,60,0,0,flash,,GuestBathMultisensor,2,noDebug

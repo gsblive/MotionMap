@@ -24,11 +24,6 @@ import pickle
 import collections
 import mmComm_Insteon
 
-class anIndigoDev:
-
-	def __init__(self, theValue, theName):
-		self.onState = theValue
-		self.name = theName
 
 ######################################################
 #
@@ -42,7 +37,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 	#
 	def __init__(self, theDeviceParameters):
 
-		self.currentOnState = False
+		self.currentOnState = False	# we have to assume we have no motion to start with (cameras dont save a motion state)
 
 		super(mmCamMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 
@@ -51,6 +46,13 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		self.supportedCommandsDict.update({'motionEvent': self.camMotionEvent})
 
 		self.exclusionLights = filter(None, theDeviceParameters["exclusionLights"].split(';'))
+
+		# A camera is not a true indigo device (its virtual), so we have to maintain a credible lastUpdate time ourselves...
+		# Cameras have a static 30 second timeout imposed by come code below, so since we dont know when the last time the camera saw motion, we have to guess..
+		# We are claiming above that the camera is not detecting movement, so lets make sure setInitialOccupiedState below will back us up on that...
+		# To do that we claim that the last update was "minMovement" minutes ago (converted to seconds), then the math in setInitialOccupiedState will work out the rest.
+		self.lastUpdateTimeSeconds = int(time.mktime(time.localtime()) - (int(self.minMovement) * 60))
+
 
 	######################################################################################
 	#
@@ -65,9 +67,32 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 	#
 	######################################################################################
 
+	#
+	# setInitialOccupiedState - check to see if the area is occupied or not, dispatch events accordingly
+	#
+	def setInitialOccupiedState(self):
+
+		#originalOccupiedState = self.occupiedState
+
+		super(mmCamMotion, self).setInitialOccupiedState()  # the base class just keeps track of the time since last change
+		#mmLib_Log.logForce("### setInitialOccupiedState for " + self.deviceName + " currentOccupiedState is " + str(self.occupiedState) + ". Original On State and Occupancy State was " + str(self.currentOnState) + " and " + str(originalOccupiedState))
+
+		if self.currentOnState == True:
+			self.processMotionEventOn()
+
+
 	def getOnState(self):
 
 		return(self.currentOnState)
+
+	#
+	# getSecondsSinceUpdate - how many seconds since the device has changed state
+	#	This normally happens in Indigo.py, but alas, this is not a true indigo device (its virtual)
+	#
+	def getSecondsSinceUpdate(self):
+		# mmLib_Log.logForce("###    Returning secondsSinceLastUpdate for " + self.deviceName + " of " + str((time.mktime(time.localtime()) - self.lastUpdateTimeSeconds)))
+		return int(time.mktime(time.localtime()) - self.lastUpdateTimeSeconds)
+
 
 	def getInfluentialLoadChangeDelta(self):
 		# go through the influential load devices and look for the most recent on/off change
@@ -92,6 +117,25 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		# mmLib_Log.logForce(self.deviceName + " === Lowest time delta is: " + str(theDeltaTime))
 
 		return(theDeltaTime)
+
+
+
+	# Add the motion stop event for the camMotionEvent below. And process the event
+	def	processMotionEventOn(self):
+
+		mmLib_Log.logForce("### Motion Event (ON) for " + self.deviceName)
+		# mmLib_Log.logForce("   Camera Info: \n" + str(camDev))
+		self.currentOnState = True
+
+		origDev = mmLib_Low.anIndigoDev(False, self.deviceName)
+		newDev = mmLib_Low.anIndigoDev(True, self.deviceName)
+
+		self.deviceUpdated(origDev, newDev)
+
+		mmLib_Low.registerDelayedAction(
+			{'theFunction': self.camMotionTimeout, 'timeDeltaSeconds': 30, 'theDevice': self.deviceName,
+			 'timerMessage': "camMotionTimeout", 'offTimerType': "Timeout"})
+
 
 
 	#
@@ -136,16 +180,8 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		except:
 			camDev = "Unknown"
 
-		mmLib_Log.logForce("### Motion Event (ON) for " + self.deviceName)
-		#mmLib_Log.logForce("   Camera Info: \n" + str(camDev))
-		self.currentOnState = True
+		self.processMotionEventOn()
 
-		origDev = anIndigoDev(False,self.deviceName)
-		newDev = anIndigoDev(True,self.deviceName)
-
-		self.deviceUpdated(origDev, newDev)
-
-		mmLib_Low.registerDelayedAction({'theFunction': self.camMotionTimeout, 'timeDeltaSeconds': 30, 'theDevice': self.deviceName,'timerMessage': "camMotionTimeout", 'offTimerType': "Timeout"})
 		return('Dque')		# we are complete... dequeue the command (if async)
 
 
@@ -153,8 +189,8 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 		mmLib_Log.logForce("### Motion Event (Implied OFF) for " + self.deviceName + ".")
 		self.currentOnState = False
-		origDev = anIndigoDev(True,self.deviceName)
-		newDev = anIndigoDev(False,self.deviceName)
+		origDev = mmLib_Low.anIndigoDev(True,self.deviceName)
+		newDev = mmLib_Low.anIndigoDev(False,self.deviceName)
 
 		self.deviceUpdated(origDev, newDev)
 

@@ -100,6 +100,12 @@ mmSubscriptions = {'isDayTime':[],'isNightTime':[],'initComplete':[]}
 mmNonVolatiles = {}
 mmNVFileName = ""
 
+class anIndigoDev:
+
+	def __init__(self, theValue, theName):
+		self.onState = theValue
+		self.name = theName
+
 def initializeDictEntry(theDict,theElement,theInitialValue):
 
 	try:

@@ -11,6 +11,10 @@ __author__ = 'gbrewer'
 #import traceback
 #import datetime
 
+kMotionDevTolerableMotionBounceTime = 5	#if off/on transition time is > 5 seconds, the device might be bouncing
+kMotioinDevMaxSequentialBounces = 50	# if there are more than 50 bounces in a row, there is a problem
+OccupiedStateList = ["Unoccupied", "Occupied", "Unknown"]
+
 try:
 	import indigo
 except:
@@ -66,20 +70,16 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.supportedCommandsDict.update({})
 
 			self.ourNonvolatileData = mmLib_Low.initializeNVDict(self.deviceName)
-			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "motionDeltaAccumulator", 0)
-			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "motionNumSequentialRapidTransitions", 0)
-			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "motionDeltaCheckFrequency", 0)
-
-			# If we are waiting for a whole day, an email was already sent to the user.. dont send it again for another whole day
-			if self.ourNonvolatileData["motionDeltaCheckFrequency"] != int(60 * 60 * 24):
-				# We arent waiting for a whole day, make up a new random number of seconds between 61 minutes and 120 minutes
-				# this includes brand new setup where motionDeltaCheckFrequency has been initialized to 0 above
-				self.resetMotionDebounce(30, int(random.randint(60 * 61, 60 * 60 * 2)))
-			else:
-				# We were waiting for a day... keep waiting for that long
-				self.resetMotionDebounce(5, int(60 * 60 * 24))
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "rapidTransitionTimeList", [])
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "problemReportTime", 0)
+			s = str(self.deviceName + ".Occupation")
+			self.occupationIndigoVar = s.replace(' ', '.')
+			mmLib_Low.getIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 
 			self.supportedCommandsDict.update({'devStatus': self.devStatus})
+
+			mmLib_Low.mmSubscribeToEvent('initComplete', self.processOccupation)
+
 
 	######################################################################################
 	#
@@ -112,12 +112,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		if self.onlineState != requestedState:
 			mmLib_Log.logForce("Setting " + self.deviceName + " onOfflineState to " + requestedState)
 
-			if self.onlineState == 'on':		#force occupiedstate to match the new online state
-				self.dispatchEventToDeque(self.occupiedDeque, 'occupied')				# process occupancy
-			else:
-				self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')				# process unoccupied
-
-		self.onlineState = requestedState
+			self.onlineState = requestedState
+			self.processOccupation()
 
 		return(0)
 	#
@@ -203,6 +199,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " has been occupied for the maximum amount of time.")
 		mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)  # Its unoccupied, clear non occupied timer too
+		self.occupiedState = False
+		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 		self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
 
 		return 0		# Cancel timer
@@ -215,6 +213,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is indicating non-occupied.")
 		mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)  # Its unoccupied, clear max occupation timer too
+		self.occupiedState = False
+		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 		self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
 
 		return 0		# Cancel timer
@@ -224,41 +224,60 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# deviceTime - check to see if the area is occupied or not, dispatch events accordingly
 	#
 	def deviceTime(self):
-
-		mmLib_Log.logDebug("====Running Motion Device Time for " + self.deviceName)
-
-		timeDeltaSeconds = self.getSecondsSinceUpdate()
-		timeDeltaMinutes = int(timeDeltaSeconds/60)
-
-		if self.getOnState() == True:
-			if int(timeDeltaMinutes) < int(self.maxMovement):
-				newOccupiedState = True
-			else:
-				newOccupiedState = False
-		else:
-			if int(timeDeltaMinutes) < int(self.minMovement):
-				newOccupiedState = True
-			else:
-				newOccupiedState = False
-
-		if self.occupiedState == 2 or self.occupiedState != newOccupiedState:
-			self.occupiedState = newOccupiedState
-			mmLib_Log.logVerbose("Occupied State for " + self.deviceName + " has changed to " + str(self.occupiedState) + " OnState, Min, Max, Current: " + str(self.getOnState()) + " " + str(self.minMovement) + " " + str(self.maxMovement) + " " + str(timeDeltaMinutes))
-			#
-			# Tell all the loadDevices about the occupancy change
-
-			if self.onlineState == 'on':
-				if newOccupiedState == True:	# it has acctually just become true
-					self.dispatchEventToDeque(self.occupiedDeque, 'occupied')				# process occupancy
-				else:
-					self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')				# process unoccupied
-
 		return(0)
 
+
+
+	def processOccupation(self):
+
+		if self.onlineState != 'on':
+			self.occupiedState = False	# if the device is offline, assume it is also unoccupied.
+			# if there are any delay procs, delete them, they are not valid anymore 
+			mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
+			mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
+			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Offline #")
+			return(0)
+
+		if self.occupiedState == 2:
+			# this is initialization time, processing is special
+			if self.getOnState() == False:
+				self.occupiedState = False
+				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
+				return(0)
+			else:
+				if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is initializing to Occupied.")
+
+		if self.getOnState() == True:
+			# device is indicating motion, so set the timeout to the Maximum
+			mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
+			mmLib_Low.registerDelayedAction( {	'theFunction': self.delayProcForMaxOccupancy,
+											  	'timeDeltaSeconds': int(self.maxMovement) * 60,
+				 								'theDevice': self.deviceName,
+												'timerMessage': "Motion Sensor MaxOccupancy Timer"})
+		else:
+			# device is NOT indicating motion, so set timeout to the minimum
+			mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
+			mmLib_Low.registerDelayedAction( {	'theFunction': self.delayProcForNonOccupancy,
+											  	'timeDeltaSeconds': int(self.minMovement) * 60,
+				 								'theDevice': self.deviceName,
+												'timerMessage': "Motion Sensor NonOccupancy Timer"})
+		# either way, we are occupied for now
+		newOccupiedState = True
+
+		# figure out what state we should be in
+		
+		if self.occupiedState != newOccupiedState:	# occupiedState will be 2 to start... and will always allow the code below
+		
+			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[newOccupiedState])
+			if self.debugDevice: mmLib_Log.logForce("Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
+	
+			self.dispatchEventToDeque(self.occupiedDeque, 'occupied')  # process occupancy
+			self.occupiedState = newOccupiedState
+
 	#
-	# receivedCommandLow - we received a command from our motion Sensor, process it
+	# dispatchOnOffEvents - we received a command from our motion Sensor, process it
 	#
-	def receivedCommandLow(self, theCommandByte ):
+	def dispatchOnOffEvents(self, theCommandByte ):
 
 		# process Motion here
 		self.deviceTime()		# this will process occupancy events
@@ -286,10 +305,30 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			theCommandByte = "unknown"
 
 		# In order for us to be able to respond to server events, we have to handle this event in the deviceUpdated Routine below
-		# and not call receivedCommandLow from here. This routine is present in case we need to handle direct events sometime in the future.
+		# and not call dispatchOnOffEvents from here. This routine is present in case we need to handle direct events sometime in the future.
 
 		return(0)
 
+	#
+	# countBounce
+	#	Check to see if the device is rapidly
+	#
+	def countBounce(self):
+
+		deltaSeconds = self.getSecondsSinceState('off')
+		if deltaSeconds > kMotionDevTolerableMotionBounceTime:
+			# the multisensor isnt looping, reset counter and list.
+			self.ourNonvolatileData["rapidTransitionTimeList"] = []
+			self.ourNonvolatileData["problemReportTime"] = 0
+		else:
+			# count the sequential transaction
+			self.ourNonvolatileData["rapidTransitionTimeList"].append(time.mktime(time.localtime()))
+			if len(self.ourNonvolatileData["rapidTransitionTimeList"]) == kMotioinDevMaxSequentialBounces:
+				self.reportMotionDebounceProblem(1)
+				self.ourNonvolatileData["rapidTransitionTimeList"] = []
+				self.ourNonvolatileData["problemReportTime"] = 0
+
+		return(0)
 	#
 	# deviceUpdated
 	#
@@ -303,43 +342,27 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				super(mmMotion, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
 				self.controllerMissedCommandCount = 0			# Reset this because it looks like are controller is alive (battery report uses this)
 				if newDev.onState == True:
-
 					# we are detecting motion
-					if self.debugDevice: mmLib_Log.logForce( "Motion Sensor " + self.deviceName + " received update event: ON")
+					if self.debugDevice:
+						mmLib_Log.logForce( "Motion Sensor " + self.deviceName + " received update event: ON")
 
-					mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)	# its definitely occupied now
-					if mmLib_Low.findDelayedAction(self.delayProcForNonOccupancy):
-						mmLib_Log.logForce("Motion Sensor " + self.deviceName + " Deletion of NonOccupancy Timer FAILED ####")
+					self.countBounce()	# Collect Metrics regarding on/off sequences to tell if the sensor is bouncing
 
-					# if we dont already have a max-on proc, go ahead and add it now. If we did have one... its timer is still valid
-					if mmLib_Low.findDelayedAction(self.delayProcForMaxOccupancy) == 0:
-						mmLib_Low.registerDelayedAction({'theFunction': self.delayProcForMaxOccupancy,'timeDeltaSeconds': int(self.maxMovement) * 60,'theDevice': self.deviceName,'timerMessage': "Motion Sensor MaxOccupancy Timer"})
-
-					# Add time delta calculator
-					deltaSeconds = self.getSecondsSinceState('off')
-					if deltaSeconds > 5:
-						# the multisensor isnt looping, reset counters and check counters in an hour.
-						# The initial timer setup uses a random number, so going for exactly an hour is OK, the devices all had a random start time so the restarts will be staggered
-						self.resetMotionDebounce(30,int(60*60))
-					else:
-						# count the sequential transaction
-						self.ourNonvolatileData["motionDeltaAccumulator"] = self.ourNonvolatileData["motionDeltaAccumulator"] + deltaSeconds
-						self.ourNonvolatileData["motionNumSequentialRapidTransitions"] = self.ourNonvolatileData["motionNumSequentialRapidTransitions"] + 1
-					# And process the event
-					self.receivedCommandLow( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
-
-					self.dispatchEventToDeque(self.occupiedDeque, 'occupied')  # process occupancy
+					# And dispatch the ON event
+					self.dispatchOnOffEvents( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
 
 				else:
-
 					# We are detecting non-motion
-					if self.debugDevice: mmLib_Log.logForce("Motion Sensor " + self.deviceName + " received update event: OFF")
-
-					# Update Non Occupancy Timer
-					mmLib_Low.registerDelayedAction({'theFunction': self.delayProcForNonOccupancy,'timeDeltaSeconds': int(self.minMovement) * 60,'theDevice': self.deviceName,'timerMessage': "Motion Sensor NonOccupancy Timer"})
+					if self.debugDevice:
+						mmLib_Log.logForce("Motion Sensor " + self.deviceName + " received update event: OFF")
 
 					self.previousMotionOff = time.mktime(time.localtime())
-					self.receivedCommandLow(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
+					# And dispatch the ON event
+					self.dispatchOnOffEvents(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
+
+				# do occupation event processing
+				self.processOccupation()
+
 			else:
 				mmLib_Log.logDebug(newDev.name + ": Received duplicate command: Onstate = " + str(newDev.onState))
 
@@ -351,9 +374,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def devStatus(self, theCommandParameters):
 
-		averageDebounceSeconds = self.calcMotionDebounce()
-
-		mmLib_Log.logReportLine(self.deviceName + "'s average bounce rate: " + str(averageDebounceSeconds) + "s. Count: " + str(self.ourNonvolatileData["motionNumSequentialRapidTransitions"]))
+		self.reportMotionDebounceProblem(0)
 
 		return (0)
 
@@ -367,61 +388,74 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		return(0)
 
 	#
-	# calcMotionDebounce - report the average debounce rate for this device
+	# reportMotionDebounceProblem - report debounce Problem for this device, if any
 	#
-	def calcMotionDebounce(self):
+	def reportMotionDebounceProblem(self, sendEmail):
 
-		if self.ourNonvolatileData["motionNumSequentialRapidTransitions"] and self.ourNonvolatileData["motionDeltaAccumulator"]:
-			averageDebounceSeconds = self.ourNonvolatileData["motionDeltaAccumulator"] / self.ourNonvolatileData["motionNumSequentialRapidTransitions"]
+		theBody = "Debounce Report for " + self.deviceName
+
+		if sendEmail:
+			# send an email indicating the problem
+			theBody = theBody + str("\r####### ")
 		else:
-			averageDebounceSeconds = 0
+			# just reporting status
+			theBody = theBody + str("\r")
 
-		return(averageDebounceSeconds)
+		# report Online State
+		listLength = len(self.ourNonvolatileData["rapidTransitionTimeList"])
+		theBody = theBody + "\rOnline State is: " + self.onlineState + "\r"
 
-	#
-	# resetMotionDebounce - debounce problem appears to be cleared up.. reset the motion checker back to normal
-	#
-	def resetMotionDebounce(self,initialDeltaTime, delaySeconds):
+		# report Occupied State
+		listLength = len(self.ourNonvolatileData["rapidTransitionTimeList"])
+		theBody = theBody + "It's reporting " + OccupiedStateList[self.occupiedState] + "\r"
 
-		self.ourNonvolatileData["motionNumSequentialRapidTransitions"] = 1
-		self.ourNonvolatileData["motionDeltaAccumulator"] = initialDeltaTime
-		if delaySeconds == int(60*60) and self.ourNonvolatileData["motionDeltaCheckFrequency"] == int(60*60):
-			# most common case... the timer is already running
-			return(0)
+		# Report When Occupation will end (if any)
+		if OccupiedStateList[self.occupiedState] == "Occupied":
+			projectedUnoccupiedEventTime = "Unknown Time"
+			UnoccupiedReason = "of undefined reasons"
+			if self.getOnState() == True:
+				# sensor is showing ON, so delayProcForMaxOccupancy occupiedState transition now
+				executionTime = int(mmLib_Low.findDelayedAction(self.delayProcForMaxOccupancy))
+				if executionTime != 0:
+					UnoccupiedReason = "maximum allowable time for motion has been reached"
+					projectedUnoccupiedEventTime = mmLib_Low.minutesAndSecondsTillTime(executionTime)
+					#projectedUnoccupiedEventTime = str(time.ctime(executionTime))
+				else:
+					mmLib_Log.logForce("#### " + self.deviceName + " is reporting occupied (while ON), yet there is no delayProcForMaxOccupancy delayProc registered to turn it off.")
+			else:
+				# sensor is showing OFF, so delayProcForNonOccupancy controls occupiedState transition now
+				executionTime = int(mmLib_Low.findDelayedAction(self.delayProcForNonOccupancy))
+				if executionTime != 0:
+					UnoccupiedReason = "motion has stopped"
+					projectedUnoccupiedEventTime = mmLib_Low.minutesAndSecondsTillTime(executionTime)
+					#projectedUnoccupiedEventTime = str(time.ctime(executionTime))
+				else:
+					mmLib_Log.logForce("#### " + self.deviceName + " is reporting occupied (while OFF), yet there is no delayProcForNonOccupancy delayProc registered to turn it off.")
+
+			theBody = theBody + "Will become Unoccupied in " + projectedUnoccupiedEventTime + " because " + UnoccupiedReason + "\r"
+
+		if listLength > 1:
+			theBody = str(theBody + self.deviceName + "'s number of off/on cycle times less than " + str(kMotionDevTolerableMotionBounceTime) + " seconds: " + str(listLength))
+
+			theBody = theBody + "\rLast " + str(listLength) + " sequential off/on transition times to ON: \r"
+			for newTime in self.ourNonvolatileData["rapidTransitionTimeList"]:
+				theBody = theBody + "\r" + str(time.ctime(newTime))
 		else:
-			# all other cases, reset the timer
-			self.ourNonvolatileData["motionDeltaCheckFrequency"] = delaySeconds
-			mmLib_Low.registerDelayedAction({'theFunction': self.motionSensorCheckDebounceTimer,'timeDeltaSeconds': self.ourNonvolatileData["motionDeltaCheckFrequency"],'theDevice': self.deviceName,'timerMessage': "motionSensorCheckDebounceTimer"})
+			theBody = theBody + "No sequential off/on transition times less than " + str(kMotionDevTolerableMotionBounceTime) + " seconds."
 
-		return(0)
-	#
-	# checkMotionDebounce - report debounce Problem for this device, if any
-	#
-	def checkMotionDebounce(self):
+		mmLib_Log.logReportLine(theBody)
 
-		if  self.ourNonvolatileData["motionNumSequentialRapidTransitions"] > 50 :
-			averageDebounceSeconds = self.calcMotionDebounce()
-			if self.calcMotionDebounce() < 5:
-				# send an email indicating the problem
-				theBody = str("####### " + self.deviceName + "'s average off/on cycle time of " + str(averageDebounceSeconds) + "s indicates a problem. Data sample set is " + str(self.ourNonvolatileData["motionNumSequentialRapidTransitions"]) + " itterations.")
-				mmLib_Log.logReportLine(theBody)
+		if sendEmail:
+			# send an email indicating the problem
+			# only allow sending emails every 24 hours for this device
+			if not self.ourNonvolatileData["problemReportTime"] or int(time.mktime(time.localtime()) - self.ourNonvolatileData["problemReportTime"]) > 60*60*24:
 				theBody = "\r" + theBody + "\r"
 				theSubject = str("MotionMap2 " + str(indigo.variables["MMLocation"].value)+ " MotionSensor Failure Report: " + self.deviceName)
 				theRecipient = "greg@GSBrewer.com"
 				indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=theBody)
-				#Error has been reported... reset the debounce check frequency to 1 day
-				self.ourNonvolatileData["motionDeltaCheckFrequency"] = int(60*60*24)
+				# update the problem report time
+				self.ourNonvolatileData["problemReportTime"] = time.mktime(time.localtime())
 
-		return(0)
-
-	#
-	# motionSensorCheckDebounceTimer - check to see if this motion sensor is quickly toggling between on and off (indicates a problem in Fibaro Multisensors, it needs to be reset)
-	#
-	def motionSensorCheckDebounceTimer(self, parameters):
-
-		self.checkMotionDebounce()
-
-		return int(self.ourNonvolatileData["motionDeltaCheckFrequency"])  # update the timer to do it again later
 
 	#
 	# checkBattery - report the status of this device's battery

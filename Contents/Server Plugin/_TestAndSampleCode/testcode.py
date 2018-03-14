@@ -19,6 +19,7 @@ import datetime
 import ntpath
 import ast
 from timeit import default_timer as timer
+from time import gmtime, strftime
 
 # Main Code
 
@@ -767,6 +768,20 @@ def test6():
 #=======================
 #======================= MAIN
 #=======================
+
+myTime = time.mktime(time.localtime())
+#print strftime("%a, %d %b %Y %H:%M:%S", myTime)
+
+print time.ctime(myTime)
+
+myTime = myTime + .0002002
+
+print time.ctime(int(1520979157.0))
+
+myTuple = [myTime,{"One":1,"Two":2}]
+print myTuple
+print myTuple[1]
+quit()
 
 theDict = {}
 
