@@ -89,6 +89,12 @@ SubmodelDeviceDict = {}
 mmSubscriptions = {'isDayTime':[],'isNightTime':[],'initComplete':[]}
 
 ############################################################################################
+#	Event Proscessing Globals
+############################################################################################
+
+eventPublishers = {'Indigo':{}, 'MMSys':{}}
+
+############################################################################################
 #
 # MotionMap NonVolatile Data
 #
@@ -260,78 +266,6 @@ def getIndigoVariable(theVarName, theDefaultValue):
 
 
 
-############################################################################################
-#
-#  mmSubscribeToEvent - Subscribe to an mm server event
-#
-#	theEvent can be:
-#		'isDayTime' - there has been a transition to Daytime
-#		'isNightTime' - there has been a transition to Nighttime
-#		'initComplete' - server startup initialization is now complete
-#
-#	theProc has no parameters
-#
-############################################################################################
-def	mmSubscribeToEvent(theEvent, theProc):
-
-	global mmSubscriptions
-
-	mmEventUnsubscribe(theEvent, theProc)
-	try:
-		requestedEventList = mmSubscriptions[theEvent]
-	except:
-		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
-		return
-
-	requestedEventList.append(theProc)
-
-	return
-
-
-############################################################################################
-#
-#  mmEventUnsubscribe - Subscribe to an mm server event
-#
-#	theProc is the procedure we are unsubscribing
-#
-############################################################################################
-def	mmEventUnsubscribe(theEvent, theProc):
-
-	global mmSubscriptions
-
-	try:
-		requestedEventList = mmSubscriptions[theEvent]
-	except:
-		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
-		return
-
-	try:
-		requestedEventList.remove(theProc)
-	except:
-		mmLib_Log.logVerbose("Proc \'" + str(theProc) + "\' is not registered.")
-
-	return
-
-
-############################################################################################
-#
-#  mmRunSubscriptions - Process the specific subscription Event
-#
-############################################################################################
-def	mmRunSubscriptions(theEvent):
-
-	global mmSubscriptions
-
-	try:
-		requestedEventList = mmSubscriptions[theEvent]
-	except:
-		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
-		return
-
-	for aProc in requestedEventList:
-		aProc()
-
-	return
 
 ############################################################################################
 #
@@ -809,6 +743,84 @@ def refreshControllers():
 
 	return(0)
 
+############################################################################################
+#
+#	Event Processing
+#
+############################################################################################
+
+############################################################################################
+#
+#  mmSubscribeToEvent - Subscribe to an mm server event
+#
+#	theEvent can be:
+#		'isDayTime' - there has been a transition to Daytime
+#		'isNightTime' - there has been a transition to Nighttime
+#		'initComplete' - server startup initialization is now complete
+#
+#	theProc has no parameters
+#
+############################################################################################
+def	mmSubscribeToEvent(theEvent, theProc):
+
+	global mmSubscriptions
+
+	mmEventUnsubscribe(theEvent, theProc)
+	try:
+		requestedEventList = mmSubscriptions[theEvent]
+	except:
+		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
+		return
+
+	requestedEventList.append(theProc)
+
+	return
+
+
+############################################################################################
+#
+#  mmEventUnsubscribe - Subscribe to an mm server event
+#
+#	theProc is the procedure we are unsubscribing
+#
+############################################################################################
+def	mmEventUnsubscribe(theEvent, theProc):
+
+	global mmSubscriptions
+
+	try:
+		requestedEventList = mmSubscriptions[theEvent]
+	except:
+		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
+		return
+
+	try:
+		requestedEventList.remove(theProc)
+	except:
+		mmLib_Log.logVerbose("Proc \'" + str(theProc) + "\' is not registered.")
+
+	return
+
+
+############################################################################################
+#
+#  mmRunSubscriptions - Process the specific subscription Event
+#
+############################################################################################
+def	mmRunSubscriptions(theEvent):
+
+	global mmSubscriptions
+
+	try:
+		requestedEventList = mmSubscriptions[theEvent]
+	except:
+		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
+		return
+
+	for aProc in requestedEventList:
+		aProc()
+
+	return
 
 ######################################################
 #
@@ -832,6 +844,14 @@ def subscribeToControllerEvents(theControllers, theEvents, theHandler, subscribe
 
 		mmControllerDev.addToControllerEventDeque(theEvents, theHandler, subscriberName)		# subscribe to events
 
+
+
+
+############################################################################################
+#
+#	End Event Processing routines
+#
+############################################################################################
 
 ############################################################################################
 #
@@ -945,5 +965,5 @@ def init():
 	setIndigoVariable('MMListenerName', _MotionMapPlugin.MM_NAME + '.listener')
 	initIndigoVariable("StatisticsResetTime", time.strftime("%m/%d/%Y %I:%M:%S"))	# in this variable's case, only init it if it doesnt exist.
 	resetGlobals()
-	# now subscribe to time events
+	# now register for delayed events (will be used as periodic timer)
 	registerDelayedAction({'theFunction': cacheNonVolatiles, 'timeDeltaSeconds': int(random.randint(60*60,60*60*2)), 'theDevice': "MotionMap System", 'timerMessage': "cacheNonVolatiles"})

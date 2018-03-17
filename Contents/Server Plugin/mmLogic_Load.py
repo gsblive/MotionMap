@@ -18,6 +18,7 @@ except:
 
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
 import mmComm_Insteon
 from collections import deque
 import mmLib_CommandQ
@@ -53,8 +54,9 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.sustainControllers = filter(None, theDeviceParameters["sustainControllers"].split(';'))
 			self.combinedControllers = self.onControllers + self.sustainControllers
 			self.lastOffCommandTime = 0
-			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['on'], self.processControllerEvent, self.deviceName)
-			mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['off'], self.processControllerEvent, self.deviceName)
+			#mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['on'], self.processControllerEvent, self.deviceName)
+			#mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['off'], self.processControllerEvent, self.deviceName)
+			mmLib_Events.subscribeToEvents(['on','off'], self.combinedControllers, self.processControllerEvent, {}, self.deviceName)
 			self.companions = []
 			mmLib_Low.loadDeque.append(self)						# insert into loadDevice deque
 			mmLib_Low.statisticsQueue.append(self)					# insert into statistics deque
@@ -298,9 +300,20 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#		theEvent is the text representation of a single event type listed above: we handle 'on' here only
 	#		theControllerDev is the mmInsteon of the controller that detected the event
 	#
-	def processControllerEvent(self, theEvent, theControllerDev):
+	#		theHandler(eventID, eventParameters)
+	#
+	#	where eventParameters is a dict containing:
+	#
+	# thePublisher				The name of the Registered publisher (see above) who is sending the event
+	# theEvent					The text name of the event to be sent (see subscribeToEvents below)
+	# theSubscriber				The Text Name of the Subscriber to receive the event
+	# publisherDefinedData		Any data the publisher chooses to include with the event (for example, if it
+	# 								is an indigo command event, we might include the whole indigo command record here)
+	# timestamp					The time (in seconds) the event is being published/distributed
+	def processControllerEvent(self, theEvent, eventParameters):
 
 		newOffTimerType = 'none'
+		theControllerDev = mmLib_Low.MotionMapDeviceDict[eventParameters['publisher']]
 
 		# if we are currently not processing motion events, bail early
 		if indigo.variables['MMDefeatMotion'].value == 'true': return(0)

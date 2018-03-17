@@ -22,6 +22,7 @@ except:
 
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
 import mmComm_Insteon
 from collections import deque
 import mmLib_CommandQ
@@ -61,11 +62,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.controllerMissedCommandCount = 0
 			self.previousMotionOff = 0
 
-			self.onDeque = deque()				# make responder deque for 'on' events
-			self.onDequeSubscribers = deque()	# NO LONGER USED we also need the names of the subscribers on this deque so the camera based controllers can debounce phantom motion detection due to light level changes when the load turns on/off
-			self.offDeque = deque()				# make responder deque for 'off' events
-			self.occupiedDeque = deque()		# make responder deque for 'occupied' events
-			self.unoccupiedDeque = deque()		# make responder deque for 'unoccupied' events
+			mmLib_Events.registerPublisher(['on', 'off', 'occupied', 'unoccupied'], self.deviceName)
 
 			self.supportedCommandsDict.update({})
 
@@ -133,32 +130,23 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#		theControllerDev is the mmInsteon of the controller that detected the event
 	#
 	def addToControllerEventDeque(self, theEvents, theHandler, theSubscriber):
-		for theEvent in theEvents:
-			mmLib_Log.logDebug("Adding handler " + str(theHandler) + " to " + theEvent + " Deque of " + self.deviceName)
-			if theEvent == 'on':
-				self.onDeque.append(theHandler)				# insert into 'on' deque
-				self.onDequeSubscribers.append(theSubscriber)				# NO LONGER USED insert into influential Lights deque
-			elif theEvent == 'off':
-				self.offDeque.append(theHandler)			# insert into 'off' deque
-			elif theEvent == 'occupied':
-				self.occupiedDeque.append(theHandler)		# insert into 'occupied' deque
-			elif theEvent == 'unoccupied':
-				self.unoccupiedDeque.append(theHandler)		# insert into 'unoccupiedDeque' deque
-			else:
-				mmLib_Log.logVerbose("Invalid event " + theEvent + " requested from " + self.deviceName)
-
+		mmLib_Events.subscribeToEvents(theEvents, [self.deviceName], theHandler, {}, theSubscriber)
 		return(0)
+
 
 	#
 	# dispatchEventToDeque - Touch all devices in the deque given.
 	#	theQueue, theEvent: as defined in theHandler info at addToControllerEventDeque()
 	#
 	def dispatchEventToDeque(self, theQueue, theEvent):
+		mmLib_Log.logForce("WARNING - Obsolete Routine, Use  mmLib_Events.distributeEvent." + theEvent + " requested from " + self.deviceName)
 
 		for aHandler in theQueue:
 			aHandler(theEvent, self)
 
 		return(0)
+
+
 
 	#
 	# getSecondsSinceState - how many seconds since the device was in the given on/off state
@@ -201,7 +189,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)  # Its unoccupied, clear non occupied timer too
 		self.occupiedState = False
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
-		self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
+		#self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
+		mmLib_Events.distributeEvent(self.deviceName, 'unoccupied', 0, {})  # dispatch to everyone who cares
 
 		return 0		# Cancel timer
 
@@ -215,9 +204,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)  # Its unoccupied, clear max occupation timer too
 		self.occupiedState = False
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
-		self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
+		#self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
+		mmLib_Events.distributeEvent(self.deviceName, 'unoccupied', 0, {})  # dispatch to everyone who cares
 
 		return 0		# Cancel timer
+
 
 
 	#
@@ -271,7 +262,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[newOccupiedState])
 			if self.debugDevice: mmLib_Log.logForce("Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 	
-			self.dispatchEventToDeque(self.occupiedDeque, 'occupied')  # process occupancy
+			#self.dispatchEventToDeque(self.occupiedDeque, 'occupied')  # process occupancy
+			mmLib_Events.distributeEvent(self.deviceName, 'occupied', 0, {})  # dispatch to everyone who cares
 			self.occupiedState = newOccupiedState
 
 	#
@@ -282,13 +274,16 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		# process Motion here
 		self.deviceTime()		# this will process occupancy events
 		if theCommandByte == mmComm_Insteon.kInsteonOn:	#kInsteonOn = 17
-			self.dispatchEventToDeque(self.onDeque, 'on')							# process on
+			mmLib_Events.distributeEvent(self.deviceName, 'on', 0, {})  # dispatch to everyone who cares
+			#self.dispatchEventToDeque(self.onDeque, 'on')							# process on
 		elif theCommandByte == mmComm_Insteon.kInsteonOff:		#kInsteonOff = 19
-			self.dispatchEventToDeque(self.offDeque, 'off')							# process off
+			mmLib_Events.distributeEvent(self.deviceName, 'off', 0, {})  # dispatch to everyone who cares
+			#self.dispatchEventToDeque(self.offDeque, 'off')							# process off
 		else:
 			mmLib_Log.logVerbose("Invalid insteon event received for " + self.deviceName + " of " + str(theCommandByte))
 
 		return(0)
+
 
 	#
 	# receivedCommand - we received a command from our motion Sensor, process it

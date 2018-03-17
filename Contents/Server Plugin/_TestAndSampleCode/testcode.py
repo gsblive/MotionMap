@@ -763,25 +763,603 @@ def test6():
 
 	return endTime - startTime
 
+#=================================
+#========== Event related code ============
+#=================================
+
+eventPublishers = {'Indigo': {'DevUpdate':deque([]),'DevRcvCmd':deque([]),'DevCmdComplete':deque([]),'DevCmdErr':deque([])}, 'MMSys': {'XCmd':deque([])}}
+targettedEvents = {}
+eventsDelivered = 0
+
+def resetGlobals():
+	global 	eventPublishers
+	global 	targettedEvents
+
+	eventPublishers = {'Indigo': {'DevUpdate':deque([]),'DevRcvCmd':deque([]),'DevCmdComplete':deque([]),'DevCmdErr':deque([])}, 'MMSys': {'XCmd':deque([])}}
+
+	targettedEvents = {}
+
+#
+# subscribeToEvents - add theHandler to be called when any of the events listed in theEvents occur from thePublisher
+#
+#	Events:
+#		a list of events to subscribe to
+#
+#	Publisher:
+#		Text string identifying the publisher of the event. For example..
+#
+#		'Indigo'	Hardware Sourced Event, like a light switch was turned on
+#		MMDevName	Any MM Device (this can create and use any custom event, for any purpose)
+#		'MMSys'		an Indigo Action Script calls executeMMCommand is published as MMSys publisher
+#
+#	theHandler:
+#		A proc pointer that handles the event. format must be
+#		theHandler(eventID, eventParameters)
+#
+#  		where eventParameters is a dict containing: {theEvent, publisher, Time of Event (seconds), Plus "handlerDefinedData" Passed in at time of registration}
+#
+#		Example eventIDs supported (there are many others, MMDevices define their own):
+#
+#		EventID			Publisher					Description
+#		'on'			MotionSensor (MMDevName)	The motion sensor is publishing on event
+#		'off'			Indigo						An Off Event was detected form an indigo device
+#		'occupied'		VirtualMotionSensor			A motion sensor generated an ON sigl\nal causing a group to be occupied
+#		'stateChange'	Indigo						Indigo detected a statusUpdate from a device
+#
+def subscribeToEvents(theEvents, thePublisher, theHandler, handlerDefinedData, aSubscriber):
+
+	global eventPublishers
+
+	for theEvent in theEvents:
+		try:
+			theQueue = eventPublishers[thePublisher][theEvent]
+		except:
+			print( "subscribeToEvents: Publisher " + str(thePublisher) + " is not publishing requested event " + theEvent + ".")
+			continue
+
+		theQueue.append([aSubscriber, theHandler, handlerDefinedData])  # insert into appropriate deque
+
+	return (0)
+
+
+def subscribeToEvents2(theEvents, thePublisher, theHandler, handlerDefinedData, aSubscriber):
+
+	global eventPublishers
+
+	for theEvent in theEvents:
+		try:
+			theQueue = eventPublishers[thePublisher][theEvent]
+		except:
+			print( "subscribeToEvents: Publisher " + str(thePublisher) + " is not publishing requested event " + theEvent + ".")
+			continue
+
+		theQueue.append([aSubscriber, theHandler, handlerDefinedData])  # insert into appropriate deque
+		targettedEvents[thePublisher + "." + theEvent + "." + aSubscriber] = [aSubscriber, theHandler, handlerDefinedData]
+
+	return (0)
+
+def subscribeToEvents3(theEvents, thePublisher, theHandler, handlerDefinedData, aSubscriber):
+
+	global eventPublishers
+
+	for theEvent in theEvents:
+		try:
+			theQueue = eventPublishers[thePublisher][theEvent]
+		except:
+			print( "subscribeToEvents: Publisher " + str(thePublisher) + " is not publishing requested event " + theEvent + ".")
+			continue
+
+		theQueue.append([aSubscriber, theHandler, handlerDefinedData])  # insert into appropriate deque
+		# Now append to the targetted event list too
+		try:
+			theQueue = targettedEvents[thePublisher + "." + theEvent + "." + aSubscriber]
+			#print( "subscribeToEvents: Warning - Publisher " + str(thePublisher) + " is already publishing requested event " + theEvent + " to subscriber " + str(aSubscriber))
+		except:
+			targettedEvents[thePublisher + "." + theEvent + "." + aSubscriber] = deque()
+			theQueue = targettedEvents[thePublisher + "." + theEvent + "." + aSubscriber]
+
+		theQueue.append([aSubscriber, theHandler, handlerDefinedData])  # insert into appropriate deque
+
+	return (0)
+
+
+#
+#	unsubscribeFromEvents
+#
+def unsubscribeFromEvents(theEvents, thePublisher, requestedHandler, theSubscriber):
+
+	global eventPublishers
+
+	if not theEvents:
+		try:
+			theEvents = list(eventPublishers[thePublisher].keys())
+		except:
+			print("unsubscribeFromEvents: Warning - Invalid publisher " + thePublisher + ".")
+			return(0)
+
+	for theEvent in theEvents:
+
+		try:
+			theQueue = eventPublishers[thePublisher][theEvent]
+		except:
+			continue
+
+		theMax = len(theQueue)
+		for index in range(theMax):
+			aSubscriber, theHandler, handlerDefinedData = theQueue[0]
+			if (theSubscriber == 0 or theSubscriber == aSubscriber) and (requestedHandler == 0 or requestedHandler == theHandler):
+				theQueue.popleft()
+			else:
+				theQueue.rotate(-1)
+
+	return (0)
+
+#
+#	unsubscribeFromEvents
+#		if theEvents == 0, unsubscribe all events for given subscriber
+#		if theSubscriber == 0, unsubscribe requested events for all subscribers
+#		if theEvents and theSubscriber are both 0, unsubscribe all events for all subscribers for given publisher
+#		if the Handler is 0, unsubscribe all handlers that meet the other criteria
+#
+def unsubscribeFromEvents3(theEvents, thePublisher, requestedHandler, theSubscriber):
+
+	global eventPublishers
+
+	if not theEvents and not theSubscriber:
+		# short circuit a lot of processing for this rare occurance
+		eventPublishers[thePublisher] = deque([])
+		return(0)
+
+	if not theEvents:
+		try:
+			theEvents = list(eventPublishers[thePublisher].keys())
+		except:
+			print("unsubscribeFromEvents: Warning - Invalid publisher " + thePublisher + ".")
+			return(0)
+
+	for theEvent in theEvents:
+
+		try:
+			theQueue = eventPublishers[thePublisher][theEvent]
+		except:
+			continue
+
+		theMax = len(theQueue)
+		for index in range(theMax):
+			aSubscriber, theHandler, handlerDefinedData = theQueue[0]
+			if (theSubscriber == 0 or theSubscriber == aSubscriber) and (requestedHandler == 0 or requestedHandler == theHandler):
+				theQueue.popleft()
+
+				# find and delete the associated targettedEvent entry
+
+				theTargettedQueue = targettedEvents.get(thePublisher + "." + theEvent + "." + aSubscriber, 0)
+				if theTargettedQueue:
+					theTargettedMax = len(theTargettedQueue)
+					for targettedIndex in range(theTargettedMax):
+						aTargettedSubscriber, theTargettedHandler, targettedHandlerDefinedData = theTargettedQueue[0]
+						if (theSubscriber == 0 or theSubscriber == aTargettedSubscriber) and ( requestedHandler == 0 or requestedHandler == theTargettedHandler):
+							theTargettedQueue.popleft()
+						else:
+							theTargettedQueue.rotate(-1)
+
+			else:
+				theQueue.rotate(-1)
+
+	return (0)
+
+#
+# registerPublisher - All event publishers must first register before they can receive event subscriptions
+#
+#	Events:
+#		a list of events that are published
+#
+#	Publisher:
+#		Text string identifying the publisher of the event. For example..
+#
+#		'Indigo'	Hardware Sourced Event, like a light switch was turned on (Initialized by the system)
+#		MMDevName	Any MM Device (this can create and use any custom event, for any purpose)
+#		'Action'	an Indigo Action Script (Initialized by the system)
+#
+#		Example events supported (there are many others, MMDevices define their own):
+#
+#		EventID			Publisher					Description
+#		'on'			MotionSensor (MMDevName)	The motion sensor is publishing on event
+#		'off'			Indigo						An Off Event was detected form an indigo device
+#		'occupied'		VirtualMotionSensor			A motion sensor generated an ON sigl\nal causing a group to be occupied
+#		'stateChange'	Indigo						Indigo detected a statusUpdate from a device
+#		'execute'		'MMSys'						executeMMCommand (all MMDevices register for this event at a minimum)
+#
+def registerPublisher(theEvents, thePublisher):
+
+	global eventPublishers
+
+	# Get Publisher's event Dict
+	try:
+		PublishersEventsDict = eventPublishers[thePublisher]
+	except:
+		eventPublishers[thePublisher] = {}
+		PublishersEventsDict = eventPublishers[thePublisher]
+
+	for theEvent in theEvents:
+
+		# Get the Event deque for each event requested
+
+		try:
+			theQueue = PublishersEventsDict[theEvent]
+		except:
+			PublishersEventsDict[theEvent] = deque()
+			theQueue = PublishersEventsDict[theEvent]
+
+	return (0)
+
+def dispatchEvent(thePublisher, theEvent, publisherDefinedData, handlerInfo):
+
+	aSubscriber, theHandler, handlerDefinedData = handlerInfo
+
+	eventParameters = publisherDefinedData
+	eventParameters.update(handlerDefinedData)
+	eventParameters['theEvent'] = theEvent
+	eventParameters['publisher'] = thePublisher
+	eventParameters['timestamp'] = time.mktime(time.localtime())
+	return(theHandler(theEvent, eventParameters))
+
+
+#
+# distributeEvent - Touch all devices in the deque given.
+#	theQueue, theEvent: as defined in theHandler info at addToControllerEventDeque()
+#
+def distributeEvent2(thePublisher, theEvent, theSubscriber, publisherDefinedData):
+
+	global eventPublishers
+	global targettedEvents
+
+	if theSubscriber:
+
+		handlerInfo = targettedEvents.get(thePublisher + "." + theEvent + "." + theSubscriber, 0)
+
+		if not handlerInfo:
+			print("distributeEvent2: No targettedEvents entry exists for: \'" + thePublisher + "." + theEvent + "." + theSubscriber + "\'")
+			return(0)
+
+		return(dispatchEvent(thePublisher, theEvent, publisherDefinedData, handlerInfo))
+	else:
+		try:
+			theQueue = eventPublishers[thePublisher][theEvent]
+		except:
+			print("distributeEvent2: Publisher " + str(thePublisher) + " is not registered to publish " + theEvent + ".")
+			return (0)
+
+		if len(theQueue) == 0:
+			print("distributeEvent2: Warning - No registrations for event " + theEvent + ".")
+
+		for handlerInfo in theQueue:
+			dispatchEvent(thePublisher, theEvent, publisherDefinedData, handlerInfo)
+
+	return (0)
+
+#
+# distributeEvent - Touch all devices in the deque given.
+#	theQueue, theEvent: as defined in theHandler info at addToControllerEventDeque()
+#
+def distributeEvent3(thePublisher, theEvent, theSubscriber, publisherDefinedData):
+
+	global eventPublishers
+
+	if theSubscriber:
+		# load a deque with a single entry (no searching necessary) just go to deque the single handlerInfo entry
+		theQueue = targettedEvents.get(thePublisher + "." + theEvent + "." + theSubscriber, 0)
+	else:
+		try:
+			theQueue = eventPublishers[thePublisher][theEvent]
+		except:
+			theQueue = 0
+
+	if not theQueue or len(theQueue) == 0:
+		print("distributeEvent: Warning - No registrations for event " + theEvent + ".")
+		return (0)
+
+	publisherDefinedData['theEvent'] = theEvent
+	publisherDefinedData['publisher'] = thePublisher
+	publisherDefinedData['timestamp'] = time.mktime(time.localtime())
+
+	for aSubscriber, theHandler, handlerDefinedData in theQueue:
+		if (theSubscriber == 0) or (theSubscriber == aSubscriber):
+			# Add event, timestamp, and publisher
+			eventParameters = publisherDefinedData
+			eventParameters.update(handlerDefinedData)
+			theHandler(theEvent, eventParameters)
+	return (0)
+
+#
+# Note this turned out to be slower than just a standare for loop like above...
+# Deques only have an advantage on looping through where you are deleting items, otherwise it is pretty close parity with list traversal...
+# we chose to use deque because of the delete atvantage (rare in this case) and the fundamental parity in performaance with list otherwise.
+def distributeEvent4(thePublisher, theEvent, theSubscriber, publisherDefinedData):
+
+	global eventPublishers
+
+	if theSubscriber:
+		# load a deque with a single entry (no searching necessary) just go to deque the single handlerInfo entry
+		theQueue = targettedEvents.get(thePublisher + "." + theEvent + "." + theSubscriber, 0)
+	else:
+		try:
+			theQueue = eventPublishers[thePublisher][theEvent]
+		except:
+			theQueue = 0
+
+	if not theQueue or len(theQueue) == 0:
+		print("distributeEvent: Warning - No registrations for event " + theEvent + ".")
+		return (0)
+
+	publisherDefinedData['theEvent'] = theEvent
+	publisherDefinedData['publisher'] = thePublisher
+	publisherDefinedData['timestamp'] = time.mktime(time.localtime())
+
+	theMax = len(theQueue)
+	for index in range(theMax):
+		aSubscriber, theHandler, handlerDefinedData = theQueue[0]
+		if (theSubscriber == 0) or (theSubscriber == aSubscriber):
+			# Add event, timestamp, and publisher
+			eventParameters = publisherDefinedData
+			eventParameters.update(handlerDefinedData)
+			theHandler(theEvent, eventParameters)
+			theQueue.rotate(-1)
+
+	return (0)
+
+
+#
+# distributeEvent - Touch all devices in the deque given.
+#	theQueue, theEvent: as defined in theHandler info at addToControllerEventDeque()
+#
+def distributeEvent(thePublisher, theEvent, theSubscriber, publisherDefinedData):
+
+	global eventPublishers
+
+	try:
+		theQueue = eventPublishers[thePublisher][theEvent]
+	except:
+		print("distributeEvent: Publisher " + str(thePublisher) + " is not registered to publish " + theEvent + ".")
+		return (0)
+
+	if len(theQueue) == 0:
+		print("distributeEvent: Warning - No registrations for event " + theEvent + ".")
+
+	for aSubscriber, theHandler, handlerDefinedData in theQueue:
+		if (theSubscriber == 0) or (theSubscriber == aSubscriber):
+			# Add event, timestamp, and publisher
+			eventParameters = publisherDefinedData
+			eventParameters.update(handlerDefinedData)
+			eventParameters['theEvent'] = theEvent
+			eventParameters['publisher'] = thePublisher
+			eventParameters['timestamp'] = time.mktime(time.localtime())
+			theHandler(theEvent, eventParameters)
+			if theSubscriber != 0: break
+	return (0)
+
+def	testCodeNoOp(eventID, eventParameters):
+
+	global eventsDelivered
+
+	#print ("testCodeNoOp: received event \'" + eventID + "\' event  with eventParameters of " + str(eventParameters))
+	eventsDelivered = eventsDelivered + 1
+
+	return
+
+def	testCodeOnEvent(eventID, eventParameters):
+
+	print ("testCodeOnEvent: received \'" + eventID + "\' event  with eventData of " + str(eventParameters))
+
+def	testCodeUpdateEvent(eventID, eventParameters):
+
+	print ("testCodeUpdateEvent: Received \'" + eventID + "\' event with eventData of " + str(eventParameters))
+
+#=======================
+
+def eventTimeTestLow( subscribeEvnts, unsubscribeEvnts, registerPub, distributeEvnts):
+
+	global eventPublishers
+	global eventsDelivered
+	global targettedEvents
+
+	resetGlobals()
+	startTime = timer()
+
+	# make 100 publishers of 4 events
+
+	for index in range(100):
+		registerPub(['on', 'off', 'update', 'fastOn'], 'testCode' + str(index))
+
+	# make 100 subscribers each with 4 events
+
+	for index in range(100):
+		subscribeEvnts(['on', 'off', 'update', 'fastOn'], 'testCode1', testCodeNoOp,{"HandlerDefinedData":"gregsUpdateEvent spoecific data"},"subscriber"+str(index) )
+		subscribeEvnts(['on', 'off', 'update', 'fastOn'], 'testCode' + str(index), testCodeNoOp,{"HandlerDefinedData":"gregsUpdateEvent spoecific data"},"subscriber"+str(index) )
+		subscribeEvnts(['on', 'off', 'update', 'fastOn'], 'testCode' + str(index), testCodeNoOp,{"HandlerDefinedData":"gregsUpdateEvent spoecific data"},"subscriber"+str(int(index/10)) )
+		#print("subscribed subscriber \'subscriber"+str(index) + "\' to publisher \'" + 'testCode' + str(index) + "\'")
+
+	# distribute all events 1000 times
+
+	for index in range(10000):
+		distributeEvnts('testCode1', 'off', "subscriber55", {"PublisherData":"Is Here"})
+
+		distributeEvnts('testCode25', 'on', 0, {"PublisherData":"Is Here"})
+		distributeEvnts('testCode50', 'off', 0, {"PublisherData":"Is Here"})
+		distributeEvnts('testCode75', 'update', 0, {"PublisherData":"Is Here"})
+		distributeEvnts('testCode99', 'fastOn', 0, {"PublisherData":"Is Here"})
+
+	endTime = timer()
+
+	return endTime - startTime
 
 
 #=======================
-#======================= MAIN
+#======================= Test Functions
+#=======================
+def eventTimeTest(subscribeEvnts, unsubscribeEvnts, registerPub, distributeEvnts):
+	accumulatedTime = 0
+	divisor = 0
+	perNumber = 0
+	global eventsDelivered
+
+	eventsDelivered = 0
+
+	startTime = timer()
+
+	for index in range(10):
+		elapsedTime = eventTimeTestLow(subscribeEvnts, unsubscribeEvnts, registerPub, distributeEvnts)
+		accumulatedTime = accumulatedTime + elapsedTime
+		divisor = divisor + 1
+		if perNumber == 0: perNumber = eventsDelivered
+	endTime = timer()
+
+	print(str(eventsDelivered) + " events delivered in average time of " + str(
+		elapsedTime / divisor) + " seconds per " + str(perNumber) + " for a total time of " + str(
+		endTime - startTime) + " seconds.")
+
+
+
+def functionalTest(subscribeEvnts, unsubscribeEvnts, registerPub, distributeEvnts):
+
+	global eventPublishers
+	global eventsDelivered
+	global targettedEvents
+
+	resetGlobals()
+	#Functional Test
+
+	registerPub(['on','off'], 'testCode')
+
+	subscribeEvnts(['on','off'], 'testCode', testCodeOnEvent, {"HandlerDefinedData":"Goes Here"}, "testCode")
+
+	subscribeEvnts(['DevUpdate'], 'Indigo', testCodeUpdateEvent, {"HandlerDefinedData":"gregsUpdateEvent spoecific data"}, "testCode")
+
+	print( "BEFORE EventPublishers: " + str(eventPublishers))
+	print( "BEFORE targettedEvents: " + str(targettedEvents))
+
+	distributeEvnts('testCode', 'off', 0, {"PublisherData":"Is Here"})
+	distributeEvnts('Indigo', 'DevUpdate', 0, {"PublisherData":"Is Here"})
+	distributeEvnts('greg', 'on', 0, {"PublisherData":"Is Here"})
+	distributeEvnts('Indigo', 'blah', 0, {"PublisherData":"Is Here"})
+
+	unsubscribeEvnts(['DevUpdate'], 'Indigo', testCodeUpdateEvent, "testCode")
+	distributeEvnts('Indigo', 'DevUpdate', 0, {"PublisherData": "Is Here"})
+	distributeEvnts('testCode', 'off', 0, {"PublisherData":"Is Here"})
+	unsubscribeEvnts(['on','off'], 'testCode', testCodeOnEvent, "testCode")
+	distributeEvnts('testCode', 'off', 0, {"PublisherData":"Is Here"})
+	print( "AFTER EventPublishers: " + str(eventPublishers))
+	print( "AFTER targettedEvents: " + str(targettedEvents))
+
+	# add 100 subscribers, then delete them
+	registerPub("abcdefg", 'testPublisher')	# its a trick, each letter will act as a separate event type
+	print( "Subscribe/Unsubscribe test - EventPublishers: " + str(eventPublishers))
+	for index in range(100):
+		for eventID in "abcdefg":
+			subscribeEvnts([eventID], 'testPublisher', testCodeOnEvent, {"HandlerDefinedData": "Goes Here"}, "testCode" + str(index))
+	print( "Subscribe/Unsubscribe test - EventPublishers LOADED: " + str(eventPublishers))
+	for index in range(100):
+		unsubscribeEvnts("acf", 'testPublisher', testCodeOnEvent, "testCode" + str(index))
+		unsubscribeEvnts("b", 'testPublisher', testCodeOnEvent, "testCode" + str(index))
+		unsubscribeEvnts(0, 'testPublisher', testCodeOnEvent, "testCode" + str(index))
+	print( "Subscribe/Unsubscribe test - EventPublishers EMPTIED: " + str(eventPublishers))
+
+	for index in range(100):
+		for eventID in "abcdefg":
+			subscribeEvnts([eventID], 'testPublisher', testCodeOnEvent, {"HandlerDefinedData": "Goes Here"}, "testCode" + str(index))
+	print( "Subscribe/Unsubscribe test - EventPublishers LOADED2: " + str(eventPublishers))
+	print( "Subscribe/Unsubscribe test - targettedEvents LOADED2: " + str(targettedEvents))
+	unsubscribeEvnts(0, 'testPublisher', testCodeOnEvent, 0)
+	print( "Subscribe/Unsubscribe test - EventPublishers EMPTIED2: " + str(eventPublishers))
+	print( "Subscribe/Unsubscribe test - targettedEvents EMPTIED2: " + str(targettedEvents))
+
+	return
+
+#=======================
+#======================= MAIN Entry
 #=======================
 
-myTime = time.mktime(time.localtime())
-#print strftime("%a, %d %b %Y %H:%M:%S", myTime)
 
-print time.ctime(myTime)
+# functionalTests
+print(" ")
+print(" subscribeToEvents ")
+functionalTest(subscribeToEvents, unsubscribeFromEvents, registerPublisher, distributeEvent)
+print(" ")
+print(" subscribeToEvents2 ")
+functionalTest(subscribeToEvents2, unsubscribeFromEvents, registerPublisher, distributeEvent2)
+print(" ")
+print(" subscribeToEvents3 ")
+functionalTest(subscribeToEvents3, unsubscribeFromEvents3, registerPublisher, distributeEvent3)
 
-myTime = myTime + .0002002
+# Time Tests
 
-print time.ctime(int(1520979157.0))
+eventTimeTest(subscribeToEvents, unsubscribeFromEvents, registerPublisher, distributeEvent)
+eventTimeTest(subscribeToEvents2, unsubscribeFromEvents, registerPublisher, distributeEvent2)
+eventTimeTest(subscribeToEvents3, unsubscribeFromEvents3, registerPublisher, distributeEvent3)
 
-myTuple = [myTime,{"One":1,"Two":2}]
-print myTuple
-print myTuple[1]
 quit()
+
+
+testDeque = deque()
+
+testDeque.append(['a','b','c'])
+testDeque.append(['d','e','f'])
+testDeque.append(['d','e','f'])
+testDeque.append(['h','i','j'])
+testDeque.append(['1','2','3'])
+print(str(len(testDeque)))
+# delete the unknown element
+theMax = len(testDeque)
+for index in range(theMax):
+	if testDeque[0] == ['x','y','z']:
+		testDeque.popleft()
+	else:
+		testDeque.rotate(-1)
+
+# view the deque manual
+theMax = len(testDeque)
+for index in range(theMax):
+	print(str(testDeque[0]))
+	testDeque.rotate(-1)
+
+# delete the middle element
+theMax = len(testDeque)
+for index in range(theMax):
+	if testDeque[0] == ['d','e','f']:
+		testDeque.popleft()
+	else:
+		#print(str(testDeque))
+		testDeque.rotate(-1)
+		#print(str(testDeque))
+print(" ")
+# view the deque
+print(str(testDeque))
+
+# delete the middle element
+theMax = len(testDeque)
+for index in range(theMax):
+	if testDeque[0] == ['a','b','c']:
+		testDeque.popleft()
+	else:
+		testDeque.rotate(-1)
+print(" ")
+# view the deque
+print(str(testDeque))
+
+# delete the middle element
+theMax = len(testDeque)
+for index in range(theMax):
+	if testDeque[0] == ['h','i','j']:
+		testDeque.popleft()
+	else:
+		testDeque.rotate(-1)
+print(" ")
+# view the deque
+print(str(testDeque))
+
+print(str(len(testDeque)))
+quit()
+
+
 
 theDict = {}
 
