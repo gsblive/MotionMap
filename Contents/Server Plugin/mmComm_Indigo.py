@@ -409,31 +409,6 @@ class mmIndigo(object):
 		return recentOffSeconds
 
 	#
-	# addToControllerEventDeque - add a device to the responder deque
-	#
-	def addToControllerEventDeque(self, theEvents, theHandler, theSubscriber):
-		mmLib_Log.logWarning("Invalid addToControllerEventDeque call to: " + self.deviceName + ". It\'s not a controller.")
-		return 0
-
-	#
-	#  processControllerEvent(theEvent, theControllerDev) - when a controller, (usually a motion sensor) has an event, it sends the event to a loaddevice through this routine
-	#
-	#  this routine in the base class is overridden by the LoadDevice Handlers
-	#
-	#  theHandler format must be
-	#  	theHandler(theEvent, theControllerDev) where:
-	#
-	#  	theEvent is the text representation of a single event type listed above: we handle 'on' here only
-	#  	theControllerDev is the mmObj of the controller that detected the event
-	#
-
-	def processControllerEvent(self, theEvent, theControllerDev):
-
-		mmLib_Log.logWarning(self.deviceName + " cannot handle controllerEvents")
-
-		return 0
-
-	#
 	# setLastUpdateTimeSeconds - note the time when the device changed state
 	#
 	def setLastUpdateTimeSeconds(self):

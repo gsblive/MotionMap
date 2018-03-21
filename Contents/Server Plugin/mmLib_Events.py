@@ -36,8 +36,40 @@ import time
 #========== Event related Globals ============
 #=============================================
 
-eventPublishers = {'Indigo': {'DevUpdate':deque([]),'DevRcvCmd':deque([]),'DevCmdComplete':deque([]),'DevCmdErr':deque([])}, 'MMSys': {'XCmd':deque([])}}
+eventPublishers = {}
 targettedEvents = {}
+
+#=============================================
+#========== Event related Routines ===========
+#=============================================
+
+
+#
+# This initialization must be called before any other event routine is called. Call it only once near the begining of your code
+#
+def initializeEvents():
+
+	global	eventPublishers
+	global	targettedEvents
+
+
+	eventPublishers =	{	'Indigo': 	{
+											'DevUpdate':deque([]),
+											'DevRcvCmd':deque([]),
+											'DevCmdComplete':deque([]),
+											'DevCmdErr':deque([])
+										},
+							'MMSys': 	{
+											'XCmd':deque([]),
+											'isDayTime':deque([]),
+											'isNightTime':deque([]),
+											'initComplete':deque([])
+										}
+						}
+
+	targettedEvents = {}
+
+	return 0
 
 
 #
@@ -129,7 +161,11 @@ def distributeEvent(thePublisher, theEvent, theSubscriber, publisherDefinedData)
 			# Add event, timestamp, and publisher
 			eventParameters = publisherDefinedData
 			eventParameters.update(handlerDefinedData)
-			theHandler(theEvent, eventParameters)
+			try:
+				theHandler(theEvent, eventParameters)
+			except:
+				mmLib_Log.logForce("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + theSubscriber)
+
 	return (0)
 
 
@@ -170,19 +206,26 @@ def subscribeToEvents(theEvents, thePublishers, theHandler, handlerDefinedData, 
 			try:
 				theQueue = eventPublishers[thePublisher][theEvent]
 			except:
-				mmLib_Log.logWarning("Publisher " + str(thePublisher) + " is not publishing requested event " + theEvent + ".")
+				mmLib_Log.logForce("Publisher " + str(thePublisher) + " is not publishing requested event " + theEvent + ".")
 				continue
 
-			theQueue.append([subscriberName, theHandler, handlerDefinedData])  # insert into appropriate deque
+			try:
+				theQueue.append([subscriberName, theHandler, handlerDefinedData])  # insert into appropriate publishers deque
+			except:
+				mmLib_Log.logForce("Publisher " + str(thePublisher) + " could not append event \'" + theEvent + "\' to subscriber " + str(subscriberName))
+
 			# Now append to the targetted event list too
 			try:
 				theQueue = targettedEvents[thePublisher + "." + theEvent + "." + subscriberName]
-				mmLib_Log.logWarning("Publisher " + str(thePublisher) + " is already publishing requested event \'" + theEvent + "\' to subscriber " + str(subscriberName))
+				mmLib_Log.logForce("Publisher " + str(thePublisher) + " is already publishing requested event \'" + theEvent + "\' to subscriber " + str(subscriberName))
 			except:
 				targettedEvents[thePublisher + "." + theEvent + "." + subscriberName] = deque()
 				theQueue = targettedEvents[thePublisher + "." + theEvent + "." + subscriberName]
 
-			theQueue.append([subscriberName, theHandler, handlerDefinedData])  # insert into appropriate deque
+			try:
+				theQueue.append([subscriberName, theHandler, handlerDefinedData])  # insert into appropriate targetted event deque
+			except:
+				mmLib_Log.logForce("Publisher " + str(thePublisher) + " failed to append targeted event \'" + theEvent + "\' to subscriber " + str(subscriberName))
 
 	return (0)
 

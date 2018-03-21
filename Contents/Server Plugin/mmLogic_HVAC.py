@@ -19,6 +19,8 @@ except:
 
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
+
 import mmComm_HVACCommands
 from collections import deque
 
@@ -74,7 +76,7 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 			self.supportedCommandsDict.update({'updateThermostatSetings':self.updateThermostatSetings})
 
 
-			mmLib_Low.mmSubscribeToEvent('initComplete', self.initializationComplete)
+			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.initializationComplete, {}, self.deviceName)
 
 	######################################################################################
 	#
@@ -528,7 +530,7 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 	#
 	#	we gave the system some time to process the intial settings before allowing processing of temp changes
 	#
-	def initializationComplete(self):
+	def initializationComplete(self,eventID, eventParameters):
 		self.initializationInProgress = 0
 
 		# The following is done here because we set a number of the thermostat's baseline settings at init

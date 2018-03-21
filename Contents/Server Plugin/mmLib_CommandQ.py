@@ -263,7 +263,7 @@ def flushQ(theDeviceName, theCommandParameters, matchingEntries):
 		return 0
 
 	timeTagDict.pop(CommandID, None)			# take the entry out of the time tag queue so it wont be found again
-	canceledTimeTags[timeTag] = 1				# and mark this found entry cancelled
+	canceledTimeTags[timeTag] = 1				# and mark this found entry cancelled. when running through the queue later, we will see this flag and not dispatch the command
 
 	return 0
 
@@ -315,12 +315,12 @@ def enqueQ(theTargetDevice, theCommandParameters, flushDirective):
 		theCommandParameters['theIndigoDeviceID'] = theTargetDevice.devIndigoID
 		theCommandParameters['enqueueTime'] = timeTag
 	except Exception as err:
-		mmLib_Log.logError("Cannot Enqueue MDevice: " + str(theTargetDevice) + " Error: " + str(err))
+		mmLib_Log.logError("Cannot Enqueue mmDevice: " + str(theTargetDevice) + " Error: " + str(err))
 
 	if flushDirective:
 		flushQ(theTargetDevice, theCommandParameters, flushDirective)  # Get rid of the old ones if asked
 	else:
-		print("No flush Directive")
+		mmLib_Log.logDebug("No flush Directive for mmDevice " + str(theTargetDevice))
 
 	pendingCommands.append(theCommandParameters)
 	timeTagDict[CommandID] = timeTag	# this will be used to cancel this command by timeTag in the future if need be

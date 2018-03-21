@@ -19,6 +19,8 @@ except:
 
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
+
 import mmComm_Indigo
 from collections import deque
 import mmLib_CommandQ
@@ -67,14 +69,11 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 			if self.deactivateDelaySeconds:
 				self.deactivationDelayTimerFrequency = self.deactivateDelaySeconds/2
 
-			mmLib_Low.subscribeToControllerEvents(self.actionControllers, [self.occupationEvent], self.receiveActivationEvent, self.deviceName)
+			# Subscribe to requested occupancy event
+			mmLib_Events.subscribeToEvents([self.occupationEvent], self.actionControllers, self.receiveActivationEvent, {}, self.deviceName)
 
 			# Subscribe to unlatch events in all cases for debounce (the opposite of the requested occupancy event)
-			if self.occupationEvent == 'occupied': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['unoccupied'], self.receiveDeactivationEvent, self.deviceName)
-			elif self.occupationEvent == 'unoccupied': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['occupied'], self.receiveDeactivationEvent, self.deviceName)
-			elif self.occupationEvent == 'on': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['off'], self.receiveDeactivationEvent, self.deviceName)
-			elif self.occupationEvent == 'off': mmLib_Low.subscribeToControllerEvents(self.actionControllers, ['on'], self.receiveDeactivationEvent, self.deviceName)
-			else: mmLib_Log.logForce("**** mmOccupation " + self.deviceName + " Initialization: Illegal Event type " + str(self.occupationEvent))
+			mmLib_Events.subscribeToEvents([self.occupationEvent], self.actionControllers, self.receiveDeactivationEvent, {}, self.deviceName)
 
 			self.monitorGroup = []
 
@@ -159,9 +158,10 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 	#			The type of occupation event we have been looking for is reported here. Based on the any/all mode factor,
 	# 			determine if we should schedule the activation event to later occur in deviceTime above
 	#
-	def receiveActivationEvent(self, theEvent, theControllerDev):
+	def receiveActivationEvent(self, theEvent, eventParameters):
 
 		processIt = 0
+		theControllerDev = mmLib_Low.MotionMapDeviceDict[eventParameters['publisher']]
 
 		if theControllerDev.deviceName not in self.monitorGroup:
 			self.monitorGroup.append(theControllerDev.deviceName)
@@ -192,9 +192,10 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 	#			The opposite of our occupation is reported here. Based on the any/all mode factor,
 	# 			determine if the occupation has now ended and if we should schedule any deactivation event to later occur in deviceTime above
 	#
-	def receiveDeactivationEvent(self, theEvent, theControllerDev):
+	def receiveDeactivationEvent(self, theEvent, eventParameters):
 
 		processIt = 0
+		theControllerDev = mmLib_Low.MotionMapDeviceDict[eventParameters['publisher']]
 
 		try:
 			self.monitorGroup.remove(theControllerDev.deviceName)

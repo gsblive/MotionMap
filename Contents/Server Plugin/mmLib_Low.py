@@ -18,6 +18,8 @@ except:
 	pass
 
 import mmLib_Log
+import mmLib_Events
+
 import _MotionMapPlugin
 from collections import deque
 import mmLib_CommandQ
@@ -29,6 +31,7 @@ import bisect
 import random
 import os.path
 import ast
+import datetime
 
 superClass = 0
 
@@ -86,13 +89,7 @@ TIMER_QUEUE_GRANULARITY = 5
 
 SubmodelDeviceDict = {}
 
-mmSubscriptions = {'isDayTime':[],'isNightTime':[],'initComplete':[]}
-
-############################################################################################
-#	Event Proscessing Globals
-############################################################################################
-
-eventPublishers = {'Indigo':{}, 'MMSys':{}}
+MMSysNonvolatileData = {}	# the NVs specifically for MMSys
 
 ############################################################################################
 #
@@ -145,7 +142,10 @@ def	cacheNVDict():
 	pickle.dump(mmNonVolatiles, theNVFile)
 	theNVFile.close()
 
-
+#
+# Each device has its own set of variables that can be accessed after initializeNVDict is called
+# This routine does the initialization and returns the variables
+#
 def initializeNVDict(theDevName):
 
 	global mmNonVolatiles
@@ -188,16 +188,16 @@ def initializeNVDict(theDevName):
 
 def resetGlobals():
 	global MotionMapDeviceDict
-	global mmSubscriptions
 	global deviceTimeDeque
 	global loadDeque
 	global controllerDeque
 	global statisticsQueue
+	global MMSysNonvolatileData
 
 	mmLib_Log.logForce("Resetting Globals")
-
 	MotionMapDeviceDict = {}
-	mmSubscriptions = {'isDayTime':[],'isNightTime':[],'initComplete':[]}
+
+	mmLib_Events.initializeEvents()		# this resets the event globals
 
 	deviceTimeDeque	= deque()
 
@@ -206,6 +206,10 @@ def resetGlobals():
 	controllerDeque	= deque()
 
 	statisticsQueue = deque()
+	mmLib_Log.logForce("initializing MMSysNonvolatileData")
+	MMSysNonvolatileData = initializeNVDict('MMSys')
+
+
 
 ############################################################################################
 
@@ -269,27 +273,35 @@ def getIndigoVariable(theVarName, theDefaultValue):
 
 ############################################################################################
 #
-#  mmIsDaytime - Event gets executed when it becomes daytime
+#  daytimeTransition - Event gets executed when it becomes daytime
 #
 ############################################################################################
-def	mmIsDaytime():
+def	daytimeTransition(eventID, eventParameters):
 
-	mmLib_Log.logReportLine("*** It is now Daytime ***")
-	processOfflineReport({'theCommand': 'offlineReport', 'theDevice': 'errorCounter', 'theMode': 'Email'})
-	batteryReport({'theCommand': 'batteryReport', "ReportType":"Terse"})
+	global MMSysNonvolatileData
 
+	if indigo.variables['MMDayTime'].value == 'false':
+		localDaytime = False
+	else:
+		localDaytime = True
+
+	if localDaytime == True:
+		mmLib_Log.logReportLine("*** It is now Daytime ***")
+		# only process the reports if they have not been processed in the past 23 hours (we only want them once a day)
+		lastDaytimeTransition = initializeNVElement(MMSysNonvolatileData, "lastReportTime", 0)
+
+		secondsSinceLastReport = int( time.mktime(time.localtime()) - lastDaytimeTransition)
+		if  secondsSinceLastReport > 23*60*60:
+			MMSysNonvolatileData["lastReportTime"] = int( time.mktime(time.localtime()))
+			processOfflineReport({'theCommand': 'offlineReport', 'theDevice': 'errorCounter', 'theMode': 'Email'})
+			batteryReport({'theCommand': 'batteryReport', "ReportType":"Terse"})
+		else:
+			mmLib_Log.logForce("Skipping Daytime reports due to recent report presentation " + str(datetime.timedelta(seconds=secondsSinceLastReport)) + " ago.")
+
+	else:
+		mmLib_Log.logReportLine("*** It is now nightime ***")
 	return
 
-############################################################################################
-#
-#  mmIsNighttime - Event gets executed when it becomes nighttime
-#
-############################################################################################
-def	mmIsNighttime():
-
-	mmLib_Log.logReportLine("*** It is now nightime ***")
-
-	return
 
 ############################################################################################
 #
@@ -303,7 +315,7 @@ def	mmDaylightTransition(isNowDaytime):
 	else:
 		theEvent = 'isNightTime'
 
-	mmRunSubscriptions(theEvent)
+	mmLib_Events.distributeEvent('MMSys', theEvent, 0, {})
 
 	return
 
@@ -738,125 +750,20 @@ def refreshControllers():
 	mmLib_Log.logForce("Resetting mmInsteons to current system status.")
 
 	for mmDev in controllerDeque:
-		mmLib_Log.logDebug("Initializing occupancy for " + mmDev.deviceName)
-		mmDev.deviceTime()
+		try:
+			mmLib_Log.logDebug("Initializing occupancy for " + mmDev.deviceName)
+			mmDev.deviceTime()
+			mmLib_Log.logDebug("Occupancy initialized for " + mmDev.deviceName)
+		except:
+			mmLib_Log.logForce("Failure to initialize occupancy for " + mmDev.deviceName)
 
 	return(0)
 
-############################################################################################
-#
-#	Event Processing
-#
-############################################################################################
-
-############################################################################################
-#
-#  mmSubscribeToEvent - Subscribe to an mm server event
-#
-#	theEvent can be:
-#		'isDayTime' - there has been a transition to Daytime
-#		'isNightTime' - there has been a transition to Nighttime
-#		'initComplete' - server startup initialization is now complete
-#
-#	theProc has no parameters
-#
-############################################################################################
-def	mmSubscribeToEvent(theEvent, theProc):
-
-	global mmSubscriptions
-
-	mmEventUnsubscribe(theEvent, theProc)
-	try:
-		requestedEventList = mmSubscriptions[theEvent]
-	except:
-		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
-		return
-
-	requestedEventList.append(theProc)
-
-	return
-
-
-############################################################################################
-#
-#  mmEventUnsubscribe - Subscribe to an mm server event
-#
-#	theProc is the procedure we are unsubscribing
-#
-############################################################################################
-def	mmEventUnsubscribe(theEvent, theProc):
-
-	global mmSubscriptions
-
-	try:
-		requestedEventList = mmSubscriptions[theEvent]
-	except:
-		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
-		return
-
-	try:
-		requestedEventList.remove(theProc)
-	except:
-		mmLib_Log.logVerbose("Proc \'" + str(theProc) + "\' is not registered.")
-
-	return
-
-
-############################################################################################
-#
-#  mmRunSubscriptions - Process the specific subscription Event
-#
-############################################################################################
-def	mmRunSubscriptions(theEvent):
-
-	global mmSubscriptions
-
-	try:
-		requestedEventList = mmSubscriptions[theEvent]
-	except:
-		mmLib_Log.logDebug("No Such Event type \'" + str(theEvent) + "\'")
-		return
-
-	for aProc in requestedEventList:
-		aProc()
-
-	return
-
-######################################################
-#
-# subscribeToControllerEvents - Tell one or more controllers to stat sending us events
-#
-#	theControllers		The list of controllers to subscribe to (motion sensors for example)
-#	theEvents			The List of events we want
-# 	theHandler			The Handler to call when the event happens
-#	subscriberName		The Name of the device Subscribing
-#
-######################################################
-def subscribeToControllerEvents(theControllers, theEvents, theHandler, subscriberName):
-
-	for controllerName in theControllers:
-		if not controllerName: continue
-		try:
-			mmControllerDev = MotionMapDeviceDict[controllerName]
-		except:
-			mmLib_Log.logForce("Device not found. Cannot add events " + str(theEvents) + " to event Deque of " + controllerName)
-			continue
-
-		mmControllerDev.addToControllerEventDeque(theEvents, theHandler, subscriberName)		# subscribe to events
-
-
-
-
-############################################################################################
-#
-#	End Event Processing routines
-#
-############################################################################################
 
 ############################################################################################
 #
 # minutesAndSecondsTillTime
-#	called at INIT time to make sure the motion sensors are in sync with reality
+#
 #
 ############################################################################################
 def minutesAndSecondsTillTime(futureTimeInSeconds):
@@ -965,5 +872,5 @@ def init():
 	setIndigoVariable('MMListenerName', _MotionMapPlugin.MM_NAME + '.listener')
 	initIndigoVariable("StatisticsResetTime", time.strftime("%m/%d/%Y %I:%M:%S"))	# in this variable's case, only init it if it doesnt exist.
 	resetGlobals()
-	# now register for delayed events (will be used as periodic timer)
+	# set a periodic process of caching the nonvolitile data
 	registerDelayedAction({'theFunction': cacheNonVolatiles, 'timeDeltaSeconds': int(random.randint(60*60,60*60*2)), 'theDevice': "MotionMap System", 'timerMessage': "cacheNonVolatiles"})

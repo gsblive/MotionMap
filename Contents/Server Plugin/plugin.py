@@ -23,6 +23,8 @@ except:
 
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
+
 import mmLib_CommandQ
 import mmLib_Config
 from timeit import default_timer as timer
@@ -178,15 +180,17 @@ class Plugin(indigo.PluginBase):
 		mmLib_Log.logForce("  System Initialization completed. Running Device INIT subscriptions")
 		# Run subscriptions for all objects in the init queue
 		mmLib_Low.refreshControllers()
-		mmLib_Low.mmRunSubscriptions('initComplete')
+		try:
+			mmLib_Events.subscribeToEvents(['isNightTime', 'isDayTime'], ['MMSys'], mmLib_Low.daytimeTransition, {}, 'MMSys')
+		except:
+			mmLib_Log.logForce("MMSys SubscribeToEvents \'isNightTime\' or \'isDayTime\' failed.")
 
+		mmLib_Events.distributeEvent('MMSys', 'initComplete', 0, {})
 
 		# initialize daytime value for all devices that care. We do this before the following
 		# subscribes because we dont want to see the morning reports every time we start up
 		mmLib_Low.mmDaylightTransition(indigo.variables['MMDayTime'].value)
 
-		mmLib_Low.mmSubscribeToEvent('isDayTime', mmLib_Low.mmIsDaytime)
-		mmLib_Low.mmSubscribeToEvent('isNightTime', mmLib_Low.mmIsNighttime)
 
 		mmLib_Log.mmDebugNote("--- " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
 
@@ -219,13 +223,14 @@ class Plugin(indigo.PluginBase):
 
 		if pluginInitialized == 0: return()
 
-		#mmLog.logForce( "Command Received for ID: " + str(cmd.address) )
-
 		try:
 			mmDev = mmLib_Low.MotionMapDeviceDict[str(cmd.address)]
 		except:
 			# Not our device
-			# mmLib_Log.logForce( "Received a command, but not our device ID: " + str(cmd.address))
+			# Note cmd does not have devID, so you have to use address
+			# this is technically broken with no work around. It only effects OutletLinc that shares address between top and bottom outlets
+			# the moral of the story is dont rely on cmd where you can avoid it... rely on deviceUpdated where possible.
+			mmLib_Log.logForce( "Received a command, but not our device ID: " + str(cmd.address))
 			return 0
 
 		mmLib_Log.logVerbose("Received Command from " + str(mmDev.deviceName))
@@ -256,6 +261,8 @@ class Plugin(indigo.PluginBase):
 			devAddress = mmLib_Low.makeSceneAddress(cmd.cmdScene)
 			mmLib_Log.logVerbose("Scene " + str(cmd.cmdFunc) + " complete for: " + str(devAddress) + "\n" + str(cmd))
 		else:
+			# Note cmd does not have devID, so you have to use address
+			# however, since this is a command completion, the last command we sent out should be on the top of the queue
 			devAddress = str(cmd.address)
 
 		theDev = mmLib_CommandQ.getQTopDev()
@@ -296,28 +303,10 @@ class Plugin(indigo.PluginBase):
 		if pluginInitialized == 0: return()
 
 
-		#try:
-		#	mmSignature = mmLib_Low.makeMMSignature(newDev.id, newDev.address)
-		#except:
-		#	mmLib_Log.logForce("Device Update. Cannot make signature for device: " + str(newDev))
-		#	return 0
-
 		try:
 			mmDev = mmLib_Low.MotionMapDeviceDict[newDev.name]
 		except:
-			#mmLib_Log.logForce("Device Update. Device is not ours: " + str(newDev.name))
-			# Not our device
 			return 0
-
-		#try:
-		#	mmDev = mmLib_Low.MotionMapDeviceDict[mmSignature]
-		#except:
-			# Not our device
-		#	return 0
-
-		#mmLib_Log.logForce("Device Update. Signature: " + str(mmSignature) + " " + mmDev.deviceName)
-
-		#if newDev.__class__ == indigo.DimmerDevice:mmLog.logForce( str(mmDev.deviceName) + " has been updated to " + str(newDev.brightness))
 
 		# Update the indigo device in case it changed out behind our back
 		mmDev.theIndigoDevice = newDev
@@ -352,9 +341,6 @@ class Plugin(indigo.PluginBase):
 		try:
 			while True:
 				if pluginInitialized == 0:
-#					pluginInitialized = pluginInitialized + 1
-#					mmLib_Log.logForce("Waiting for System stabilization")
-#					self.sleep(5) # in seconds
 					try:
 						self.initComplete()
 					except:
@@ -368,6 +354,7 @@ class Plugin(indigo.PluginBase):
 					newDaylightValue = indigo.variables['MMDayTime'].value
 
 					if localIsDaylight != newDaylightValue:
+						mmLib_Log.logDebug("Running mmDaylightTransition(). localIsDaylight and newDaylightValue are " + str(localIsDaylight) + " and " + str(newDaylightValue))
 						localIsDaylight = newDaylightValue
 						mmLib_Low.mmDaylightTransition(newDaylightValue)
 

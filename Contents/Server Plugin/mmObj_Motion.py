@@ -11,8 +11,8 @@ __author__ = 'gbrewer'
 #import traceback
 #import datetime
 
-kMotionDevTolerableMotionBounceTime = 5	#if off/on transition time is > 5 seconds, the device might be bouncing
-kMotioinDevMaxSequentialBounces = 50	# if there are more than 50 bounces in a row, there is a problem
+kMotionDevTolerableMotionBounceTime = 2	#if off/on transition time is > 2 seconds, the device is not bouncing
+kMotionDevMaxSequentialBounces = 50	# if there are more than 50 bounces in a row, there may be a problem (usually requires a battery replacement or reset of parameters)
 OccupiedStateList = ["Unoccupied", "Occupied", "Unknown"]
 
 try:
@@ -75,7 +75,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 			self.supportedCommandsDict.update({'devStatus': self.devStatus})
 
-			mmLib_Low.mmSubscribeToEvent('initComplete', self.processOccupation)
+			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.initializationComplete, {}, self.deviceName)
 
 
 	######################################################################################
@@ -113,39 +113,6 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.processOccupation()
 
 		return(0)
-	#
-	# addToControllerEventDeque - add theHandler to be called when any of the events listed in theEvents occur
-	#
-	#	we support the following events:
-	#
-	#	'on'			The motion sensor received an on signal
-	#	'off'			The motion sensor received an off signal
-	#	'occupied'		The motion sensor has determined the area is occupied
-	#	'unoccupied'	The motion sensor has determined the area is unoccupied
-	#
-	#	theHandler format must be
-	#		theHandler(theEvent, theControllerDev) where:
-	#
-	#		theEvent is the text representation of a single event type listed above
-	#		theControllerDev is the mmInsteon of the controller that detected the event
-	#
-	def addToControllerEventDeque(self, theEvents, theHandler, theSubscriber):
-		mmLib_Events.subscribeToEvents(theEvents, [self.deviceName], theHandler, {}, theSubscriber)
-		return(0)
-
-
-	#
-	# dispatchEventToDeque - Touch all devices in the deque given.
-	#	theQueue, theEvent: as defined in theHandler info at addToControllerEventDeque()
-	#
-	def dispatchEventToDeque(self, theQueue, theEvent):
-		mmLib_Log.logForce("WARNING - Obsolete Routine, Use  mmLib_Events.distributeEvent." + theEvent + " requested from " + self.deviceName)
-
-		for aHandler in theQueue:
-			aHandler(theEvent, self)
-
-		return(0)
-
 
 
 	#
@@ -217,6 +184,15 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	def deviceTime(self):
 		return(0)
 
+
+
+	#
+	# initializationComplete - Finalize initialization and start running
+	#
+	def initializationComplete(self,eventID, eventParameters):
+
+		self.processOccupation()
+		return(0)
 
 
 	def processOccupation(self):
@@ -317,9 +293,10 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.ourNonvolatileData["problemReportTime"] = 0
 		else:
 			# count the sequential transaction
-			self.ourNonvolatileData["rapidTransitionTimeList"].append(time.mktime(time.localtime()))
-			if len(self.ourNonvolatileData["rapidTransitionTimeList"]) == kMotioinDevMaxSequentialBounces:
-				self.reportMotionDebounceProblem(1)
+			self.ourNonvolatileData["rapidTransitionTimeList"].append(str(time.ctime(time.mktime(time.localtime()))) + " Reporting only " + str(deltaSeconds) + " seconds of off time.")
+			if len(self.ourNonvolatileData["rapidTransitionTimeList"]) == kMotionDevMaxSequentialBounces:
+				self.reportMotionDebounceProblem(1)		# report the problem
+				# we reported the problem, now reset
 				self.ourNonvolatileData["rapidTransitionTimeList"] = []
 				self.ourNonvolatileData["problemReportTime"] = 0
 
@@ -396,12 +373,12 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			# just reporting status
 			theBody = theBody + str("\r")
 
-		# report Online State
 		listLength = len(self.ourNonvolatileData["rapidTransitionTimeList"])
+
+		# report Online State
 		theBody = theBody + "\rOnline State is: " + self.onlineState + "\r"
 
 		# report Occupied State
-		listLength = len(self.ourNonvolatileData["rapidTransitionTimeList"])
 		theBody = theBody + "It's reporting " + OccupiedStateList[self.occupiedState] + "\r"
 
 		# Report When Occupation will end (if any)
@@ -433,8 +410,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			theBody = str(theBody + self.deviceName + "'s number of off/on cycle times less than " + str(kMotionDevTolerableMotionBounceTime) + " seconds: " + str(listLength))
 
 			theBody = theBody + "\rLast " + str(listLength) + " sequential off/on transition times to ON: \r"
-			for newTime in self.ourNonvolatileData["rapidTransitionTimeList"]:
-				theBody = theBody + "\r" + str(time.ctime(newTime))
+			for newTimeStr in self.ourNonvolatileData["rapidTransitionTimeList"]:
+				theBody = theBody + "\r" + newTimeStr
 		else:
 			theBody = theBody + "No sequential off/on transition times less than " + str(kMotionDevTolerableMotionBounceTime) + " seconds."
 

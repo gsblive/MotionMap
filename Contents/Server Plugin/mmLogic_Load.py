@@ -54,8 +54,6 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.sustainControllers = filter(None, theDeviceParameters["sustainControllers"].split(';'))
 			self.combinedControllers = self.onControllers + self.sustainControllers
 			self.lastOffCommandTime = 0
-			#mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['on'], self.processControllerEvent, self.deviceName)
-			#mmLib_Low.subscribeToControllerEvents(self.combinedControllers, ['off'], self.processControllerEvent, self.deviceName)
 			mmLib_Events.subscribeToEvents(['on','off'], self.combinedControllers, self.processControllerEvent, {}, self.deviceName)
 			self.companions = []
 			mmLib_Low.loadDeque.append(self)						# insert into loadDevice deque
@@ -81,9 +79,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			self.supportedCommandsDict.update({'bedtimeModeOn':self.bedtimeModeOn, 'devStatus':self.devStatus})
 
-			mmLib_Low.mmSubscribeToEvent('isDayTime', self.mmDayNightTransition)
-			mmLib_Low.mmSubscribeToEvent('isNightTime', self.mmDayNightTransition)
-			mmLib_Low.mmSubscribeToEvent('initComplete', self.completeInit)
+			mmLib_Events.subscribeToEvents(['isNightTime','isDayTime'], ['MMSys'], self.mmDayNightTransition, {}, self.deviceName)
+			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.completeInit, {}, self.deviceName)
 
 
 	######################################################################################
@@ -258,7 +255,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# completeInit - Complete the initialization process for this device
 	#
-	def completeInit(self):
+	def completeInit(self,eventID, eventParameters):
 
 		newCallbackType = 'MaxOccupancy'	#assume Max Occupancy unless proven empty area
 		mmLib_Log.logVerbose(self.deviceName + " is completing its initialization tasks.")
@@ -513,7 +510,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# 		mmDayNightTransition - process day/night transition
 	#
-	def mmDayNightTransition(self):
+	def mmDayNightTransition(self,eventID, eventParameters):
 
 		# do day/night processing
 

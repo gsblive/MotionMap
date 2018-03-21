@@ -40,8 +40,10 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		self.currentOnState = False	# we have to assume we have no motion to start with (cameras dont save a motion state)
 
 		super(mmCamMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
+		if self.debugDevice: mmLib_Log.logForce( " === Initializing " + self.deviceName)
 
 		self.influentialLights = filter(None, theDeviceParameters["influentialLights"].split(';'))
+		self.influentialTimeout = int(theDeviceParameters["influentialTimeout"])
 
 		self.supportedCommandsDict.update({'motionEvent': self.camMotionEvent})
 
@@ -160,7 +162,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		if indigo.variables['MMDayTime'].value == 'false':
 			deltaTime = self.getInfluentialLoadChangeDelta()
 
-			if( deltaTime < 6 ):
+			if( deltaTime < self.influentialTimeout ):	# timeout configurable in the config file
 				# Ignore the phantom transition/motion due to light change
 				mmLib_Log.logForce(" === Ignoring phantom motion on " + self.deviceName + " because recent transition of influential light occurred " + str(deltaTime) + " seconds ago.")
 				return('Dque')

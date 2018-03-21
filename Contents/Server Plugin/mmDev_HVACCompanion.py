@@ -19,6 +19,7 @@ except:
 	pass
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
 import mmLogic_HVAC
 
 ######################################################
@@ -49,7 +50,7 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 			self.occupancySensor = theDeviceParameters["occupancySensor"]
 			self.online = 'unknown'
 			self.occupancySensors = theDeviceParameters["occupancySensor"].split(';')
-			mmLib_Low.subscribeToControllerEvents(self.occupancySensors, ['occupied', 'unoccupied'], self.processControllerEvent, self.deviceName)
+			mmLib_Events.subscribeToEvents(['occupied', 'unoccupied'], self.occupancySensors, self.processControllerEvent, {}, self.deviceName)
 
 			self.resetSetpoints()
 
@@ -85,7 +86,7 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 
 
 	#
-	#	processControllerEvent(theEvent, theControllerDev) - when a controller, (usually a motion sensor) has an event, it sends the event to a loaddevice through this routine
+	#	processControllerEvent(theEvent, eventParameters) - when a controller, (usually a motion sensor) has an event, it sends the event to a loaddevice through this routine
 	#
 	#	theHandler format must be
 	#		theHandler(theEvent, theControllerDev) where:
@@ -93,9 +94,10 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 	#		theEvent is the text representation of a single event type listed above: we handle ['occupied', 'unoccupied'] here only
 	#		theControllerDev is the mmInsteon of the controller that detected the event
 	#
-	def processControllerEvent(self, theEvent, theControllerDev):
+	def processControllerEvent(self, theEvent, eventParameters):
 
 		originalOnline = self.online
+		theControllerDev = mmLib_Low.MotionMapDeviceDict[eventParameters['publisher']]
 
 		if theEvent == 'occupied':
 			mmLib_Log.logVerbose("HVAC Companion Device " + self.deviceName + " is now online and will be considered in climate calculations.")
