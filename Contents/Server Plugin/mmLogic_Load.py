@@ -81,6 +81,18 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			mmLib_Events.subscribeToEvents(['isNightTime','isDayTime'], ['MMSys'], self.mmDayNightTransition, {}, self.deviceName)
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.completeInit, {}, self.deviceName)
+			
+			# register for update events
+			if self.theIndigoDevice.__class__ == indigo.DimmerDevice:
+				mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0, 'brightness':0}} , self.deviceName)
+			else:
+				# mmLib_Log.logForce( self.deviceName + " Is Subscribing to event \'AttributeUpdate\' with handlerDefinedData of " + str({'monitoredAttributes':{'onState':0}}))
+				mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}} , self.deviceName)
+
+			# register for command events
+			mmLib_Events.subscribeToEvents(['DevRcvCmd'], ['Indigo'], self.receivedCommandEvent, {} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {} , self.deviceName)
 
 
 	######################################################################################
@@ -92,14 +104,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	######################################################################################
 
 	#
-	# deviceUpdated -
+	# deviceUpdatedEvent -
 	#
 	#
-	# deviceUpdated - tell the companions what to do
+	# deviceUpdatedEvent - tell the companions what to do
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def deviceUpdatedEvent(self, eventID, eventParameters):
 
-		processCompanions=1
 		mmLib_Log.logVerbose(self.deviceName + " update.")
 
 		if self.defeatTimerUpdate:
@@ -107,8 +118,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.defeatTimerUpdate = 0
 			processCompanions=0
 		else:
-			if origDev.onState != newDev.onState:
-				if newDev.onState == True:
+			# 'na' below means no change if either onstate or brightness changed, processCompanions
+			if eventParameters.get('brightness', 'na') != 'na' or eventParameters.get('onState', 'na') != 'na': processCompanions=1
+
+			# if onstate has changed...
+			if eventParameters.get('onState', 'na') != 'na':
+				# and is now 'on'
+				if eventParameters['onState'] == True:
 					if self.listOnControllers(self.combinedControllers):
 						newOffTimerType = 'MaxOccupancy'
 					else:
@@ -118,31 +134,28 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 				self.updateOffTimerCallback(newOffTimerType)
 
-			super(mmLoad, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
+			super(mmLoad, self).deviceUpdatedEvent(eventID, eventParameters)  # the base class just keeps track of the time since last change
 
 
 		# do bedtimeMode reset if needed
-		if newDev.onState == True and self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON and origDev.onState == False:
+		if eventParameters.get('onState', 'na') == True and self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON:
 			self.bedtimeMode = mmLib_Low.BEDTIMEMODE_OFF
 			mmLib_Log.logReportLine("Bedtime Mode OFF for device: " + self.deviceName)
 			self.setControllersOnOfflineState('on')
 
-
+		# process companions as needed
 		if processCompanions and self.companions:
-			if newDev.__class__ == indigo.DimmerDevice:
-				if origDev.brightness == newDev.brightness: processCompanions=0
-			elif origDev.onState == newDev.onState: processCompanions=0
+			mmLib_Log.logVerbose("Updated loadDevice: " + self.deviceName + ". " + " Value: " + str(self.getBrightness()) + " Send commands to companions: " + str(self.companions))
+			initialBrightness = self.getBrightness()
+			for theCompanion in self.companions:
+				# debounce the command, dont send it if the value is already correct
+				if theCompanion.getBrightness() == initialBrightness :
+					mmLib_Log.logVerbose("Device: " + theCompanion.deviceName + " already has the appropriate value: " + str(initialBrightness))
+					mmLib_CommandQ.flushQ(theCompanion, {'theDevice':theCompanion.deviceName,'theCommand': 'brighten'}, ["theCommand"])
+				else:
+					theCompanion.queueCommand({'theCommand':'brighten', 'theDevice':theCompanion.deviceName, 'theValue':initialBrightness, 'retry':2})
 
-			if processCompanions:
-				mmLib_Log.logVerbose("Updated loadDevice: " + self.deviceName + ". " + " Value: " + str(self.getBrightness()) + " Send commands to companions: " + str(self.companions))
-				initialBrightness = self.getBrightness()
-				for theCompanion in self.companions:
-					# debounce the command, dont send it if the value is already correct
-					if theCompanion.getBrightness() == initialBrightness :
-						mmLib_Log.logVerbose("Device: " + theCompanion.deviceName + " already has the appropriate value: " + str(initialBrightness))
-						mmLib_CommandQ.flushQ(theCompanion, {'theDevice':theCompanion.deviceName,'theCommand': 'brighten'}, ["theCommand"])
-					else:
-						theCompanion.queueCommand({'theCommand':'brighten', 'theDevice':theCompanion.deviceName, 'theValue':initialBrightness, 'retry':2})
+		super(mmLoad, self).deviceUpdatedEvent(eventID, eventParameters)	# Do universal housekeeping
 		return(0)
 
 
@@ -150,14 +163,15 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# completeCommand - we received a commandSent completion message from the server for this device.
 	#
-	def completeCommand(self, theInsteonCommand ):
-		super(mmLoad, self).completeCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
+	def completeCommandEvent(self, eventID, eventParameters ):
+		super(mmLoad, self).completeCommandEvent(eventID, eventParameters)	# Nothing special here, forward to the Base class
 
 	#
 	# receivedCommand - we received a command from our device. The base object will do most of the work... we want to process special commands here, like bedtime mode
 	#
-	def receivedCommand(self, theInsteonCommand ):
+	def receivedCommandEvent(self, eventID, eventParameters ):
 
+		theInsteonCommand = eventParameters['cmd']
 
 		# if it was an off or fast off, clear the command queue, no other commands are important that are waiting
 		#
@@ -166,7 +180,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		#
 		# do the normal processing
 		# ========================
-		super(mmLoad, self).receivedCommand(theInsteonCommand)  			# execute Base Class
+		super(mmLoad, self).receivedCommandEvent(eventID, eventParameters)  			# execute Base Class
 		mmLib_Log.logVerbose("Check for bedtime mode: " + self.deviceName)
 
 		#
@@ -205,7 +219,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
 	#
-	#def errorCommand(self, theInsteonCommand ):
+	#def errorCommandEvent(self, eventID, eventParameters  ):
 	#	super(mmHVACCommands, self).errorCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
 
 

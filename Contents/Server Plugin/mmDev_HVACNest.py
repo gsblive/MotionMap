@@ -53,37 +53,39 @@ class mmHVACNest(mmLogic_HVAC.mmHVAC):
 	#
 	# deviceUpdated
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def deviceUpdatedEvent(self, eventID, eventParameters):
 
 		extraMessage = ""
 
-		if origDev.hvacMode != newDev.hvacMode:
-			extraMessage = extraMessage + " HVAC Mode was " + str(origDev.hvacMode) + " is now:" + str(newDev.hvacMode) + "."
+		if eventParameters.get('hvacMode', 'na') != 'na':
+			extraMessage = extraMessage + " HVAC Mode is now:" + str(eventParameters['hvacMode']) + "."
 
-		if origDev.fanMode != newDev.fanMode:
-			extraMessage = extraMessage + " Fan Mode was " + str(origDev.fanMode) + " is now:" + str(newDev.fanMode) + "."
+		if eventParameters.get('fanMode', 'na') != 'na':
+			extraMessage = extraMessage + " Fan Mode is now:" + str(eventParameters['fanMode']) + "."
 
-		if origDev.coolSetpoint != newDev.coolSetpoint:
-			extraMessage = extraMessage + " Cool Setpoint was " + str(origDev.coolSetpoint) + " is now:" + str(newDev.coolSetpoint) + "."
+		if eventParameters.get('coolSetpoint', 'na') != 'na':
+			extraMessage = extraMessage + " Cool SetPoint is now:" + str(eventParameters['coolSetpoint']) + "."
 
-		if origDev.coolIsOn != newDev.coolIsOn:
-			if newDev.coolIsOn == True:
+		coolBoolean = eventParameters.get('coolIsOn', 'na')
+		if coolBoolean != 'na':
+			if coolBoolean:
 				extraMessage = extraMessage + " Cooling has become on."
 			else:
 				extraMessage = extraMessage + " Cooling has become off."
 
-		if origDev.heatSetpoint != newDev.heatSetpoint:
-			extraMessage = extraMessage + " Heat Setpoint was " + str(origDev.heatSetpoint) + " is now:" + str(newDev.heatSetpoint) + "."
+		if eventParameters.get('heatSetpoint', 'na') != 'na':
+			extraMessage = extraMessage + " Heat SetPoint is now:" + str(eventParameters['heatSetpoint']) + "."
 
-		if origDev.heatIsOn != newDev.heatIsOn:
-			if newDev.heatIsOn == True:
+		heatBoolean = eventParameters.get('heatIsOn', 'na')
+		if heatBoolean != 'na':
+			if heatBoolean:
 				extraMessage = extraMessage + " Heating has become on."
 			else:
 				extraMessage = extraMessage + " Heating has become off."
 
 		if extraMessage != "":
 			mmLib_Log.logForce("HVAC Nest Device \"" + self.deviceName + "\" has been Updated:" + extraMessage)
-			super(mmHVACNest, self).deviceUpdated(origDev, newDev)  # Report up the food chain
+			super(mmHVACNest, self).deviceUpdatedEvent(eventID, eventParameters)  # Report up the food chain
 
 	#
 	# completeCommand - we received a commandSent completion message from the server for this device.
@@ -94,19 +96,10 @@ class mmHVACNest(mmLogic_HVAC.mmHVAC):
 	#
 	# receivedCommand
 	#
-	def receivedCommand(self, theInsteonCommand ):
+	def receivedCommandEvent(self, eventID, eventParameters ):
 
 		mmLib_Log.logForce("Received command from HVAC Nest Device \"" + self.deviceName + "\".")
-		super(mmHVACNest, self).receivedCommand(theInsteonCommand)  # Normal Base Class operation
-
-
-
-	#
-	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
-	#
-	#def errorCommand(self, theInsteonCommand ):
-	#	super(mmHVACNest, self).errorCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
-
+		super(mmHVACNest, self).receivedCommandEvent(eventID, eventParameters)  # Normal Base Class operation
 
 
 
@@ -179,21 +172,6 @@ class mmHVACNest(mmLogic_HVAC.mmHVAC):
 	#
 	######################################################################################
 
-
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			if len(str(diff)) > 1:
-				mmLib_Log.logForce("Parsing Update for mmHVACNest: Length " + self.deviceName + " with Value of: " + str(diff))
-		return 0	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmHVACNest: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmHVACNest: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
 
 
 

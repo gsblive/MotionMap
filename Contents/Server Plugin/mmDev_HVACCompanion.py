@@ -115,21 +115,28 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 	#
 	# deviceUpdated
 	#
-	def deviceUpdated(self, origDev, newDev):
-		super(mmHVACCompanion, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
+	def	deviceUpdatedEvent(self,eventID, eventParameters):
+
+		super(mmHVACCompanion, self).deviceUpdatedEvent(eventID, eventParameters)  # the base class just keeps track of the time since last change
+
+		newhvacMode = eventParameters.get('hvacMode', 'na')
+		newfanMode = eventParameters.get('fanMode', 'na')
+		newcoolSetpoint = eventParameters.get('coolSetpoint', 'na')
+		newheatSetpoint = eventParameters.get('heatSetpoint', 'na')
+
 		if self.masterThermostat:
 			extraMessage = ""
-			if origDev.hvacMode != newDev.hvacMode:
-				extraMessage = extraMessage + " HVAC Mode is now:" + str(newDev.hvacMode) + "."
+			if newhvacMode != 'na':
+				extraMessage = extraMessage + " HVAC Mode is now:" + str(newhvacMode) + "."
 
-			if origDev.fanMode != newDev.fanMode:
-				extraMessage = extraMessage + " Fan Mode is now:" + str(newDev.fanMode) + "."
+			if newfanMode != 'na':
+				extraMessage = extraMessage + " Fan Mode is now:" + str(newfanMode) + "."
 
-			if origDev.coolSetpoint != newDev.coolSetpoint:
-				extraMessage = extraMessage + " Cool Setpoint is now:" + str(newDev.coolSetpoint) + "."
+			if newcoolSetpoint != 'na':
+				extraMessage = extraMessage + " Cool Setpoint is now:" + str(newcoolSetpoint) + "."
 
-			if origDev.heatSetpoint != newDev.heatSetpoint:
-				extraMessage = extraMessage + " Heat Setpoint is now:" + str(newDev.heatSetpoint) + "."
+			if newheatSetpoint != 'na':
+				extraMessage = extraMessage + " Heat Setpoint is now:" + str(newheatSetpoint) + "."
 
 			if extraMessage != "":
 				mmLib_Log.logForce("HVAC Companion Device " + self.deviceName + ": " + extraMessage + ", calling Master " + self.masterName + " with new settings.")
@@ -157,18 +164,4 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 	#
 	######################################################################################
 
-
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmHVACCompanion: " + self.deviceName + " with Value of: " + str(diff))
-		return 0	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmHVACCompanion: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmHVACCompanion: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
 

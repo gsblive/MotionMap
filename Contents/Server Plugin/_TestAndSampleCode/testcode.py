@@ -767,7 +767,7 @@ def test6():
 #========== Event related code ============
 #=================================
 
-eventPublishers = {'Indigo': {'DevUpdate':deque([]),'DevRcvCmd':deque([]),'DevCmdComplete':deque([]),'DevCmdErr':deque([])}, 'MMSys': {'XCmd':deque([])}}
+eventPublishers = {'Indigo': {'AtributeUpdate':deque([]),'DevRcvCmd':deque([]),'DevCmdComplete':deque([]),'DevCmdErr':deque([])}, 'MMSys': {'XCmd':deque([])}}
 targettedEvents = {}
 eventsDelivered = 0
 
@@ -775,7 +775,7 @@ def resetGlobals():
 	global 	eventPublishers
 	global 	targettedEvents
 
-	eventPublishers = {'Indigo': {'DevUpdate':deque([]),'DevRcvCmd':deque([]),'DevCmdComplete':deque([]),'DevCmdErr':deque([])}, 'MMSys': {'XCmd':deque([])}}
+	eventPublishers = {'Indigo': {'AtributeUpdate':deque([]),'DevRcvCmd':deque([]),'DevCmdComplete':deque([]),'DevCmdErr':deque([])}, 'MMSys': {'XCmd':deque([])}}
 
 	targettedEvents = {}
 
@@ -1232,18 +1232,18 @@ def functionalTest(subscribeEvnts, unsubscribeEvnts, registerPub, distributeEvnt
 
 	subscribeEvnts(['on','off'], 'testCode', testCodeOnEvent, {"HandlerDefinedData":"Goes Here"}, "testCode")
 
-	subscribeEvnts(['DevUpdate'], 'Indigo', testCodeUpdateEvent, {"HandlerDefinedData":"gregsUpdateEvent spoecific data"}, "testCode")
+	subscribeEvnts(['AtributeUpdate'], 'Indigo', testCodeUpdateEvent, {"HandlerDefinedData":"gregsUpdateEvent spoecific data"}, "testCode")
 
 	print( "BEFORE EventPublishers: " + str(eventPublishers))
 	print( "BEFORE targettedEvents: " + str(targettedEvents))
 
 	distributeEvnts('testCode', 'off', 0, {"PublisherData":"Is Here"})
-	distributeEvnts('Indigo', 'DevUpdate', 0, {"PublisherData":"Is Here"})
+	distributeEvnts('Indigo', 'AtributeUpdate', 0, {"PublisherData":"Is Here"})
 	distributeEvnts('greg', 'on', 0, {"PublisherData":"Is Here"})
 	distributeEvnts('Indigo', 'blah', 0, {"PublisherData":"Is Here"})
 
-	unsubscribeEvnts(['DevUpdate'], 'Indigo', testCodeUpdateEvent, "testCode")
-	distributeEvnts('Indigo', 'DevUpdate', 0, {"PublisherData": "Is Here"})
+	unsubscribeEvnts(['AtributeUpdate'], 'Indigo', testCodeUpdateEvent, "testCode")
+	distributeEvnts('Indigo', 'AtributeUpdate', 0, {"PublisherData": "Is Here"})
 	distributeEvnts('testCode', 'off', 0, {"PublisherData":"Is Here"})
 	unsubscribeEvnts(['on','off'], 'testCode', testCodeOnEvent, "testCode")
 	distributeEvnts('testCode', 'off', 0, {"PublisherData":"Is Here"})
@@ -1275,88 +1275,736 @@ def functionalTest(subscribeEvnts, unsubscribeEvnts, registerPub, distributeEvnt
 	return
 
 #=======================
+#======================= Event Tests Entry
+#=======================
+
+if 0:
+	# functionalTests
+	print(" ")
+	print(" subscribeToEvents ")
+	functionalTest(subscribeToEvents, unsubscribeFromEvents, registerPublisher, distributeEvent)
+	print(" ")
+	print(" subscribeToEvents2 ")
+	functionalTest(subscribeToEvents2, unsubscribeFromEvents, registerPublisher, distributeEvent2)
+	print(" ")
+	print(" subscribeToEvents3 ")
+	functionalTest(subscribeToEvents3, unsubscribeFromEvents3, registerPublisher, distributeEvent3)
+
+	# Time Tests
+
+	eventTimeTest(subscribeToEvents, unsubscribeFromEvents, registerPublisher, distributeEvent)
+	eventTimeTest(subscribeToEvents2, unsubscribeFromEvents, registerPublisher, distributeEvent2)
+	eventTimeTest(subscribeToEvents3, unsubscribeFromEvents3, registerPublisher, distributeEvent3)
+
+	quit()
+
+
+	testDeque = deque()
+
+	testDeque.append(['a','b','c'])
+	testDeque.append(['d','e','f'])
+	testDeque.append(['d','e','f'])
+	testDeque.append(['h','i','j'])
+	testDeque.append(['1','2','3'])
+	print(str(len(testDeque)))
+	# delete the unknown element
+	theMax = len(testDeque)
+	for index in range(theMax):
+		if testDeque[0] == ['x','y','z']:
+			testDeque.popleft()
+		else:
+			testDeque.rotate(-1)
+
+	# view the deque manual
+	theMax = len(testDeque)
+	for index in range(theMax):
+		print(str(testDeque[0]))
+		testDeque.rotate(-1)
+
+	# delete the middle element
+	theMax = len(testDeque)
+	for index in range(theMax):
+		if testDeque[0] == ['d','e','f']:
+			testDeque.popleft()
+		else:
+			#print(str(testDeque))
+			testDeque.rotate(-1)
+			#print(str(testDeque))
+	print(" ")
+	# view the deque
+	print(str(testDeque))
+
+	# delete the middle element
+	theMax = len(testDeque)
+	for index in range(theMax):
+		if testDeque[0] == ['a','b','c']:
+			testDeque.popleft()
+		else:
+			testDeque.rotate(-1)
+	print(" ")
+	# view the deque
+	print(str(testDeque))
+
+	# delete the middle element
+	theMax = len(testDeque)
+	for index in range(theMax):
+		if testDeque[0] == ['h','i','j']:
+			testDeque.popleft()
+		else:
+			testDeque.rotate(-1)
+	print(" ")
+	# view the deque
+	print(str(testDeque))
+
+	print(str(len(testDeque)))
+
+
+
+#=======================
 #======================= MAIN Entry
 #=======================
 
+class aTestObject:
 
-# functionalTests
-print(" ")
-print(" subscribeToEvents ")
-functionalTest(subscribeToEvents, unsubscribeFromEvents, registerPublisher, distributeEvent)
-print(" ")
-print(" subscribeToEvents2 ")
-functionalTest(subscribeToEvents2, unsubscribeFromEvents, registerPublisher, distributeEvent2)
-print(" ")
-print(" subscribeToEvents3 ")
-functionalTest(subscribeToEvents3, unsubscribeFromEvents3, registerPublisher, distributeEvent3)
+	def __init__(self, value1, value2, value3, value4, value5, value6, value7, value8, value9):
+		self.val0 = 0
+		self.val1 = value1
+		self.val2 = value2
+		self.val3 = value3
+		self.val4 = value4
+		self.val5 = value5
+		self.val6 = value6
+		self.val7 = value7
+		self.val8 = value8
+		self.val9 = value9
 
-# Time Tests
+		self.val10 = 10
+		self.val11 = 11
+		self.val12 = 12
+		self.val13 = 13
+		self.val14 = 14
+		self.val15 = 15
+		self.val16 = 16
+		self.val17 = 17
+		self.val18 = 18
+		self.val19 = 19
 
-eventTimeTest(subscribeToEvents, unsubscribeFromEvents, registerPublisher, distributeEvent)
-eventTimeTest(subscribeToEvents2, unsubscribeFromEvents, registerPublisher, distributeEvent2)
-eventTimeTest(subscribeToEvents3, unsubscribeFromEvents3, registerPublisher, distributeEvent3)
+		self.val20 = 20
+		self.val21 = 21
+		self.val22 = 22
+		self.val23 = 23
+		self.val24 = 24
+		self.val25 = 25
+		self.val26 = 26
+		self.val27 = 27
+		self.val28 = 28
+		self.val29 = 29
+
+		self.val30 = 30
+		self.val31 = 31
+		self.val32 = 32
+		self.val33 = 33
+		self.val34 = 34
+		self.val35 = 35
+		self.val36 = 36
+		self.val37 = 37
+		self.val38 = 38
+		self.val39 = 39
+
+		self.val40 = 40
+		self.val41 = 41
+		self.val42 = 42
+		self.val43 = 43
+		self.val44 = 44
+		self.val45 = 45
+		self.val46 = 46
+		self.val47 = 47
+		self.val48 = 48
+		self.val49 = 49
+
+		self.val50 = 50
+		self.val51 = 51
+		self.val52 = 52
+		self.val53 = 53
+		self.val54 = 54
+		self.val55 = 55
+		self.val56 = 56
+		self.val57 = 57
+		self.val58 = 58
+		self.val59 = 59
+
+		self.val60 = 60
+		self.val61 = 61
+		self.val62 = 62
+		self.val63 = 63
+		self.val64 = 64
+		self.val65 = 65
+		self.val66 = 66
+		self.val67 = 67
+		self.val68 = 68
+		self.val69 = 69
+
+		self.val70 = 70
+		self.val71 = 71
+		self.val72 = 72
+		self.val73 = 73
+		self.val74 = 74
+		self.val75 = 75
+		self.val76 = 76
+		self.val77 = 77
+		self.val78 = 78
+		self.val79 = 79
+
+		self.val80 = 80
+		self.val81 = 81
+		self.val82 = 82
+		self.val83 = 83
+		self.val84 = 84
+		self.val85 = 85
+		self.val86 = 86
+		self.val87 = 87
+		self.val88 = 88
+		self.val89 = 89
+
+		self.val90 = 90
+		self.val91 = 91
+		self.val92 = 92
+		self.val93 = 93
+		self.val94 = 94
+		self.val95 = 95
+		self.val96 = 96
+		self.val97 = 97
+		self.val98 = 98
+		self.val99 = 99
+
+
+# === version 7
+
+def checkV1(o1, o2): return o1.val1 != o2.val1 and o2.val1 or 'same'
+def checkV2(o1, o2): return o1.val2 != o2.val2 and o2.val2 or 'same'
+def checkV3(o1, o2): return o1.val3 != o2.val3 and o2.val3 or 'same'
+def checkV4(o1, o2): return o1.val4 != o2.val4 and o2.val4 or 'same'
+def checkV5(o1, o2): return o1.val5 != o2.val5 and o2.val5 or 'same'
+def checkV6(o1, o2): return o1.val6 != o2.val6 and o2.val6 or 'same'
+def checkV7(o1, o2): return o1.val7 != o2.val7 and o2.val7 or 'same'
+def checkV8(o1, o2): return o1.val8 != o2.val8 and o2.val8 or 'same'
+def checkV9(o1, o2): return o1.val9 != o2.val9 and o2.val9 or 'same'
+
+jumpDict7 = {'val1':checkV1, 'val2':checkV2,'val3':checkV3, 'val4':checkV4,'val5':checkV5, 'val6':checkV6,'val7':checkV7, 'val8':checkV8,'val9':checkV9}
+
+
+def getDiff7(o1, o2, requestedParms):
+
+	resultDict = {}
+
+	for whichVal in requestedParms:
+		try:
+			result = jumpDict7[whichVal](o1,o2)
+			if result != 'same':
+				resultDict[whichVal] = result
+				if requestedParms[whichVal]: requestedParms[whichVal](whichVal,resultDict )
+		except: pass
+
+	return resultDict
+
+
+# === Version 6
+
+theConverters = {}
+theConverters['val1'] = lambda o1,o2: o1.val1 != o2.val1 and o2.val1 or 'same'
+theConverters['val2'] = lambda o1,o2: o1.val2 != o2.val2 and o2.val2 or 'same'
+theConverters['val3'] = lambda o1,o2: o1.val3 != o2.val3 and o2.val3 or 'same'
+theConverters['val4'] = lambda o1,o2: o1.val4 != o2.val4 and o2.val4 or 'same'
+theConverters['val5'] = lambda o1,o2: o1.val5 != o2.val5 and o2.val5 or 'same'
+theConverters['val6'] = lambda o1,o2: o1.val6 != o2.val6 and o2.val6 or 'same'
+theConverters['val7'] = lambda o1,o2: o1.val7 != o2.val7 and o2.val7 or 'same'
+theConverters['val8'] = lambda o1,o2: o1.val8 != o2.val8 and o2.val8 or 'same'
+theConverters['val9'] = lambda o1,o2: o1.val9 != o2.val9 and o2.val9 or 'same'
+
+
+def getDiff6(o1,o2, requestedParms):
+
+	global theConverters
+
+	resultDict = {}
+
+	for whichVal in requestedParms:
+		try:
+			localResult = theConverters[whichVal](o1,o2)
+			if localResult != 'same':
+				resultDict[whichVal] = localResult
+				if requestedParms[whichVal]: requestedParms[whichVal](whichVal,resultDict )
+		except: pass
+	return resultDict
+
+
+# ==== version 5 Just builds a record of all differences (ignoting requestedParms), and does not dispatch events
+
+def getDiff5(o1, o2, requestedParms):
+
+	try:
+		resultDict = {o1.val1 != o2.val1 and 'val1': o2.val1 or 'same',
+					o1.val2 != o2.val2 and 'val2': o2.val2 or 'same',
+					o1.val3 != o2.val3 and 'val3': o2.val3 or 'same',
+					o1.val4 != o2.val4 and 'val4': o2.val4 or 'same',
+					o1.val5 != o2.val5 and 'val5': o2.val5 or 'same',
+					o1.val6 != o2.val6 and 'val6': o2.val6 or 'same',
+					o1.val7 != o2.val7 and 'val7': o2.val7 or 'same',
+					o1.val8 != o2.val8 and 'val8': o2.val8 or 'same',
+					o1.val9 != o2.val9 and 'val9': o2.val9 or 'same'}
+	except:
+		# Warning no such value in object
+		return {}
+
+	return resultDict
+
+
+# ==== version 4
+
+
+def getDiff4(o1, o2, requestedParms):
+
+	resultDict = {}
+
+	try:
+		theDict1 = {'val1': o1.val1 != o2.val1 and o2.val1 or 'same',
+					'val2': o1.val2 != o2.val2 and o2.val2 or 'same',
+					'val3': o1.val3 != o2.val3 and o2.val3 or 'same',
+					'val4': o1.val4 != o2.val4 and o2.val4 or 'same',
+					'val5': o1.val5 != o2.val5 and o2.val5 or 'same',
+					'val6': o1.val6 != o2.val6 and o2.val6 or 'same',
+					'val7': o1.val7 != o2.val7 and o2.val7 or 'same',
+					'val8': o1.val8 != o2.val8 and o2.val8 or 'same',
+					'val9': o1.val9 != o2.val9 and o2.val9 or 'same'}
+	except:
+		# Warning no such value in object
+		return resultDict
+
+	for whichVal in requestedParms:
+		try:
+			if theDict1[whichVal] != 'same':
+				resultDict[whichVal] = theDict1[whichVal]
+				if requestedParms[whichVal]: requestedParms[whichVal](whichVal,resultDict )
+		except: pass
+	return resultDict
+
+
+
+# version 3
+
+
+# check 'val1' of o1/o2 and returns a dict with o2[val1] as the only entry if different. Otherwise, return {}
+def checkVal1(o1, o2):
+	if o1.val1 != o2.val1: return(o2.val1)
+	return 'same'
+
+def checkVal2(o1, o2):
+	if o1.val2 != o2.val2: return(o2.val2)
+	return 'same'
+
+def checkVal3(o1, o2):
+	if o1.val3 != o2.val3: return(o2.val3)
+	return 'same'
+
+def checkVal4(o1, o2):
+	if o1.val4 != o2.val4: return(o2.val4)
+	return 'same'
+
+def checkVal5(o1, o2):
+	if o1.val5 != o2.val5: return(o2.val5)
+	return 'same'
+
+def checkVal6(o1, o2):
+	if o1.val6 != o2.val6: return(o2.val6)
+	return 'same'
+
+def checkVal7(o1, o2):
+	if o1.val7 != o2.val7: return(o2.val7)
+	return 'same'
+
+def checkVal8(o1, o2):
+	if o1.val8 != o2.val8: return(o2.val8)
+	return 'same'
+
+def checkVal9(o1, o2):
+	if o1.val9 != o2.val9: return(o2.val9)
+	return 'same'
+
+
+jumpDict = {'val1':checkVal1, 'val2':checkVal2,'val3':checkVal3, 'val4':checkVal4,'val5':checkVal5, 'val6':checkVal6,'val7':checkVal7, 'val8':checkVal8,'val9':checkVal9}
+
+def getDiff3(o1, o2, requestedParms):
+
+	resultDict = {}
+
+	for whichVal in requestedParms:
+		try:
+			result = jumpDict[whichVal](o1,o2)
+			if result != 'same':
+				resultDict[whichVal] = result
+				if requestedParms[whichVal]: requestedParms[whichVal](whichVal,resultDict )
+		except: pass
+	return resultDict
+
+
+
+
+# version 2
+
+allSubEventsSupported = {'val1':0,'val2':0,'val3':0,'val4':0,'val5':0,'val6':0,'val7':0,'val8':0,'val9':0}
+
+
+def getDiffMaster(o1, o2, requestedParms, masterHandler):
+
+	resultDict = {}
+
+	for whichVal in requestedParms:
+		try:
+			val1 = getattr(o1, whichVal)
+			val2 = getattr(o2, whichVal)
+			if val1 != val2:
+				resultDict[whichVal] = val2
+		except:
+			pass
+	return masterHandler('AtributeUpdate', resultDict)
+
+
+def getDiff2(o1, o2, requestedParms, masterHandler):
+
+	masterEventDict = {}
+	deliveredEventsDict = {}
+
+	for whichVal in requestedParms:
+		try:
+			val1 = getattr(o1,whichVal)
+			val2 = getattr(o2,whichVal)
+		except:
+			pass
+			continue
+
+		if val1 != val2:
+			# does this event have a special handler?
+			if requestedParms[whichVal]:
+				try:
+					requestedParms[whichVal](whichVal,{whichVal:val2} )
+					deliveredEventsDict[whichVal] = val2
+				except:
+					pass
+					# message about undeliverable event
+			else:
+				# commemorate the undelivered event for the masterHandler
+				masterEventDict[whichVal] = val2
+
+	if masterEventDict != {}:
+		if masterHandler:
+			try:
+				masterHandler('AtributeUpdate', masterEventDict)
+				# and mark the events delivered
+				deliveredEventsDict.update(masterEventDict)
+			except:
+				pass
+				# message about failure to deliver master events
+		else:
+			# message that we have events targetted for master, but no master handler
+			pass
+
+	return deliveredEventsDict
+
+
+# version 1 -
+def getDiff1(o1, o2, requestedParms):
+
+	if requestedParms == {}: return listAllDiffs(o1, o2, requestedParms)
+
+	count = len(requestedParms)
+	if not count: return {}
+
+	resultDict = {}
+	try:
+		if 'val1' in requestedParms and o1.val1 != o2.val1:
+			resultDict['val1'] = o2.val1
+			count = count-1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val1']: requestedParms['val1']('val1',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	try:
+		if 'val2' in requestedParms and o1.val2 != o2.val2:
+			resultDict['val2'] = o2.val2
+			count = count - 1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val2']: requestedParms['val2']('val2',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	try:
+		if 'val3' in requestedParms and o1.val3 != o2.val3:
+			resultDict['val3'] = o2.val3
+			count = count - 1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val3']: requestedParms['val3']('val3',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	try:
+		if 'val4' in requestedParms and o1.val4 != o2.val4:
+			resultDict['val4'] = o2.val4
+			count = count - 1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val4']: requestedParms['val4']('val4',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	try:
+		if 'val5' in requestedParms and o1.val5 != o2.val5:
+			resultDict['val5'] = o2.val5
+			count = count - 1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val5']: requestedParms['val5']('val5',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	try:
+		if 'val6' in requestedParms and o1.val6 != o2.val6:
+			resultDict['val6'] = o2.val6
+			count = count - 1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val6']: requestedParms['val6']('val6',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	try:
+		if 'val7' in requestedParms and o1.val7 != o2.val7:
+			resultDict['val7'] = o2.val7
+			count = count - 1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val7']: requestedParms['val7']('val7',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	try:
+		if 'val8' in requestedParms and o1.val8 != o2.val8:
+			resultDict['val8'] = o2.val8
+			count = count - 1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val8']: requestedParms['val8']('val8',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	try:
+		if 'val9' in requestedParms and o1.val9 != o2.val9:
+			resultDict['val9'] = o2.val9
+			count = count - 1
+			# Deliver the event if this sub event has a special handler
+			if requestedParms['val9']: requestedParms['val9']('val9',resultDict )
+			if not count: return resultDict
+	except: pass
+
+	return(resultDict)
+
+
+
+# version 0 - just return list of all changes between the given objects... dont dispatch to event handler
+
+def listAllDiffs(o1, o2, requestedParms):
+
+	resultDict = {}
+	try:
+		if o1.val1 != o2.val1: resultDict['val1'] = o2.val1
+	except: pass
+
+	try:
+		if o1.val2 != o2.val2: resultDict['val2'] = o2.val2
+	except:
+		pass
+
+	try:
+		if o1.val3 != o2.val3: resultDict['val3'] = o2.val3
+	except:
+		pass
+
+	try:
+		if o1.val4 != o2.val4: resultDict['val4'] = o2.val4
+	except:
+		pass
+
+	try:
+		if o1.val5 != o2.val5: resultDict['val5'] = o2.val5
+	except:
+		pass
+
+	try:
+		if o1.val6 != o2.val6: resultDict['val6'] = o2.val6
+	except:
+		pass
+
+	try:
+		if o1.val7 != o2.val7: resultDict['val7'] = o2.val7
+	except:
+		pass
+
+	try:
+		if o1.val8 != o2.val8: resultDict['val8'] = o2.val8
+	except:
+		pass
+
+	try:
+		if o1.val9 != o2.val9: resultDict['val9'] = o2.val9
+	except:
+		pass
+
+	return(resultDict)
+
+
+t1 = aTestObject(100,200,300,400,500,600,700,800,900)
+t2 = aTestObject(101,201,300,400,500,600,700,801,901)
+
+
+def eventHandlerNull(theEvent, eventParameters):
+	return 0
+
+def eventHandler(theEvent, eventParameters):
+	print "got the event: " + str(theEvent) + " with parameters: " + str(eventParameters)
+	return 0
+
+def eventHandlerALL(theEvent, eventParameters):
+	print "got the event: " + str(theEvent) + ". Processing all Differences: " + str(eventParameters)
+	return 0
+
+nIterations = 10000
+
+def runTest(theTest, testName):
+
+	lowestTime = 100000
+	for n in range(10):
+		startTime = timer()
+
+		for i in range(nIterations):
+			if testName in ["getDiff2","getDiff2M"]:
+				if testName == "getDiff2":
+					theTest(t1,t2,{'val1': eventHandlerNull, 'val2': eventHandlerNull}, 0)
+				else:
+					theTest(t1,t2,{'val1': 0, 'val2': 0}, eventHandlerNull)
+			else:
+				theTest(t1, t2, {'val1': eventHandlerNull, 'val2': eventHandlerNull})
+
+		elapsedTime = timer() - startTime
+		if elapsedTime < lowestTime: lowestTime = elapsedTime
+
+	if testName in ["getDiff2","getDiff2M"]:
+		if testName == "getDiff2":
+			print(testName + ", Lowest Time: " + str(lowestTime) + " seconds. " + str(theTest(t1, t2, {'val1': eventHandler, 'val2': eventHandler}, 0)))
+		else:
+			print(testName + ", Lowest Time: " + str(lowestTime) + " seconds. " + str(theTest(t1, t2, {'val1': 0, 'val2': 0}, eventHandlerALL)))
+	else:
+		print(testName + ", Lowest Time: " + str(lowestTime) + " seconds. " + str(theTest(t1, t2, {'val1': eventHandler, 'val2': eventHandler})))
+
+	return
+
+
+def doNothingLarge(largeDict):
+	pass
+	return
+
+def doNothingSmall(smallDict):
+	pass
+	return
+
+def doNothing():
+	pass
+	return
+
+def runTest1Parm(testName, parm1):
+
+	lowestTime = 100000
+	for n in range(10):
+		startTime = timer()
+
+		for i in range(nIterations):
+			doNothingSmall(parm1)
+
+		elapsedTime = timer() - startTime
+		if elapsedTime < lowestTime: lowestTime = elapsedTime
+
+	print(testName + ", Lowest Time: " + str(lowestTime) + " seconds. ")
+
+	return
+
+def runTest0Parm(testName):
+
+	lowestTime = 100000
+	for n in range(10):
+		startTime = timer()
+
+		for i in range(nIterations):
+			doNothing()
+
+		elapsedTime = timer() - startTime
+		if elapsedTime < lowestTime: lowestTime = elapsedTime
+
+	print(testName + ", Lowest Time: " + str(lowestTime) + " seconds. ")
+
+	return
+
+def parmPassingSpeedTest():
+	localDictSmall = {"entry1":1, "entry2":2}
+	localDictLarge = {}
+
+	for x in range(100):
+		localDictLarge['entry' + str(x)] = x
+
+	runTest1Parm("runTest1Parm", localDictLarge)
+	runTest1Parm("runTest1Parm", localDictSmall)
+	runTest0Parm("runTest0Parm")
+
+	return
+
+t3 = t1
+t1.val50 = 900
+if t1 == t2: print "Equal"
 
 quit()
 
+startTime = timer()
 
-testDeque = deque()
+for x in range(10000):
+	t3 = t1
 
-testDeque.append(['a','b','c'])
-testDeque.append(['d','e','f'])
-testDeque.append(['d','e','f'])
-testDeque.append(['h','i','j'])
-testDeque.append(['1','2','3'])
-print(str(len(testDeque)))
-# delete the unknown element
-theMax = len(testDeque)
-for index in range(theMax):
-	if testDeque[0] == ['x','y','z']:
-		testDeque.popleft()
-	else:
-		testDeque.rotate(-1)
+midTime = timer()
 
-# view the deque manual
-theMax = len(testDeque)
-for index in range(theMax):
-	print(str(testDeque[0]))
-	testDeque.rotate(-1)
+for x in range(10000):
+	v1 = t1.val1
+	v2 = t1.val2
+	v55 = t1.val55
+	v70 = t1.val70
 
-# delete the middle element
-theMax = len(testDeque)
-for index in range(theMax):
-	if testDeque[0] == ['d','e','f']:
-		testDeque.popleft()
-	else:
-		#print(str(testDeque))
-		testDeque.rotate(-1)
-		#print(str(testDeque))
-print(" ")
-# view the deque
-print(str(testDeque))
+endTime = timer()
 
-# delete the middle element
-theMax = len(testDeque)
-for index in range(theMax):
-	if testDeque[0] == ['a','b','c']:
-		testDeque.popleft()
-	else:
-		testDeque.rotate(-1)
-print(" ")
-# view the deque
-print(str(testDeque))
+print "T1/T2: " + str(midTime - startTime) + " " + str(endTime - midTime)
 
-# delete the middle element
-theMax = len(testDeque)
-for index in range(theMax):
-	if testDeque[0] == ['h','i','j']:
-		testDeque.popleft()
-	else:
-		testDeque.rotate(-1)
-print(" ")
-# view the deque
-print(str(testDeque))
+quit()
 
-print(str(len(testDeque)))
+#Inside plugin.py, the events registration for update event should include a dict of sub-events of interest. Each one has its own event handler.
+# That list will be used for the requestedParms value passed to getDiff1
+
+# 1) make sure there is a registered handler for update events to this mmDev... if not, bail and ignore the event
+# 2) call one of these routines (below -it will deliver sub events if they are registered in the update Event)
+# 3) the routine below will return a dict of all relavent sub events... call the master handler from the mmDev if it is nonzero - as it wants the master update event
+#		note: the mmdev doesnt have to register for both the master update event and sub events. If it wants sub events only, it can register the master handler as 0
+#		similarly, if it wants only the master event, it can register the sub events {}.. all differences will be delivered to the master update handler registered for this mmDev
+#		dont register empty handlers for both master and all sub-events... you will get no events
+
+runTest(listAllDiffs, "listAllDiffs")
+runTest(getDiff1, "getDiff1")
+#runTest(getDiff3, "getDiff3")
+#runTest(getDiff7, "getDiff7")
+runTest(getDiff2, "getDiff2")
+runTest(getDiff2, "getDiff2M")
+#runTest(getDiff4, "getDiff4")
+#runTest(getDiff5, "getDiff5")
+#runTest(getDiff6, "getDiff6")
+#runTest(getDiffMaster, "getDiffMaster")
 quit()
 
 

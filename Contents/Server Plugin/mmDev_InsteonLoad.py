@@ -31,19 +31,3 @@ class mmILoad(mmLogic_Load.mmLoad):
 	######################################################################################
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			#mmLib_Log.logForce("Parsing Update for mmILoad: " + self.deviceName + " with Value of: " + str(newDev))
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmILoad: " + self.deviceName + " with Value of: " + str(diff))
-			mmLib_Log.logForce("### Full NewDev: " + str(newDev))
-		return 0	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmILoad: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmILoad: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
-

@@ -14,6 +14,7 @@ from datetime import datetime
 import indigo
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
 import mmComm_Indigo
 import mmObj_Motion
 from collections import deque
@@ -55,6 +56,9 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		# To do that we claim that the last update was "minMovement" minutes ago (converted to seconds), then the math in setInitialOccupiedState will work out the rest.
 		self.lastUpdateTimeSeconds = int(time.mktime(time.localtime()) - (int(self.minMovement) * 60))
 
+		# this is a virtual device, so it wont really get events... We have some action groups or triggers that call us through executeCommand function
+		# we convert those messages to update events and distribute them as if we were indigo, so register for the update events here
+		#mmLib_Events.subscribeToEvents('AtributeUpdate', 'Indigo', self.deviceUpdatedEvent, {}, self.deviceName)	# already done by mmMotion
 
 	######################################################################################
 	#
@@ -122,17 +126,17 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 
 
-	# Add the motion stop event for the camMotionEvent below. And process the event
+	# Add the motion stop event for the camMotionEvent below.
 	def	processMotionEventOn(self):
 
 		mmLib_Log.logForce("### Motion Event (ON) for " + self.deviceName)
 		# mmLib_Log.logForce("   Camera Info: \n" + str(camDev))
 		self.currentOnState = True
 
-		origDev = mmLib_Low.anIndigoDev(False, self.deviceName)
-		newDev = mmLib_Low.anIndigoDev(True, self.deviceName)
+		# convert it to an event and distribute it to continue processing with the mmMotion object
 
-		self.deviceUpdated(origDev, newDev)
+		# distribute it on behalf of indigo o it goes to the mmMotion object in the right format
+		mmLib_Events.distributeEvent('Indigo', 'AtributeUpdate', self.deviceName, {'onState':True})
 
 		mmLib_Low.registerDelayedAction(
 			{'theFunction': self.camMotionTimeout, 'timeDeltaSeconds': 30, 'theDevice': self.deviceName,
@@ -191,12 +195,10 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 		mmLib_Log.logForce("### Motion Event (Implied OFF) for " + self.deviceName + ".")
 		self.currentOnState = False
-		origDev = mmLib_Low.anIndigoDev(True,self.deviceName)
-		newDev = mmLib_Low.anIndigoDev(False,self.deviceName)
 
-		self.deviceUpdated(origDev, newDev)
+		#	publish this event on behalf of indigo so it goes to the mmMotion object in the right format
+		mmLib_Events.distributeEvent('Indigo', 'AtributeUpdate', self.deviceName, {'onState':False})
 
-		#self.receivedCommandLow(mmComm_Insteon.kInsteonOff)  # kInsteonOff = 19
 
 		return(0)
 

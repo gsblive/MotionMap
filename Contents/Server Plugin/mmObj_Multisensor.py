@@ -14,6 +14,7 @@ __author__ = 'gbrewer'
 import indigo
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
 import mmComm_Indigo
 import mmObj_Motion
 from collections import deque
@@ -194,24 +195,6 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 		return random.randint(60*60*10, 60*60*14)	# Between 10 and 14 hours is fine
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmMultisensorMotion: " + self.deviceName + " with Value of: " + str(diff))
-			#mmLib_Log.logForce("Parsing Update for mmMultisensorMotion: " + self.deviceName + " with Value of: " + str(newDev))
-
-		super(mmMultisensorMotion, self).deviceUpdated(origDev, newDev)  # the Motion class to do motion processing
-
-		return 1	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmMultisensorMotion: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmMultisensorMotion: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
 	#
 	#  Sends a Status Request
 	#		Does not honor the unresponsive variable
@@ -224,13 +207,11 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 
 
 	#
-	# deviceUpdated
+	# deviceUpdatedEvent
 	#
-	def deviceUpdated(self, origDev, newDev):
+	#def deviceUpdatedEvent(self, eventID, eventParameters):
+	#Handled by Motion Parent
 
-		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
-
-		return(0)
 
 
 	#
@@ -284,9 +265,11 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 
 		super(mmMultisensorVibration, self).__init__(theDeviceParameters)  # Initialize Base Class
 
-		#mmLib_Log.logForce("### Initializing Vibration sensor " + self.deviceName )
+		if self.deviceName == "AeonMultisensorTest1":
+			mmLib_Log.logForce("### Initializing Vibration sensor with wrong name: " + self.deviceName )
 
 		if self.theIndigoDevice.onState == True: indigo.device.turnOff(self.devIndigoID)
+		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -314,10 +297,11 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 			return 0
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmMultisensorVibration: " + self.deviceName + " with Value of: " + str(diff))
+	#
+	# deviceUpdated
+	#
+	def deviceUpdatedEvent(self, eventID, eventParameters):
+
 
 		if self.theIndigoDevice.onState == True:
 			mmLib_Log.logForce("Device: " + self.deviceName + " is vibrating. Setting callback timer to reset onstate: ")
@@ -325,23 +309,6 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 												 'timeDeltaSeconds': 30,
 												 'theDevice': self.deviceName,
 												 'timerMessage': "offTimer"})
-
-		return 1	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmMultisensorVibration: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmMultisensorVibration: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
-	#
-	# deviceUpdated
-	#
-	def deviceUpdated(self, origDev, newDev):
-
-		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
 
 		return(0)
 
@@ -378,6 +345,7 @@ class mmMultisensorLuminance(mmComm_Indigo.mmIndigo):
 
 		# take this time to update the Lux level
 		mmLib_Low.setIndigoVariable(self.luxLevelVar, str(self.theIndigoDevice.sensorValue))
+		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -394,33 +362,19 @@ class mmMultisensorLuminance(mmComm_Indigo.mmIndigo):
 	######################################################################################
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmMultisensorLuminance: " + self.deviceName + " with Value of: " + str(diff))
-
-		if origDev.sensorValue != newDev.sensorValue:
-			# take this time to update the Lux level
-			mmLib_Low.setIndigoVariable(self.luxLevelVar, str(newDev.sensorValue))
-			mmLib_Log.logForce(newDev.name + ": Value = " + str(newDev.sensorValue) + " Lux")
-		else:
-			mmLib_Log.logDebug(newDev.name + ": Received duplicate value: Lux = " + str(newDev.sensorValue))
-		return 1	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmMultisensorLuminance: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmMultisensorLuminance: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
 	#
 	# deviceUpdated
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def deviceUpdatedEvent(self, eventID, eventParameters):
 
-		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
+		newsensorValue = eventParameters.get('sensorValue', 'na')
+
+		if newsensorValue != 'na':
+			# take this time to update the Lux level
+			mmLib_Low.setIndigoVariable(self.luxLevelVar, str(newsensorValue))
+			mmLib_Log.logForce(self.deviceName + ": Value = " + str(newsensorValue) + " Lux")
+		else:
+			mmLib_Log.logDebug(self.deviceName + ": Received duplicate value: Lux = " + str(newsensorValue))
 
 		return(0)
 
@@ -454,6 +408,7 @@ class mmMultisensorHumidity(mmComm_Indigo.mmIndigo):
 
 		# take this time to update the Humidity level
 		mmLib_Low.setIndigoVariable(self.humidityLevelVar, str(self.theIndigoDevice.sensorValue))
+		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -470,33 +425,19 @@ class mmMultisensorHumidity(mmComm_Indigo.mmIndigo):
 	######################################################################################
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmMultisensorHumidity: " + self.deviceName + " with Value of: " + str(diff))
-
-		if origDev.sensorValue != newDev.sensorValue:
-			# take this time to update the Humidity level
-			mmLib_Low.setIndigoVariable(self.humidityLevelVar, str(newDev.sensorValue))
-			mmLib_Log.logForce(newDev.name + ": Value = " + str(newDev.sensorValue) + " % Relative Humidity")
-		else:
-			mmLib_Log.logDebug(newDev.name + ": Received duplicate value: Humidity = " + str(newDev.sensorValue))
-		return 1	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmMultisensorHumidity: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmMultisensorHumidity: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
 	#
 	# deviceUpdated
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def deviceUpdatedEvent(self, eventID, eventParameters):
 
-		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
+		newsensorValue = eventParameters.get('sensorValue', 'na')
+
+		if newsensorValue != 'na':
+			# take this time to update the Humidity level
+			mmLib_Low.setIndigoVariable(self.humidityLevelVar, str(newsensorValue))
+			mmLib_Log.logForce(self.deviceName + ": Value = " + str(newsensorValue) + " % Relative Humidity")
+		else:
+			mmLib_Log.logDebug(self.deviceName + ": Received duplicate value: Humidity = " + str(newsensorValue))
 
 		return(0)
 
@@ -529,6 +470,7 @@ class mmMultisensorUltraviolet(mmComm_Indigo.mmIndigo):
 
 		# take this time to update the UV level
 		mmLib_Low.setIndigoVariable(self.uvLevelVar, str(self.theIndigoDevice.sensorValue))
+		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -545,33 +487,19 @@ class mmMultisensorUltraviolet(mmComm_Indigo.mmIndigo):
 	######################################################################################
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmMultisensorUV: " + self.deviceName + " with Value of: " + str(diff))
-
-		if origDev.sensorValue != newDev.sensorValue:
-			# take this time to update the UV level
-			mmLib_Low.setIndigoVariable(self.uvLevelVar, str(newDev.sensorValue))
-			mmLib_Log.logForce(newDev.name + ": Value = " + str(newDev.sensorValue) + " mW\/cm^2")
-		else:
-			mmLib_Log.logDebug(newDev.name + ": Received duplicate value: mW\/cm^2 = " + str(newDev.sensorValue))
-		return 1	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmMultisensorUltraviolet: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmMultisensorUltraviolet: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
 	#
 	# deviceUpdated
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def deviceUpdatedEvent(self, eventID, eventParameters):
 
-		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
+		newsensorValue = eventParameters.get('sensorValue', 'na')
+
+		if newsensorValue != 'na':
+			# take this time to update the UV level
+			mmLib_Low.setIndigoVariable(self.uvLevelVar, str(newsensorValue))
+			mmLib_Log.logForce(self.deviceName + ": Value = " + str(newsensorValue) + " mW\/cm^2")
+		else:
+			mmLib_Log.logDebug(self.deviceName + ": Received duplicate value: mW\/cm^2 = " + str(newsensorValue))
 
 		return(0)
 
@@ -609,6 +537,7 @@ class mmMultisensorTemperature(mmComm_Indigo.mmIndigo):
 		self.tempFLevelVar = s.replace(' ', '.')
 
 		self.setTemperature()
+		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
 
 	######################################################################################
 	#
@@ -637,34 +566,20 @@ class mmMultisensorTemperature(mmComm_Indigo.mmIndigo):
 		mmLib_Low.setIndigoVariable(self.tempFLevelVar, str(theDegrees) + 'F')
 		return(theDegrees)
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmMultisensorTemperature: " + self.deviceName + " with Value of: " + str(diff))
-
-		theTempF = self.setTemperature()
-
-		if origDev.sensorValue != newDev.sensorValue:
-			mmLib_Log.logForce(newDev.name + ": Value = " + str(theTempF) + " Degrees F")
-		else:
-			mmLib_Log.logDebug(newDev.name + ": Received duplicate value: Temperature = " + str(theTempF))
-
-		return 1	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmMultisensorTemperature: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmMultisensorTemperature: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1	#0 means did not process
 
 	#
 	# deviceUpdated
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def deviceUpdatedEvent(self, eventID, eventParameters):
 
-		mmLib_Log.logForce("### Update Event for " + newDev.name + " should have been processed by parseUpdate()")
+		newsensorValue = eventParameters.get('sensorValue', 'na')
+
+		theTempF = self.setTemperature()
+
+		if newsensorValue != 'na':
+			mmLib_Log.logForce(self.deviceName + ": Value = " + str(theTempF) + " Degrees F")
+		else:
+			mmLib_Log.logDebug(self.deviceName + ": Received duplicate value: Temperature = " + str(theTempF))
 
 		return(0)
 

@@ -23,26 +23,14 @@
 #
 # History
 #   Date   		Version      Comment
-#	mm.dd.2016	0.9.0		To do
-#							x Integrate project with GitHub VCS
-#							x Add tools to update plug-in from ActionGroup and a pycharm file to copy plug-in to icloud for deployment
-#							Nest Thermostat doesnt support Status message
-#							Nest Thermostat not staying updated by factoring in temps from all regions (probably a multisensor thing, not updating thermostat object)
-#							x if the light switch does not have any associated motion sensors, use max on time instead of max non-motion time
-#							x A max Occupancy timer of 0 means never turn off the device due to max occupancy time
-#							x use delay timers for periodic status request
-#							X improve delay timers for performance and added feature to pass command parameters
-#							x added delay timer report for debugging
-#							x use bisect for timer management
-#							x no longer itterate through all devices when initializing multisensors' sub functions (a list is made first tiem through (10x speed increase in init)
-#							x Obsolete Timer Queue, use Delay Queue
-#							x Average on/off trasition times for multisensors to detect bouncing (a common problem with fibaro multisensors)
+#	mm.dd.2016	1.0.0		To do
+#							Allow Companions to have 2 masters
 #							On companion brightness change, send new change to Master(but ignore change response for the companion)
 #							Log all changes(button Pressing) by device
 #							Link validation tool
 #							Companion Switches should behave as follows: on Update... 100% should set Master to 100. 0% should set Master to 0.
 # 								Anything in between should automatically take care of itself
-#  							Uses Standardized CommandParameter based MM commands in all Logic Level objects (mmLogic_HVAC.py, mmLogic_Load.py)
+#  							x Uses Standardized CommandParameter based MM commands in all Logic Level objects (mmLogic_HVAC.py, mmLogic_Load.py)
 # 							Added support for 'Notification' events that Email Message on certain events (Batt Low, Earthquake, Low/high Temp)
 # 							Improve status on occupancy object to read minutes/seconds
 #							Use Multifunction sensors as input to thermostat logic routines
@@ -51,17 +39,34 @@
 #							Level 2 heat support (Fireplaces and elec heaters localized in a single room)
 #							Change Nest Thermostat processing so that commands we send it dont look like user intervention
 #							Timestamp and log all commands going to each device (with calling routine name) for debugging mystery flashes
+#							Nest Thermostat doesnt support Status message
+#							Nest Thermostat not staying updated by factoring in temps from all regions (probably a multisensor thing, not updating thermostat object)
+#							Rewrite Occupancy Object to use publish/subscribe events, subscribing to Motion and MultiSensors
+#							x Rewrite Motion Sensors to use publish occupancy events
+#							x Indigo now talks through a comprehensive event mechanism to all mmDevices. This major change is the beginning of version 4.0
+#							 This is needed for the majority of changes above
+#							Final changes to 3.x platform. Moving to 4.0 soon
+# #	03.28.2018	0.9.9		 Integrate project with GitHub VCS - See Git repository for minor changes, Major changes will be notated here
+#							Add tools to update plug-in from ActionGroup and a pycharm file to copy plug-in to icloud for deployment
+#							if the light switch does not have any associated motion sensors, use max on time instead of max non-motion time
+#							A max Occupancy timer of 0 means never turn off the device due to max occupancy time
+#							use delay timers for periodic status request
+#							improve delay timers for performance and added feature to pass command parameters
+#							added delay timer report for debugging
+#							use bisect for timer management
+#							no longer itterate through all devices when initializing multisensors' sub functions (a list is made first time through (10x speed increase in init)
+#							Obsolete Timer Queue, use Delay Queue
+#							Average on/off trasition times for multisensors to detect bouncing (a common problem with fibaro multisensors)
 #							Clear and concise status report message for each object type
-#							Allow Companions to have 2 masters
-#							x Allow selective switching (on and off) in config file of device parseUpdate log messages
-# 							x Add fileNames Procedure Names and line numbers to Log output
-# 							x Fixed a bug where the config file wasnt catching bad device names (typos)
-#							x Added universal variable to all objects that indicates if the object has successfully initialized
-#  							x Improved status on Load object to read minutes/seconds
-# 							x Improve discrimination of command completion events. We now identify our completions (even when our device shares
+#							Allow selective switching (on and off) in config file of device parseUpdate log messages
+# 							Add fileNames Procedure Names and line numbers to Log output
+# 							Fixed a bug where the config file wasnt catching bad device names (typos)
+#							Added universal variable to all objects that indicates if the object has successfully initialized
+#  							Improved status on Load object to read minutes/seconds
+# 							Improve discrimination of command completion events. We now identify our completions (even when our device shares
 # 								an address or ID with another device) with nearly 100% accuracy
-#							x Use timer functions for turning load devices off (and flashing). This gives a much more accurate timing prediction.
-#							x Added event support for daytime/nighttime transitions as well as initComplete subscriptions.
+#							Use timer functions for turning load devices off (and flashing). This gives a much more accurate timing prediction.
+#							Added event support for daytime/nighttime transitions as well as initComplete subscriptions.
 #	3.26.2016	0.8.5		Fully Functional to MotionMap2 feature Set
 #							Use variable for MM_Plugin Name so we can have universal Action Groups and Triggers.
 #	3.7.2016	0.8.0		Move all File name assignments to this file and move config files into the new _Configurations folder

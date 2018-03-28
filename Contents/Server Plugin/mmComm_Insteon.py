@@ -111,20 +111,22 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	#
 	######################################################################################
 
-	#
-	# deviceUpdated -
-	#
-	#def deviceUpdated(self, origDev, newDev):
-	#
-	#	super(mmInsteon, self).deviceUpdated(origDev, newDev)	# Nothing special here, forward to the Base class
-
-
 
 	#
-	# completeCommand - we received a commandSent completion message from the server for this device.
+	# deviceUpdatedEvent -
 	#
-	def completeCommand(self, theInsteonCommand ):
+	#
+	def deviceUpdatedEvent(self, eventID, eventParameters):
+		super(mmInsteon, self).deviceUpdatedEvent(eventID, eventParameters)	# Do universal housekeeping
 
+		return (0)
+
+	#
+	# completeCommandEvent - we received a commandSent completion message from the server for this device.
+	#
+	def completeCommandEvent(self, eventID, eventParameters):
+
+		theInsteonCommand = eventParameters['cmd']
 		theCommandByte = self.parseInsteonCommandByte(theInsteonCommand )
 		mmLib_Log.logVerbose(self.deviceName + " Command Complete." + str(theCommandByte))
 		if theCommandByte:
@@ -133,10 +135,12 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 			return(0)
 
 	#
-	# receivedCommand - we received a command from our device. This will take priority over anything in our queue. Flush the queue
+	# receivedCommandEvent - we received a command from our device. This will take priority over anything in our queue. Flush the queue
 	#                   A light switch for example may pass us an on or off command. The user clicked it, so that should take priority over anything we are doing
 	#
-	def receivedCommand(self, theInsteonCommand ):
+	def receivedCommandEvent(self, eventID, eventParameters):
+
+		theInsteonCommand = eventParameters['cmd']
 
 		if mmLib_CommandQ.pendingCommands:
 			#mmLog.logWarning( "Issuing flushQ command for " + self.deviceName + ", because manual device change. The insteon command: " + str(theInsteonCommand.cmdBytes) + " " + str(theInsteonCommand.cmdFunc))
@@ -157,10 +161,11 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 				mmLib_Log.logForce("No Valid Command byte found for " + self.deviceName + " for command " + str(theCommandByte) + " in insteon command \n" + str(theInsteonCommand))
 
 	#
-	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
+	# errorCommandEvent - we received a commandSent completion message from the server for this device, but it is flagged with an error.
 	#
-	def errorCommand(self, theInsteonCommand ):
-		#mmLog.logForce( str(theInsteonCommand.cmdBytes) + " " + str(theInsteonCommand.cmdFunc))
+	def errorCommandEvent(self, eventID, eventParameters):
+
+		theInsteonCommand = eventParameters['cmd']
 
 		if self.checkForOurInsteonCommand( theInsteonCommand ):
 			theCommandParameters = mmLib_CommandQ.pendingCommands[0]

@@ -44,7 +44,7 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 			#
 			# Set object variables
 			#
-			self.occupationEvent = theDeviceParameters["occupationEvent"]
+			self.occupationEvent = theDeviceParameters["occupationEvent"]	# 'on', 'off', 'occupied' or 'unoccupied'
 			self.when = theDeviceParameters["when"]
 			self.mode = theDeviceParameters["mode"]
 			self.actionControllers = theDeviceParameters["actionControllers"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
@@ -225,7 +225,5 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 					mmLib_Low.registerDelayedAction({'theFunction': self.doDeactivation, 'timeDeltaSeconds': self.deactivateDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "doDeactivation"})
 
 
-	def parseUpdate(self, origDev, newDev):
-		mmLib_Log.logForce("ParseUpdate called for OccupationAction. The name must match a device. Change configuration file to change the name of Occupation Action: " + self.deviceName )
 
 

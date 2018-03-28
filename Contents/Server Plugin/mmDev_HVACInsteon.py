@@ -19,6 +19,7 @@ except:
 
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
 import mmLogic_HVAC
 
 ######################################################
@@ -54,32 +55,6 @@ class mmHVACInsteon(mmLogic_HVAC.mmHVAC):
 	#
 	######################################################################################
 
-	#
-	# deviceUpdated -
-	#
-	#def deviceUpdated(self, origDev, newDev):
-	#
-	#	super(mmHVACInsteon, self).deviceUpdated(origDev, newDev)	# Nothing special here, forward to the Base class
-
-	#
-	# completeCommand - we received a commandSent completion message from the server for this device.
-	#
-	#def completeCommand(self, theInsteonCommand ):
-	#	super(mmHVACInsteon, self).completeCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
-
-	#
-	# receivedCommand - we received a command from our device.
-	#
-	#def receivedCommand(self, theInsteonCommand ):
-	#	super(mmHVACInsteon, self).receivedCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
-
-	#
-	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
-	#
-	#def errorCommand(self, theInsteonCommand ):
-	#	super(mmHVACInsteon, self).errorCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
-
-
 
 	######################################################################################
 	#
@@ -103,16 +78,3 @@ class mmHVACInsteon(mmLogic_HVAC.mmHVAC):
 	######################################################################################
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'),unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmHVACInsteon: " + self.deviceName + " with Value of: " + str(diff))
-		return 0	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmHVACInsteon: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmHVACInsteon: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process

@@ -72,33 +72,6 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 	#
 	######################################################################################
 
-	#
-	# deviceUpdated -
-	#
-	#def deviceUpdated(self, origDev, newDev):
-	#
-	#	super(mmHVACCommands, self).deviceUpdated(origDev, newDev)	# Nothing special here, forward to the Base class
-
-
-
-	#
-	# completeCommand - we received a commandSent completion message from the server for this device.
-	#
-	#def completeCommand(self, theInsteonCommand ):
-	#	super(mmHVACCommands, self).completeCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
-
-	#
-	# receivedCommand - we received a command from our device.
-	#
-	#def receivedCommand(self, theInsteonCommand ):
-	#	super(mmHVACCommands, self).receivedCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
-
-	#
-	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
-	#
-	#def errorCommand(self, theInsteonCommand ):
-	#	super(mmHVACCommands, self).errorCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
-
 
 
 	######################################################################################

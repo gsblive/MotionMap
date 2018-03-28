@@ -233,7 +233,7 @@ GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;Garage
 GregsOfficeClosetDimmer,5,360,100,20,flash,GregsOfficeClosetMultisensor,,2,noDebug
 GregsOfficeClosetCabinets - Top,5,60,0,100,flash,GregsOfficeClosetMultisensor;GregsOfficeMultisensor;GregsOfficeDoorMultisensor;AeonMultisensorTest1,,2,noDebug
 #GregsOfficeShelfLights,5,60,100,100,flash,AeonMultisensorTest1,,2,noDebug
-GregsOfficeOutlet,5,60,100,100,flash,AeonMultisensorTest1,,2,noDebug
+GregsOfficeOutlet,5,60,100,100,flash,AeonMultisensorTest1,,2,Debug
 GregsOfficeBathVanityLight,10,60,100,0,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathFanLight,10,60,0,30,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathShowerLight,5,60,100,30,flash,GregsOfficeBathShowerMultisensor,,2,noDebug
@@ -298,8 +298,8 @@ TheaterBackLight,60,300,0,24,flash,,TheaterBackMultisensor;TheaterFrontMultisens
 TheaterKitchenLight,60,300,0,24,flash,,TheaterBackMultisensor;TheaterFrontMultisensor,2,noDebug
 TheaterMainLight,60,300,0,24,flash,,TheaterBackMultisensor;TheaterFrontMultisensor,2,noDebug
 TheaterBathVanityLight,15,60,100,65,flash,,TheaterBathMultisensor,2,noDebug
-UnderRearDeckOutletIR - Top,240,240,100,100,,,,2,Debug
-UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,Debug
+#UnderRearDeckOutletIR - Top,240,240,100,100,,,,2,Debug
+UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
 UpstairsHallRightA,5,30,0,24,flash,UpstairsHallRightAMultisensor;UpstairsHallRightBMultisensor,,2,noDebug
 UpstairsHallRightB,5,30,0,24,flash,UpstairsHallRightAMultisensor;UpstairsHallRightBMultisensor,,2,noDebug
 UpstairsHallRightC,5,30,0,24,flash,UpstairsHallRightAMultisensor;UpstairsHallRightBMultisensor;UpstairsHallRightCMultisensor,,2,noDebug

@@ -14,6 +14,8 @@ __author__ = 'gbrewer'
 import indigo
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
+
 import mmComm_Insteon
 from collections import deque
 import mmLib_CommandQ
@@ -47,6 +49,15 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 			except:
 				mmLib_Log.logForce("Cannot add companion " + self.deviceName + " to loadDevice " + self.loadDeviceName + ", because loadDevice does not exist yet")
 
+			# we are going to republish our command events so the Load device can subscribe
+			mmLib_Events.registerPublisher(['DevRcvCmd'], self.deviceName)
+
+			# register for the indigo events we want
+
+			#mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {}, self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevRcvCmd'], ['Indigo'], self.receivedCommandEvent, {} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {} , self.deviceName)
 
 
 	######################################################################################
@@ -69,9 +80,10 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 	#					The way we have to fix this is to issue a status request to the maseter after we get a fast-on from the companion. This method
 	#					overrides normal behaviors to add code to perform this action.
 	#
-	def receivedCommand(self, theInsteonCommand ):
+	def receivedCommandEvent(self, eventID, eventParameters ):
+		theInsteonCommand = eventParameters['cmd']
 
-		super(mmCompanion, self).receivedCommand(theInsteonCommand)  # Normal Base Class operation
+		super(mmCompanion, self).receivedCommandEvent(eventID, eventParameters)  # Normal Base Class operation
 		try:
 			theCommandByte = theInsteonCommand.cmdBytes[0]
 			mmLib_Log.logVerbose("Companion " + self.deviceName + " received command " + str(theCommandByte))
@@ -82,27 +94,12 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 
 		if self.loadDeviceName:
 
-			try:
-				# just pass the message to the load device to note the command
-				theLoadDev = mmLib_Low.MotionMapDeviceDict[self.loadDeviceName]
-				theLoadDev.receivedCommand(theInsteonCommand)
-
-			except:
-				mmLib_Log.logVerbose("===Companion: Load Device " + self.loadDeviceName + " not found.")
-
-			# In previous versions, we repeated the command to the load device to make sure they stay in sync... it doesnt appear to be necessary
+			mmLib_Events.distributeEvent(self.deviceName, eventID, 0, eventParameters)	# distribute to all subscribers
 
 		return
 
 
 
-	#
-	# deviceUpdated
-	#
-	def deviceUpdated(self, origDev, newDev):
-		super(mmCompanion, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
-		# do companion update behavior
-		return(0)
 
 	######################################################################################
 	#
@@ -111,18 +108,5 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 	######################################################################################
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmCompanion: " + self.deviceName + " with Value of: " + str(diff))
-		return 0	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmCompanion: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmCompanion: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
 
 

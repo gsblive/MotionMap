@@ -75,7 +75,15 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 			self.supportedCommandsDict.update({'devStatus': self.devStatus})
 
+			# register for the indigo events we want
+
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.initializationComplete, {}, self.deviceName)
+
+
+			mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
+			#mmLib_Events.subscribeToEvents(['DevRcvCmd'], ['Indigo'], self.receivedCommandEvent, {}, self.deviceName)
+			#mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {}, self.deviceName)
+			#mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {}, self.deviceName)
 
 
 	######################################################################################
@@ -262,25 +270,6 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 
 	#
-	# receivedCommand - we received a command from our motion Sensor, process it
-	# All processing actually comes from the update routine below... this is here for debugging only
-	#
-	def receivedCommand(self, theInsteonCommand ):
-
-		# process Insteon Motion command received here
-		try:
-			theCommandByte = theInsteonCommand.cmdBytes[0]
-			if self.debugDevice: mmLib_Log.logForce("Motion Sensor " + self.deviceName + " received command " + str(theCommandByte))
-		except:
-			mmLib_Log.logWarning("Motion Sensor " + self.deviceName + " received command unrecognized by MotionMap")
-			theCommandByte = "unknown"
-
-		# In order for us to be able to respond to server events, we have to handle this event in the deviceUpdated Routine below
-		# and not call dispatchOnOffEvents from here. This routine is present in case we need to handle direct events sometime in the future.
-
-		return(0)
-
-	#
 	# countBounce
 	#	Check to see if the device is rapidly
 	#
@@ -304,16 +293,18 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	# deviceUpdated
 	#
-	def deviceUpdated(self, origDev, newDev):
+	# we separated this into two routines because CamMotion needs access to the lower level routine
+	def	deviceUpdatedEvent(self, eventID, eventParameters):
 
+		newonState = eventParameters.get('onState', 'na')
 
 		if self.onlineState == 'on':
 
-			if origDev.onState != newDev.onState:
-				mmLib_Log.logVerbose(newDev.name + ": Motion Onstate = " + str(newDev.onState))
-				super(mmMotion, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
+			if newonState != 'na':
+				mmLib_Log.logVerbose(self.deviceName + ": Motion Onstate = " + str(newonState))
+				super(mmMotion, self).deviceUpdatedEvent(eventID, eventParameters)  # the base class just keeps track of the time since last change
 				self.controllerMissedCommandCount = 0			# Reset this because it looks like are controller is alive (battery report uses this)
-				if newDev.onState == True:
+				if newonState == True:
 					# we are detecting motion
 					if self.debugDevice:
 						mmLib_Log.logForce( "Motion Sensor " + self.deviceName + " received update event: ON")
@@ -336,7 +327,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				self.processOccupation()
 
 			else:
-				mmLib_Log.logDebug(newDev.name + ": Received duplicate command: Onstate = " + str(newDev.onState))
+				mmLib_Log.logDebug(self.deviceName + ": Received duplicate command: Onstate = " + str(newonState))
 
 
 		return(0)

@@ -16,6 +16,7 @@ __author__ = 'gbrewer'
 import indigo
 import mmLib_Log
 import mmLib_Low
+import mmLib_Events
 import mmComm_Insteon
 from collections import deque
 import mmLib_CommandQ
@@ -47,11 +48,13 @@ class mmScene(mmComm_Insteon.mmInsteon):
 			self.members = theDeviceParameters["members"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
 			self.expectedOnState = False
 
-			self.testDevAddress = self.devIndigoAddress
-
 			self.supportedCommandsDict.update({'sceneOn': self.sendSceneOn, 'sceneOff': self.sendSceneOff, 'devStatus':self.devStatus})
 
 			del self.supportedCommandsDict['sendStatusRequest']
+
+			mmLib_Events.subscribeToEvents(['DevRcvCmd'], ['Indigo'], self.receivedCommandEvent, {} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {} , self.deviceName)
 
 
 	######################################################################################
@@ -132,6 +135,3 @@ class mmScene(mmComm_Insteon.mmInsteon):
 
 		return(0)
 
-	def parseCompletion(self, theInsteonCommand):
-		#self.verifyScene()	# we can reactivate this in completeCommand, but we should first fix verifyScene to not do on/off command for devices that dont handle it
-		return 0	#0 means did not process completion message... default handler will take care of it

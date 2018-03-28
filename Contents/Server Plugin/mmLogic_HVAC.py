@@ -78,6 +78,13 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.initializationComplete, {}, self.deviceName)
 
+			# register for indigo events
+
+			mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'hvacMode':0, 'fanMode':0, 'coolSetpoint':0, 'coolIsOn':0, 'heatSetpoint':0,'heatIsOn':0, 'displayStateImageSel':0,'displayStateValRaw':0}} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevRcvCmd'], ['Indigo'], self.receivedCommandEvent, {} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {} , self.deviceName)
+
 	######################################################################################
 	#
 	#
@@ -89,9 +96,9 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 	#
 	# deviceUpdated
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def	deviceUpdatedEvent(self,eventID, eventParameters):
 
-		super(mmHVAC, self).deviceUpdated(origDev, newDev)  # the base class just keeps track of the time since last change
+		super(mmHVAC, self).deviceUpdatedEvent(eventID, eventParameters)  # the base class just keeps track of the time since last change
 
 		#
 		# do all the comparisons in integer values
@@ -99,35 +106,37 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 
 		needUpdate = 0
 
-		originalHeatSetpoint = int(origDev.heatSetpoint)
-		newHeatSetpoint = int(newDev.heatSetpoint)
-		originalCoolSetpoint = int(origDev.coolSetpoint)
-		newCoolSetpoint = int(newDev.coolSetpoint)
+		newHeatSetpoint = eventParameters.get('heatSetpoint', 'na')
+		newCoolSetpoint = eventParameters.get('coolSetpoint', 'na')
 
-		if originalHeatSetpoint != newHeatSetpoint:
+		if newHeatSetpoint != 'na':
+			newHeatSetpoint = int(newHeatSetpoint)
 			if newHeatSetpoint != self.calculatedHeatSetpoint:
-				mmLib_Log.logForce("HeatSetpoint changed by Occupant for HVAC Device " + self.deviceName + ". was " + str(originalHeatSetpoint) + ", now is " + str(newHeatSetpoint) + ". Updating Custom HeatSetpoint to " + str(newHeatSetpoint))
+				mmLib_Log.logForce("HeatSetpoint changed by Occupant for HVAC Device " + self.deviceName + ". It is now " + str(newHeatSetpoint) + ". Updating Custom HeatSetpoint to " + str(newHeatSetpoint))
 				self.customHeatSetpoint = newHeatSetpoint
 				needUpdate = 1
 			else:
-				mmLib_Log.logVerbose("HeatSetpoint changed by MotionMap for HVAC Device " + self.deviceName + ". was " + str(originalHeatSetpoint) + ", now is " + str(newHeatSetpoint))
+				mmLib_Log.logVerbose("HeatSetpoint changed by MotionMap for HVAC Device " + self.deviceName + ". It is now " + str(newHeatSetpoint))
 
-		if originalCoolSetpoint != newCoolSetpoint:
+		if newCoolSetpoint != 'na':
+			newCoolSetpoint = int(newCoolSetpoint)
 			if newCoolSetpoint != self.calculatedCoolSetpoint:
-				mmLib_Log.logForce("CoolSetpoint changed by Occupant for HVAC Device " + self.deviceName + ". was " + str(originalCoolSetpoint) + ", now is " + str(newCoolSetpoint) + ". Updating Custom CoolSetpoint to " + str(newCoolSetpoint))
+				mmLib_Log.logForce("CoolSetpoint changed by Occupant for HVAC Device " + self.deviceName + ". It is now " + str(newCoolSetpoint) + ". Updating Custom CoolSetpoint to " + str(newCoolSetpoint))
 				self.customCoolSetpoint = newCoolSetpoint
 				needUpdate = 1
 			else:
-				mmLib_Log.logVerbose("CoolSetpoint changed by MotionMap for HVAC Device " + self.deviceName + ". was " + str(originalCoolSetpoint) + ", now is " + str(newCoolSetpoint))
+				mmLib_Log.logVerbose("CoolSetpoint changed by MotionMap for HVAC Device " + self.deviceName + ". It is now " + str(newCoolSetpoint))
 
 		if needUpdate:
 			self.updateThermostatSetingsLogic()
 
-		if origDev.displayStateImageSel != newDev.displayStateImageSel:
-			mmLib_Log.logVerbose("HeatCoolMode changed for HVAC Device " + self.deviceName + " to " + str(newDev.displayStateImageSel))
+		newdisplayStateImageSel = eventParameters.get('displayStateImageSel', 'na')
+		if newdisplayStateImageSel != 'na':
+			mmLib_Log.logVerbose("HeatCoolMode changed for HVAC Device " + self.deviceName + " to " + str(newdisplayStateImageSel))
 
-		if origDev.displayStateValRaw != newDev.displayStateValRaw:
-			mmLib_Log.logVerbose("Temperature changed for HVAC Device " + self.deviceName + " to " + str(newDev.displayStateValRaw))
+		newdisplayStateImageSel = eventParameters.get('displayStateValRaw', 'na')
+		if newdisplayStateImageSel != 'na':
+			mmLib_Log.logVerbose("Temperature changed for HVAC Device " + self.deviceName + " to " + str(newdisplayStateImageSel))
 
 
 

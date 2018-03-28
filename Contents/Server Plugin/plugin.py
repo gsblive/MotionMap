@@ -217,6 +217,14 @@ class Plugin(indigo.PluginBase):
 	#	This routine is called because it was registered for by indigo.insteon.subscribeToIncoming()
 	#	in startup
 	#
+	#	This function handles all command notices from indigo (i.e. when a light switch is turned on, that notification comes here)
+	#	It converts this notification to an mmEvent of type 'DevRcvCmd' and dispatches it through mmLib_Events.distributeEvent()
+	#
+	#	For an mmObject to receive these events the object must call the following function at initialization time:
+	#  		def subscribeToEvents(['DevRcvCmd'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):
+	#	The event will be delivered as:
+	#		theHandler('DevRcvCmd', {'DevRcvCmd', 'Indigo', Time of Event (seconds), Plus "handlerDefinedData", cmd (from Indigo)  })
+	#
 	########################################
 	def insteonCommandReceived(self, cmd):
 		global pluginInitialized
@@ -230,15 +238,15 @@ class Plugin(indigo.PluginBase):
 			# Note cmd does not have devID, so you have to use address
 			# this is technically broken with no work around. It only effects OutletLinc that shares address between top and bottom outlets
 			# the moral of the story is dont rely on cmd where you can avoid it... rely on deviceUpdated where possible.
-			mmLib_Log.logForce( "Received a command, but not our device ID: " + str(cmd.address))
+			mmLib_Log.logWarning( "Received a command, but not our device ID: " + str(cmd.address))
 			return 0
 
-		mmLib_Log.logVerbose("Received Command from " + str(mmDev.deviceName))
-		if mmDev.parseCommand(cmd):
-			# done processing
-			return 0
+		try:
+			mmLib_Events.distributeEvent('Indigo', 'DevRcvCmd', mmDev.deviceName, {'cmd': cmd})		# for MM version 4
+		except:
+			mmLib_Log.logWarning( "Failed to deliver a \'DevRcvCmd\' event")
 
-		mmDev.receivedCommand( cmd )
+
 
 
 	########################################
@@ -249,6 +257,19 @@ class Plugin(indigo.PluginBase):
 	#	This routine is called because it was registered for by indigo.insteon.subscribeToOutgoing()
 	#	in startup
 	#
+	#	This function handles all command Sent notices from indigo (i.e. when a command MM sends completes, that notification comes here)
+	#	It converts the notification to an mmEvent of type 'DevCmdComplete' or 'DevCmdErr' depending on disposition and dispatches it
+	# 	through mmLib_Events.distributeEvent()
+	#
+	#	For an mmObject to receive these events the object must call the following function at initialization time:
+	#  		def subscribeToEvents(['DevCmdComplete'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):
+	#	or
+	#  		def subscribeToEvents(['DevCmdErr'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):
+	#
+	# 	The event will be delivered as:
+	#		theHandler('DevCmdComplete', {'DevCmdComplete', Indigo, Time of Event (seconds), Plus "handlerDefinedData", cmd (from Indigo)  })
+	#	or
+	#		theHandler('DevCmdErr', {'DevCmdErr', 'Indigo', Time of Event (seconds), Plus "handlerDefinedData", cmd (from Indigo)  })
 	#
 	########################################
 	def insteonCommandSent(self, cmd):
@@ -259,7 +280,7 @@ class Plugin(indigo.PluginBase):
 
 		if cmd.cmdScene > 0:
 			devAddress = mmLib_Low.makeSceneAddress(cmd.cmdScene)
-			mmLib_Log.logVerbose("Scene " + str(cmd.cmdFunc) + " complete for: " + str(devAddress) + "\n" + str(cmd))
+			#mmLib_Log.logForce("Scene " + str(cmd.cmdFunc) + " complete for: " + str(devAddress) + "\n" + str(cmd))
 		else:
 			# Note cmd does not have devID, so you have to use address
 			# however, since this is a command completion, the last command we sent out should be on the top of the queue
@@ -268,11 +289,8 @@ class Plugin(indigo.PluginBase):
 		theDev = mmLib_CommandQ.getQTopDev()
 
 		if not theDev or str(theDev.devIndigoAddress) != str(devAddress):
-			# Not our device
-			return 0
-
-		if theDev.parseCompletion(cmd):
-			# done processing
+			# Not our device, but it could be a status (we send those async and dont wait for response)
+			#mmLib_Log.logForce("Got an Indigo Complete, but device is not ours getQDevTop = " + str(theDev) + " DevAddr = " + str(devAddress))
 			return 0
 
 		try:
@@ -280,13 +298,27 @@ class Plugin(indigo.PluginBase):
 		except:
 			theCommandByte = 0
 
-
 		if cmd.cmdSuccess == 1:
+			theEvent = 'DevCmdComplete'
 			mmLib_Log.logDebug("Successful command: " + str(theCommandByte) + " Sent to " + str(theDev.deviceName))
-			theDev.completeCommand( cmd )
 		else:
 			mmLib_Log.logForce("Unsuccessful command: " + str(theCommandByte) + " for " + str(theDev.deviceName))
-			theDev.errorCommand( cmd )
+			theEvent = 'DevCmdErr'
+
+		try:
+			mmLib_Events.distributeEvent('Indigo', theEvent, theDev.deviceName, {'cmd': cmd})		# for MM version 4
+		except:
+			mmLib_Log.logWarning( "Failed to deliver a \'" + theEvent + "\' event.")
+
+		#if cmd.cmdSuccess == 1:
+		#	mmLib_Log.logDebug("Successful command: " + str(theCommandByte) + " Sent to " + str(theDev.deviceName))
+		#	theDev.completeCommand( cmd )
+		#else:
+		#	mmLib_Log.logForce("Unsuccessful command: " + str(theCommandByte) + " for " + str(theDev.deviceName))
+		#	theDev.errorCommand( cmd )
+
+
+
 
 	########################################
 	#
@@ -296,7 +328,15 @@ class Plugin(indigo.PluginBase):
 	#	This routine is called because it was registered for by indigo.insteon.subscribeToChanges()
 	#	in startup
 	#
-	########################################
+	#	This function handles all device change notices from indigo (i.e. when a motion sensor changes state, that notification comes here)
+	#	It converts the notification to an mmEvent of type 'AtributeUpdate' and dispatches it through mmLib_Events.distributeEvent()
+	#
+	#	For an mmObject to receive these events the object must call the following function at initialization time:
+	#  		def subscribeToEvents(['AtributeUpdate'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):
+	#	The event will be delivered as:
+	#		theHandler('DevRcvCmd', {'AtributeUpdate', 'Indigo', Time of Event (seconds), Plus "handlerDefinedData", cmd (from Indigo)  })
+	#
+	#########################################
 	def deviceUpdated(self, origDev, newDev):
 		global pluginInitialized
 
@@ -308,17 +348,13 @@ class Plugin(indigo.PluginBase):
 		except:
 			return 0
 
-		# Update the indigo device in case it changed out behind our back
+		# Update the indigo device in case it changed out behind our back (this just copies the reference to the device)
+		#if mmDev.theIndigoDevice != newDev:
+			# Just a test to see if this ever happens... I dont think it does
+		#	mmLib_Log.logForce("theIndigoDevice has changed for " + str(mmDev.deviceName))
 		mmDev.theIndigoDevice = newDev
 
-		# Update the timestamp of the device, and move him to the end of the update queue
-		mmDev.updateTimeStamp = time.time()
-
-		if mmDev.parseUpdate(origDev, newDev):
-			# done processing
-			return 0
-
-		mmDev.deviceUpdated(origDev, newDev)
+		mmLib_Events.deliverUpdateEvents(origDev, newDev, newDev.name)
 
 		# be sure and call parent function
 		indigo.PluginBase.deviceUpdated(self, origDev, newDev)

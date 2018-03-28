@@ -56,33 +56,23 @@ class mmZLoad(mmLogic_Load.mmLoad):
 	######################################################################################
 
 	#
-	# Parse routines, this converts the Plug-In function parameters into MM parameters
-	#
-
-	def parseUpdate(self,origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'),unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for ZLoad: " + self.deviceName + " with Value of: " + str(diff))
-		return 1
-	def parseCommand(self,theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for ZLoad: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 1
-
-	#
 	# deviceUpdated - tell the companions what to do
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def	deviceUpdatedEvent(self,eventID, eventParameters):
 
-		#mmLib_Log.logForce(self.deviceName + " # update.")
+		if self.debugDevice:
+			mmLib_Log.logForce(self.deviceName + " update. " + eventID + " " + str(eventParameters))
 
 		theOnstateChanged = 0
 		#
 		# do the special processing
 		# ========================
-		#mmLib_Log.logForce("Received Update for ZDevice: " + self.deviceName)
-		#mmLib_Log.logForce(str(newDev))
-		if newDev.onState!=origDev.onState:
-			mmLib_Log.logVerbose("New onState for ZDevice: " + self.deviceName + " with Value of " + str(newDev.onState))
+
+		# if onstate has changed...
+
+		newOnState = eventParameters.get('onState', 'na')
+		if newOnState != 'na':
+			mmLib_Log.logVerbose("New onState for ZDevice: " + self.deviceName + " with Value of " + str(eventParameters['onState']))
 			theOnstateChanged = 1
 
 		if mmLib_CommandQ.pendingCommands:
@@ -95,7 +85,7 @@ class mmZLoad(mmLogic_Load.mmLoad):
 					mmLib_CommandQ.dequeQ(1) 															# all is well, pop our old command off and Restart the Queue
 				elif theOnstateChanged and headCommand in ["brighten", "on", "off", "flash"]:
 					mmLib_Log.logVerbose("Clearing brighten command for " + self.deviceName)
-					if newDev.onState == True:
+					if newOnState == True:
 						self.completeCommandByte(17)
 					else:
 						self.completeCommandByte(19)
@@ -104,14 +94,14 @@ class mmZLoad(mmLogic_Load.mmLoad):
 		#
 		# We didnt handle the event, do the normal processing
 		if theOnstateChanged:
-			super(mmZLoad, self).deviceUpdated(origDev, newDev)  				# execute Base Class
+			super(mmZLoad, self).deviceUpdatedEvent(eventID, eventParameters)  				# execute Base Class
 
 
 		return(0)
 	#
 	# receivedCommand - we received a command from our device. The base object will do most of the work... we want to process special commands here, like bedtime mode
 	#
-	def receivedCommand(self, theInsteonCommand ):
+	def receivedCommandEvent(self, eventID, eventParameters ):
 
 		#
 		# do the special processing
@@ -122,7 +112,7 @@ class mmZLoad(mmLogic_Load.mmLoad):
 		#
 		# do the normal processing
 		# ========================
-		super(mmZLoad, self).receivedCommand(theInsteonCommand)  			# execute Base Class
+		super(mmZLoad, self).receivedCommandEvent(eventID, eventParameters)  			# execute Base Class
 
 		return(0)
 
@@ -132,7 +122,7 @@ class mmZLoad(mmLogic_Load.mmLoad):
 	# The difference with ZWave and Insteon Load devices is that ZWave does not respond
 	# with commandComplete messages, so you have to watch for teh update message coming in to clear the command Queue
 	#
-	def completeCommand(self, theInsteonCommand ):
+	def completeCommandEvent(self, eventID, eventParameters ):
 
 		#
 		# do the special processing
@@ -142,13 +132,13 @@ class mmZLoad(mmLogic_Load.mmLoad):
 		#
 		# do the normal processing
 		# ========================
-		super(mmZLoad, self).completeCommand(theInsteonCommand)  			# execute Base Class
+		super(mmZLoad, self).completeCommandEvent(eventID, eventParameters)  			# execute Base Class
 
 
 	#
 	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
 	#
-	def errorCommand(self, theInsteonCommand ):
+	def errorCommandEvent(self, eventID, eventParameters ):
 
 		#
 		# do the special processing
@@ -158,7 +148,7 @@ class mmZLoad(mmLogic_Load.mmLoad):
 		#
 		# do the normal processing
 		# ========================
-		super(mmZLoad, self).errorCommand(theInsteonCommand)  			# execute Base Class
+		super(mmZLoad, self).errorCommandEvent(eventID, eventParameters)  			# execute Base Class
 
 		return(0)
 
@@ -190,16 +180,3 @@ class mmZLoad(mmLogic_Load.mmLoad):
 	######################################################################################
 
 
-	def parseUpdate(self, origDev, newDev):
-		if self.debugDevice != 0:
-			diff = mmLib_Low._only_diff(unicode(origDev).encode('ascii', 'ignore'), unicode(newDev).encode('ascii', 'ignore'))
-			mmLib_Log.logForce("Parsing Update for mmZLoad: " + self.deviceName + " with Value of: " + str(diff))
-		return 0	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Command for mmZLoad: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		if self.debugDevice != 0: mmLib_Log.logForce("Parsing Completion for mmZLoad: " + self.deviceName + " with Value of " + str(theInsteonCommand))
-		return 0	#0 means did not process

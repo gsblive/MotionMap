@@ -99,7 +99,7 @@ class mmIndigo(object):
 			self.setLastUpdateTimeSeconds()
 			self.onlineState = 'on'
 
-		self.supportedCommandsDict = {'deviceUpdated': self.mmDeviceUpdated, 'receivedCommand': self.mmReceivedCommand, 'completeCommand': self.mmCompleteCommand, 'errorCommand': self.mmErrorCommand, 'devStatus': self.devStatus}
+		self.supportedCommandsDict = {'devStatus': self.devStatus}
 
 
 	######################################################################################
@@ -110,11 +110,10 @@ class mmIndigo(object):
 	#
 	######################################################################################
 
-
 	#
-	# deviceUpdated - Base class... all devices do this
+	# deviceUpdatedEvent - Base class... all devices do this
 	#
-	def deviceUpdated(self, origDev, newDev):
+	def	deviceUpdatedEvent(self,eventID, eventParameters):
 
 		# the device appears to be alive, reset the unresponsive flag
 		self.ourNonvolatileData["unresponsive"] = 0
@@ -124,36 +123,35 @@ class mmIndigo(object):
 		return 0
 
 	#
-	# receivedCommand - we received a command from our device. This will take priority over anything in our queue. Flush the queue
+	# receivedCommandEvent - we received a command from our device. This will take priority over anything in our queue. Flush the queue
 	#                   A light switch for example may pass us an on or off command. The user clicked it, so that should take priority over anything we are doing
 	#
-	def receivedCommand(self, theCommand):
+	def receivedCommandEvent(self, eventID, eventParameters ):
 
-		mmLib_Log.logForce("Higher level function must override receivedCommand for: " + self.deviceName)
-
-		return 0
-
-	#
-	# completeCommand - we received a commandSent completion message from the server for this device.
-	#
-	def completeCommand(self, theCommand):
-
-		mmLib_Log.logForce("Higher level function must override completeCommand for: " + self.deviceName)
+		mmLib_Log.logForce("Higher level function must override receivedCommandEvent for: " + self.deviceName)
 
 		return 0
 
 	#
-	# errorCommand - we received a commandSent completion message from the server for this device.
+	# completeCommandEvent - we received a commandSent completion message from the server for this device.
 	#
-	def errorCommand(self, theCommand):
+	def completeCommandEvent(self, eventID, eventParameters ):
 
-		mmLib_Log.logForce("Higher level function must override errorCommand for: " + self.deviceName)
+		mmLib_Log.logForce("Higher level function must override completeCommandEvent for: " + self.deviceName)
+
+		return 0
+
+	#
+	# errorCommandEvent - we received a commandSent completion message from the server for this device.
+	#
+	def errorCommandEvent(self, eventID, eventParameters  ):
+
+		mmLib_Log.logForce("Higher level function must override errorCommandEvent for: " + self.deviceName)
 
 		return 0
 
 	def reportAddress(self):
 		mmLib_Log.logForce("   >>>> deviceName is " + str(self.deviceName))
-		mmLib_Log.logForce("   >>>> testDevAddress is " + str(self.testDevAddress))
 		mmLib_Log.logForce("   >>>> devIndigoAddress is " + str(self.devIndigoAddress))
 
 	######################################################################################
@@ -165,57 +163,7 @@ class mmIndigo(object):
 	#
 	######################################################################################
 
-	#
-	# deviceUpdated - Base class... all devices do this
-	#
-	def mmDeviceUpdated(self, theCommand):
 
-		# the device appears to be alive, reset the unresponsive flag
-		self.ourNonvolatileData["unresponsive"] = 0
-
-		# and reset the lastupdatetime timers
-		self.setLastUpdateTimeSeconds()
-		return 0
-
-	#
-	# receivedCommand - we received a command from our device. This will take priority over anything in our queue. Flush the queue
-	#                   A light switch for example may pass us an on or off command. The user clicked it, so that should take priority over anything we are doing
-	#
-	def mmReceivedCommand(self, theCommand):
-
-		mmLib_Log.logForce("Higher level function must override receivedCommand for: " + self.deviceName)
-
-		return 0
-
-	#
-	# completeCommand - we received a commandSent completion message from the server for this device.
-	#
-	def mmCompleteCommand(self, theCommand):
-
-		mmLib_Log.logForce("Higher level function must override completeCommand for: " + self.deviceName)
-
-		return 0
-
-	#
-	# errorCommand - we received a commandSent completion message from the server for this device.
-	#
-	def mmErrorCommand(self, theCommand):
-
-		mmLib_Log.logForce("Higher level function must override errorCommand for: " + self.deviceName)
-
-		return 0
-
-	def parseUpdate(self, origDev, newDev):
-		mmLib_Log.logForce("Higher level function must override parseUpdate for: " + self.deviceName)
-		return 0	#0 means did not process
-
-	def parseCommand(self, theInsteonCommand):
-		mmLib_Log.logForce("Higher level function must override parseCommand for: " + self.deviceName)
-		return 0	#0 means did not process
-
-	def parseCompletion(self, theInsteonCommand):
-		mmLib_Log.logForce("Higher level function must override parseCompletion for: " + self.deviceName)
-		return 0	#0 means did not process
 
 	#
 	#  Flash Device - Flash our device
