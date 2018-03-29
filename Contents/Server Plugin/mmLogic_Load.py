@@ -111,18 +111,21 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def deviceUpdatedEvent(self, eventID, eventParameters):
 
-		mmLib_Log.logVerbose(self.deviceName + " update.")
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " update. Event: " + str(eventParameters))
+
+		# 'na' below means no change if either onstate or brightness changed, processCompanions
+		newBrightnessState = eventParameters.get('brightness', 'na')
+		newOnState = eventParameters.get('onState', 'na')
+		processCompanions = 0
 
 		if self.defeatTimerUpdate:
 			mmLib_Log.logVerbose(self.deviceName + " processing " + str(self.defeatTimerUpdate) + " command, not updating timers and resetting flash flag.")
 			self.defeatTimerUpdate = 0
-			processCompanions=0
 		else:
-			# 'na' below means no change if either onstate or brightness changed, processCompanions
-			if eventParameters.get('brightness', 'na') != 'na' or eventParameters.get('onState', 'na') != 'na': processCompanions=1
+			if newBrightnessState != 'na' or newOnState != 'na': processCompanions=1
 
 			# if onstate has changed...
-			if eventParameters.get('onState', 'na') != 'na':
+			if newOnState != 'na':
 				# and is now 'on'
 				if eventParameters['onState'] == True:
 					if self.listOnControllers(self.combinedControllers):
@@ -138,14 +141,16 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 
 		# do bedtimeMode reset if needed
-		if eventParameters.get('onState', 'na') == True and self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON:
+		if newOnState == True and self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON:
 			self.bedtimeMode = mmLib_Low.BEDTIMEMODE_OFF
 			mmLib_Log.logReportLine("Bedtime Mode OFF for device: " + self.deviceName)
 			self.setControllersOnOfflineState('on')
 
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " checking processCompanions, OnState: " + str(newOnState) + " Brightness State: " + str(newBrightnessState) + " processCompanions: " + str(processCompanions) + " Companions: " + str(self.companions))
+
 		# process companions as needed
 		if processCompanions and self.companions:
-			mmLib_Log.logVerbose("Updated loadDevice: " + self.deviceName + ". " + " Value: " + str(self.getBrightness()) + " Send commands to companions: " + str(self.companions))
+			if self.debugDevice: mmLib_Log.logForce("Updated loadDevice: " + self.deviceName + ". " + " Value: " + str(self.getBrightness()) + " Send commands to companions: " + str(self.companions))
 			initialBrightness = self.getBrightness()
 			for theCompanion in self.companions:
 				# debounce the command, dont send it if the value is already correct
@@ -170,6 +175,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	# receivedCommand - we received a command from our device. The base object will do most of the work... we want to process special commands here, like bedtime mode
 	#
 	def receivedCommandEvent(self, eventID, eventParameters ):
+
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " received command event from \'" + eventParameters['publisher'] + "\'.")
 
 		theInsteonCommand = eventParameters['cmd']
 
@@ -300,6 +307,9 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# refresh the timers to whatever we figured out above
 		self.updateOffTimerCallback(newCallbackType)
 
+		# Subscribe to companions (now that they registered) - I moved this to Companion initialization until we change the format of the config file to keep Companion List with Load device
+		#mmLib_Events.subscribeToEvents([DevRcvCmd], self.combinedControllers, self.processControllerEvent, {}, self.deviceName)
+
 		return 0
 
 	#
@@ -364,7 +374,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if self.theIndigoDevice.onState == True and not self.listOnControllers(self.combinedControllers):
 				newOffTimerType = 'NonMotion'
 		else:
-			mmLib_Log.logForce(self.deviceName + "Unsupported Event type " + theEvent)
+			mmLib_Log.logForce(self.deviceName + " Unsupported Event type " + theEvent)
 			return 0
 
 		self.updateOffTimerCallback(newOffTimerType)

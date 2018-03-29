@@ -233,7 +233,7 @@ GarageHall,5,60,60,30,flash,GarageHall1Multisensor;GarageHall2Multisensor;Garage
 GregsOfficeClosetDimmer,5,360,100,20,flash,GregsOfficeClosetMultisensor,,2,noDebug
 GregsOfficeClosetCabinets - Top,5,60,0,100,flash,GregsOfficeClosetMultisensor;GregsOfficeMultisensor;GregsOfficeDoorMultisensor;AeonMultisensorTest1,,2,noDebug
 #GregsOfficeShelfLights,5,60,100,100,flash,AeonMultisensorTest1,,2,noDebug
-GregsOfficeOutlet,5,60,100,100,flash,AeonMultisensorTest1,,2,Debug
+GregsOfficeOutlet,5,60,100,100,flash,AeonMultisensorTest1,,2,noDebug
 GregsOfficeBathVanityLight,10,60,100,0,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathFanLight,10,60,0,30,flash,GregsOfficeBathMultisensor,,2,noDebug
 GregsOfficeBathShowerLight,5,60,100,30,flash,GregsOfficeBathShowerMultisensor,,2,noDebug

@@ -29,6 +29,7 @@ except:
 	pass
 
 import mmLib_Log
+import sys
 from collections import deque
 import time
 
@@ -164,8 +165,9 @@ def distributeEvent(thePublisher, theEvent, theSubscriber, publisherDefinedData)
 		eventParameters.update(handlerDefinedData)
 		try:
 			theHandler(theEvent, eventParameters)
-		except:
-			mmLib_Log.logForce("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + theSubscriber)
+		except Exception as exception:
+			mmLib_Log.logForce("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + theSubscriber + " Error: " + str(exception))
+			pass
 
 	return (0)
 
@@ -279,10 +281,9 @@ def deliverUpdateEvents(object1, object2, theSubscriber):
 				masterHandler('AtributeUpdate', eventParameters)
 				# and mark the events delivered
 				deliveredEventsDict.update(masterEventDict)
-			except:
+			except Exception as exception:
+				mmLib_Log.logWarning( "Event Delivery Failure. Event Type \'AtributeUpdate\' failed to be delivered to " + theSubscriber + ". Exception: " + str(exception))
 				pass
-				# message about failure to deliver master events
-				mmLib_Log.logWarning( "Event Delivery Failure. Event Type \'AtributeUpdate\' failed to be delivered to " + theSubscriber + ".")
 		else:
 			# message that we have events targetted for master, but no master handler
 			pass

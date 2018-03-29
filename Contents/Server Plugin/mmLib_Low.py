@@ -281,7 +281,7 @@ def	daytimeTransition(eventID, eventParameters):
 	global MMSysNonvolatileData
 
 	if indigo.variables['MMDayTime'].value == "true":
-		mmLib_Log.logReportLine("*** It is now Daytime ***")
+		mmLib_Log.logReportLine( "*** It is now Daytime *** | Indigo Variable \'MMDayTime\' value = " + str(indigo.variables['MMDayTime'].value))
 		# only process the reports if they have not been processed in the past 23 hours (we only want them once a day)
 		lastDaytimeTransition = initializeNVElement(MMSysNonvolatileData, "lastReportTime", 0)
 
@@ -294,7 +294,7 @@ def	daytimeTransition(eventID, eventParameters):
 			mmLib_Log.logForce("Skipping Daytime reports due to recent report presentation " + str(datetime.timedelta(seconds=secondsSinceLastReport)) + " ago.")
 
 	else:
-		mmLib_Log.logReportLine("*** It is now nightime *** " + str(indigo.variables['MMDayTime'].value))
+		mmLib_Log.logReportLine("*** It is now Nighttime *** | Indigo Variable \'MMDayTime\' value = " + str(indigo.variables['MMDayTime'].value))
 	return
 
 
