@@ -118,13 +118,46 @@ GregsDeskMultisensor,60,10,noDebug
 
 ########################################################
 #
+# OccupationGroup – A collection of MMDevices (members) are monitored for Occupation related events that are then relayed to any subscriber
+#                   of the OccupationGroup. Devices being monitored include MotionSensors, Multisensors, and other Occupation Groups.
+#
+#   All occupation Events are relayed/generated, including:
+#
+#    'occupied'      One or more of the members in the group are reporting they are occupied
+#    'unoccupied'    One or more of the members in the group are reporting they are unoccupied
+#    'occupiedAll'   All of the members in the group are reporting they are occupied
+#    'unoccupiedAll' All of the members in the group are reporting they are unoccupied
+#
+# Other MotionMap devices can subscribe to an OccupationGroup to be notified of Occupation anywhere and everywhere in the
+# House/region/room/area being watched by the members
+#
+#   deviceName – The name of the OccupationGroup
+#	  members - The MotionSensors, Multisensors, and other Occupation Groups that are being monitored for occupation events to be relayed
+#   unoccupiedRelayDelayMinutes - When an occupatioin state becomes untrue, delay this long before relaying the new state (this helps reduce
+#     unnecessary event oscillation)
+#
+# Note: OccupationGroup also maintains an indigo variable "NameOfOccupationGroup.Occupation" that contains the current occupation state
+#   ('occupied','unoccupied','occupiedAll',and 'UnoccupiedAll')
+#
+########################################################
+
+-h,OccupationGroup
+deviceName,members,unoccupiedRelayDelayMinutes
+DeskArea,GregsDeskMultisensor,0
+TopFloor,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;TopFloorStairsMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterBathShowerMultisensor;GregsDeskMultisensor,0
+MiddleFloor,MiddleFloorBathToiletMultisensor;MiddleFloorBathMultisensor;MiddleFloorMultisensor,0
+BottomFloor,BottomFloorMultisensor;BottomFloorStairsMultisensor,0
+House,TopFloor;MiddleFloor;BottomFloor,0
+
+########################################################
+#
 #    LoadDevices – Usually a Dimmer Switch or Outlet
 #
 #   deviceName – The English name of the device
 #   maxNonMotionTime – The maximum of time (in minutes) that this device is allowed to stay on while receiving no motion events
 #   maxOnTime – The maximum of time (in minutes) that this device is allowed to stay on (regardless of motion sensor)
-#   daytimeOnLevel – The light level to turn this device during the daytime 0 is off1 is on for switch1-100 is percent for dimmer
-#   nighttimeOnLevel – The light level to turn this device during the daytime (0 is off1 is on for switch1-100 is percent for dimmer)
+#   daytimeOnLevel – The light level to turn this device during the daytime (0 is OFF 1 is ON for switch, 1-100 is percent for dimmer)
+#   nighttimeOnLevel – The light level to turn this device during the daytime (0 is OFF 1 is ON for switch, 1-100 is percent for dimmer)
 #	specialFeatures = A list that can contain any or the following string commands
 #						flash: flash the device 1 minute prior to turning off;
 #						beep: beep the device 1 minute prior to turning off;
@@ -207,7 +240,7 @@ MiddleFloorLowerStairsLight,BottomFloorStairsLightP,2,noDebug
 TopFloorMasterBathVanityLight,TopFloorMasterBathVanityLightP,2,noDebug
 TopFloorMasterLights,TopFloorMasterLightsP,2,noDebug
 TopFloorFoyerLight,TopFloorFoyerLightP,2,noDebug
-TopFloorMasterBathLavFanLight1,TopFloorMasterBathLavFanLight,2,noDebug
+TopFloorMasterBathLavLight1,TopFloorMasterBathLavLight,2,noDebug
 
 ########################################################
 #
@@ -298,7 +331,7 @@ MasterBathroomAll,9,TopFloorMasterBathToiletFanLightP;TopFloorMasterShowerLightP
 # OccupationAction – IndigoActionGroups to execute based on area occupation
 #
 #   deviceName – The name of the OccupationAction
-#   occupationEvent -  'on', 'off', 'occupied' or 'unoccupied'
+#   occupationEvent -  'on', 'off', 'occupied', 'unoccupied', 'occupiedAll', or 'UnoccupiedAll'
 #	when - When this occupationAction is valid ... 'day','night','anyTime'
 #   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
 #   activateDelayMinutes - The amount that must transpire (in minutes) after the occupationEvent before executing the action

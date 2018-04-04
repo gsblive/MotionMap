@@ -218,6 +218,12 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			if self.getOnState() == False:
 				self.occupiedState = False
 				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
+				# initial update to all devices who care
+				if self.occupiedState:
+					newEvent = 'occupied'
+				else:
+					newEvent = 'unoccupied'
+				mmLib_Events.distributeEvent(self.deviceName, newEvent, 0, {})  # dispatch to everyone who cares
 				return(0)
 			else:
 				if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is initializing to Occupied.")

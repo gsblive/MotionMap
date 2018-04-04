@@ -29,6 +29,8 @@ except:
 	pass
 
 import mmLib_Log
+import mmLib_Low
+
 import sys
 from collections import deque
 import time
@@ -347,7 +349,7 @@ def subscribeToEvents(theEvents, thePublishers, theHandler, handlerDefinedData, 
 			try:
 				theQueue = eventPublishers[thePublisher][theEvent]
 			except:
-				mmLib_Log.logForce("Publisher " + str(thePublisher) + " is not publishing requested event " + theEvent + ".")
+				if mmLib_Low.DebugDevices.get(subscriberName, 0): mmLib_Log.logWarning("Publisher " + str(thePublisher) + " is not publishing requested event " + theEvent + " as requested by " + subscriberName)
 				continue
 
 			try:

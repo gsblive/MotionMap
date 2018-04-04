@@ -52,7 +52,7 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {} , self.deviceName)
 			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {} , self.deviceName)
 
-			# subscribe on behalf of the Load Devices - This will be moved where it belongs in Load Device when we change the config file format to include companions with Load entry
+			# GB Fix Me subscribe on behalf of the Load Devices - This will be moved where it belongs in Load Device when we change the config file format to include companions with Load entry
 			try:
 				theLoadDevice = mmLib_Low.MotionMapDeviceDict[self.loadDeviceName]
 				# Tell the load device to send updates messages to us VIA INDIGO COMMAND OVER THE WIRE (so the hardware displays the right brightness and on state)

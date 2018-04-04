@@ -1364,6 +1364,9 @@ if 0:
 #======================= MAIN Entry
 #=======================
 
+python --version
+quit()
+
 class aTestObject:
 
 	def __init__(self, value1, value2, value3, value4, value5, value6, value7, value8, value9):

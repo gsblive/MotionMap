@@ -49,6 +49,9 @@ class mmIndigo(object):
 		try:
 			if theDeviceParameters["debugDeviceMode"] != "noDebug":
 				self.debugDevice = 1
+				mmLib_Low.DebugDevices[self.deviceName] = 1
+			else:
+				mmLib_Low.DebugDevices[self.deviceName] = 0
 		except:
 			mmLib_Log.logVerbose("debugDeviceMode field is undefined in config file for " + self.deviceName + " , " + self.mmDeviceType)
 
@@ -64,8 +67,8 @@ class mmIndigo(object):
 				self.devIndigoAddress = str(self.theIndigoDevice.address)
 				self.devIndigoID = self.theIndigoDevice.id
 			except:
-				if self.mmDeviceType not in ["Scene","OccupationAction", "CamMotion"]:
-					mmLib_Log.logForce("###### Warning: " + self.mmDeviceType + " device named " + self.deviceName + " does not exist ######")
+				if self.mmDeviceType not in mmLib_Low.MMVirtualDeviceTypes:
+					mmLib_Log.logForce("###### Warning: " + self.mmDeviceType + " device named " + self.deviceName + " does not exist. Add new virtual device types to mmLib_Low.MMVirtualDeviceTypes ######")
 					self.initResult = "DeviceType " + self.mmDeviceType + " does not exist."
 
 				# No indigo device use default index

@@ -29,17 +29,18 @@ import itertools
 import pickle
 import collections
 
+deactivationMap = {'occupied':'unoccupied', 'unoccupied':'occupied', 'on':'off', 'off':'on' }
 
 ######################################################
 #
 # mmOccupation - Virtual Device used for Scene commands
 #
 ######################################################
-class mmOccupation(mmComm_Indigo.mmIndigo):
+class mmOccupationAction(mmComm_Indigo.mmIndigo):
 
 
 	def __init__(self, theDeviceParameters):
-		super(mmOccupation, self).__init__(theDeviceParameters)
+		super(mmOccupationAction, self).__init__(theDeviceParameters)
 		if self.initResult == 0:
 			#
 			# Set object variables
@@ -69,11 +70,16 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 			if self.deactivateDelaySeconds:
 				self.deactivationDelayTimerFrequency = self.deactivateDelaySeconds/2
 
+			try:
+				self.deactivationEvent = deactivationMap[self.occupationEvent]
+			except:
+				mmLib_Log.logForce( "**** mmOccupation " + self.deviceName + ": Unsupported Event type " + self.occupationEvent)
+
 			# Subscribe to requested occupancy event
 			mmLib_Events.subscribeToEvents([self.occupationEvent], self.actionControllers, self.receiveActivationEvent, {}, self.deviceName)
 
 			# Subscribe to unlatch events in all cases for debounce (the opposite of the requested occupancy event)
-			mmLib_Events.subscribeToEvents([self.occupationEvent], self.actionControllers, self.receiveDeactivationEvent, {}, self.deviceName)
+			mmLib_Events.subscribeToEvents([self.deactivationEvent], self.actionControllers, self.receiveDeactivationEvent, {}, self.deviceName)
 
 			self.monitorGroup = []
 
@@ -142,6 +148,8 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 		self.isActive = 1
 		self.scheduledActivationTime = 0
 
+		return 0		# stop timer
+
 	#
 	# doDeactivation - Run Deactivation Routine
 	#
@@ -151,6 +159,7 @@ class mmOccupation(mmComm_Indigo.mmIndigo):
 		self.isActive = 0
 		self.scheduledDeactivationTime = 0
 
+		return 0		# stop timer
 
 	#
 	# receiveActivationEvent - we received an activation event, process it

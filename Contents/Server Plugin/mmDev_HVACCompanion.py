@@ -47,10 +47,14 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 			self.masterThermostat.registerCompanion(self)	# register with the master thermostat for climate collaboration
 
 
-			self.occupancySensor = theDeviceParameters["occupancySensor"]
 			self.online = 'unknown'
-			self.occupancySensors = theDeviceParameters["occupancySensor"].split(';')
-			mmLib_Events.subscribeToEvents(['occupied', 'unoccupied'], self.occupancySensors, self.processControllerEvent, {}, self.deviceName)
+			if theDeviceParameters["occupancySensor"] != '':
+				self.occupancySensors = theDeviceParameters["occupancySensor"].split(';')
+				mmLib_Log.logForce( "HVAC Companion Device " + self.deviceName + " is reporting occupancySensors " + str(self.occupancySensors) + ".")
+				mmLib_Events.subscribeToEvents(['occupied', 'unoccupied'], self.occupancySensors, self.processControllerEvent, {}, self.deviceName)
+			else:
+				self.occupancySensors = []
+				if self.debugDevice: mmLib_Log.logWarning("HVAC Companion Device " + self.deviceName + " is reporting no occupancySensors.")
 
 			self.resetSetpoints()
 

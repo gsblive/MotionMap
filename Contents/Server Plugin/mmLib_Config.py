@@ -17,7 +17,8 @@ import mmDev_HVACInsteon
 import mmDev_HVACNest
 import mmDev_HVACCompanion
 import mmObj_Scene
-import mmObj_Occupation
+import mmObj_OccupationAction
+import mmObj_OccupationGroup
 import mmObj_CamMotion
 import time
 import ntpath
@@ -42,7 +43,7 @@ def parseConfig(theFilePath):
 
 	f = open(theFilePath, 'r')
 
-	objectJumpTable = {'MotionSensor':mmObj_Motion.mmMotion,'Multisensor':mmObj_Multisensor.mmMultisensor,'CamMotion':mmObj_CamMotion.mmCamMotion,'LoadDevice':mmDev_InsteonLoad.mmILoad, 'zLoadDevice':mmDev_ZWaveLoad.mmZLoad, 'Companion':mmObj_Companion.mmCompanion, 'HVAC_Insteon':mmDev_HVACInsteon.mmHVACInsteon, 'HVAC_Nest':mmDev_HVACNest.mmHVACNest, 'HVAC_Insteon_Companion':mmDev_HVACCompanion.mmHVACCompanion, 'Scene':mmObj_Scene.mmScene, 'OccupationAction':mmObj_Occupation.mmOccupation}
+	objectJumpTable = {'MotionSensor':mmObj_Motion.mmMotion,'Multisensor':mmObj_Multisensor.mmMultisensor,'CamMotion':mmObj_CamMotion.mmCamMotion,'LoadDevice':mmDev_InsteonLoad.mmILoad, 'zLoadDevice':mmDev_ZWaveLoad.mmZLoad, 'Companion':mmObj_Companion.mmCompanion, 'HVAC_Insteon':mmDev_HVACInsteon.mmHVACInsteon, 'HVAC_Nest':mmDev_HVACNest.mmHVACNest, 'HVAC_Insteon_Companion':mmDev_HVACCompanion.mmHVACCompanion, 'Scene':mmObj_Scene.mmScene, 'OccupationAction':mmObj_OccupationAction.mmOccupationAction, 'OccupationGroup':mmObj_OccupationGroup.mmOccupationGroup}
 
 	for line in f:
 		# Filter out blank lines
@@ -119,7 +120,7 @@ def parseConfig(theFilePath):
 #			inObjectTime = inObjectTime + round(time.time() - dispatchTime, 4)
 
 			if newObject.initResult != 0:
-				mmLib_Log.logTerse("######  " + newObject.deviceName + " failed to initialize due to " + str(newObject.initResult) + ". ######")
+				mmLib_Log.logTerse("######  " + newObject.deviceName + " failed to initialize due to " + str(newObject.initResult) + ". Add new virtual device types to mmLib_Low.MMVirtualDeviceTypes ######")
 			else:
 				mmLib_Log.logVerbose("######  " + newObject.deviceName + " successfully initialized. ######")
 
