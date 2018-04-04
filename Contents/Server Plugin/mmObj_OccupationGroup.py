@@ -79,7 +79,28 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def completeInit(self,eventID, eventParameters):
 
-		# Go through the member list and set initial occupation values
+
+		# Go through the member list and set initial occupation values, propogate result to subscribers.
+		# count the members in each of our lists to determine which event we should relay
+		#     i.e. if we have a 'occupiedFull' condition, it would take priority over unoccupiedDict
+
+		if len(self.occupiedFullDict) == len(self.members):
+			# highest priority... all members are reporting full occupancy
+			newEvent = 'occupiedFull'
+		elif len(self.unoccupiedFullDict) == len(self.members):
+			# next highest priority... all members are reporting no occupancy
+			newEvent = 'unoccupiedFull'
+		elif len(self.occupiedDict):
+			# next highest priority... one or some members are reporting occupancy
+			newEvent = 'occupied'
+		elif len(self.unoccupiedDict):
+			# lowest priority... one or some members are reporting no occupancy
+			newEvent = 'unoccupied'
+		else:
+			newEvent = 0			# no Events to deliver
+
+		if newEvent:
+			mmLib_Events.distributeEvent(self.deviceName, newEvent, 0, {})
 
 		return 0
 
