@@ -66,30 +66,28 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 			self.occupiedDict = {}
 			self.unoccupiedDict = {}
-			self.occupiedFullDict = {}
-			self.unoccupiedFullDict = {}
+			self.occupiedAllDict = {}
+			self.unoccupiedAllDict = {}
 
 			self.supportedCommandsDict.update({'devStatus':self.devStatus})
 
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.completeInit, {}, self.deviceName)
 
-
 	#
-	# completeInit - Complete the initialization process for this device
+	# updateSubscribers - Send all our subscribers an update message with our current occupation Status
 	#
-	def completeInit(self,eventID, eventParameters):
-
+	def updateSubscribers(self):
 
 		# Go through the member list and set initial occupation values, propogate result to subscribers.
 		# count the members in each of our lists to determine which event we should relay
 		#     i.e. if we have a 'occupiedFull' condition, it would take priority over unoccupiedDict
 
-		if len(self.occupiedFullDict) == len(self.members):
+		if len(self.occupiedAllDict) == len(self.members):
 			# highest priority... all members are reporting full occupancy
-			newEvent = 'occupiedFull'
-		elif len(self.unoccupiedFullDict) == len(self.members):
+			newEvent = 'occupiedAll'
+		elif len(self.unoccupiedAllDict) == len(self.members):
 			# next highest priority... all members are reporting no occupancy
-			newEvent = 'unoccupiedFull'
+			newEvent = 'unoccupiedAll'
 		elif len(self.occupiedDict):
 			# next highest priority... one or some members are reporting occupancy
 			newEvent = 'occupied'
@@ -101,6 +99,18 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 		if newEvent:
 			mmLib_Events.distributeEvent(self.deviceName, newEvent, 0, {})
+
+		# and update the indigo variable
+		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, EventToOccupiedStateDict.get(newEvent, 'Unknown'))
+
+		return 0
+
+	#
+	# completeInit - Complete the initialization process for this device
+	#
+	def completeInit(self,eventID, eventParameters):
+
+		self.updateSubscribers()
 
 		return 0
 
@@ -129,13 +139,13 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "occupied", str(self.occupiedDict))
 		theMessage = theMessage + "\n"
 
-		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "occupiedFull", str(self.occupiedFullDict))
+		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "occupiedAll", str(self.occupiedAllDict))
 		theMessage = theMessage + "\n"
 
 		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "unoccupied", str(self.unoccupiedDict))
 		theMessage = theMessage + "\n"
 
-		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "unoccupiedFull", str(self.unoccupiedFullDict))
+		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "unoccupiedAll", str(self.unoccupiedAllDict))
 		theMessage = theMessage + "\n\n"
 
 		if self.scheduledDeactivationTimeSeconds:
@@ -157,16 +167,8 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#	The area was determined as unoccupied a while ago.. after a suitable delay (as defined by unoccupiedRelayDelaySeconds), relay the event.
 	#
 	def unoccupiedTimerProc(self, parameters):
-		if len(self.unoccupiedFullDict) == len(self.members):
-			# everything is unoccupied, send 'unoccupiedAll'
-			newEvent = 'unoccupiedAll'
-		else:
-			# someone is occupied in the list, so send a simple 'occupied' event
-			newEvent = 'unoccupied'
 
-		mmLib_Events.distributeEvent(self.deviceName, newEvent, 0, {})	# deliver the event
-		# update indigo variable
-		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, EventToOccupiedStateDict.get(newEvent, 'Unknown'))
+		self.updateSubscribers()
 
 		self.scheduledDeactivationTimeSeconds = 0
 
@@ -182,9 +184,9 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	def receiveOccupationEvent(self, theEvent, eventParameters):
 
 		if theEvent in ['occupiedAll','unoccupiedAll']:
-			self.occupationDisposition = 'full'
+			self.occupationDisposition = 'all'
 		else:
-			self.occupationDisposition = eventParameters.get('occupationDisposition', 'full')
+			self.occupationDisposition = eventParameters.get('occupationDisposition', 'all')
 
 		theTimeString = time.strftime("%m/%d/%Y %I:%M:%S")
 
@@ -203,32 +205,23 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			except:
 				pass
 			try:
-				del self.unoccupiedFullDict[eventParameters['publisher']]  # by definition, can no longer be fully occupied
+				del self.unoccupiedAllDict[eventParameters['publisher']]  # by definition, can no longer be fully occupied
 			except:
 				pass
 
 			self.occupiedDict[eventParameters['publisher']] = theTimeString				# definitely occupied
 
 
-			if self.occupationDisposition == 'full':
-				self.occupiedFullDict[eventParameters['publisher']] = theTimeString		# this time, fully occupied
+			if self.occupationDisposition == 'all':
+				self.occupiedAllDict[eventParameters['publisher']] = theTimeString		# this time, fully occupied
 			else:
-				#with suppress(KeyError): del self.occupiedFullDict[eventParameters['publisher']]		# no longer fully occupied
+				#with suppress(KeyError): del self.occupiedAllDict[eventParameters['publisher']]		# no longer fully occupied
 				try:
-					del self.occupiedFullDict[eventParameters['publisher']]  # no longer fully occupied
+					del self.occupiedAllDict[eventParameters['publisher']]  # no longer fully occupied
 				except:
 					pass
 
-
-			if len(self.occupiedFullDict) == len(self.members):
-				# All members are occupied full, send 'occupiedAll'
-				newEvent = 'occupiedAll'
-			else:
-				# someone is not occupied in the member list, so send a simple 'unoccupied' event
-				newEvent = 'occupied'
-
-			mmLib_Events.distributeEvent(self.deviceName, newEvent, 0, {})
-			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, EventToOccupiedStateDict.get(newEvent, 'Unknown'))
+			self.updateSubscribers()		# let the subscribers know about our change
 
 		else:
 			# a device has sent an Unoccupied Event. Now it could be that the occupants have just been still for a bit, so give them a chance to
@@ -236,16 +229,16 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 			# put the publisher in the right lists
 
-			#with suppress(KeyError): del self.occupiedFullDict[eventParameters['publisher']]  		# no longer fully occupied full for sure
+			#with suppress(KeyError): del self.occupiedAllDict[eventParameters['publisher']]  		# no longer fully occupied full for sure
 			try:
-				del self.occupiedFullDict[eventParameters['publisher']]  # no longer fully occupied full for sure
+				del self.occupiedAllDict[eventParameters['publisher']]  # no longer fully occupied full for sure
 			except:
 				pass
 			self.unoccupiedDict[eventParameters['publisher']] = theTimeString  		# its at least partially unoccupied
 
-			if self.occupationDisposition == 'full':
+			if self.occupationDisposition == 'all':
 				#with suppress(KeyError): del self.occupiedDict[eventParameters['publisher']]  		# also fully unoccupied, so subtract from occupied dict as well
-				self.unoccupiedFullDict[eventParameters['publisher']] = theTimeString		# this time, fully occupied
+				self.unoccupiedAllDict[eventParameters['publisher']] = theTimeString		# this time, fully occupied
 				try:
 					del self.occupiedDict[eventParameters['publisher']]  # by definition, cann no longer be occupied
 				except:
