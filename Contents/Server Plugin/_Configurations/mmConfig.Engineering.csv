@@ -249,7 +249,7 @@ TestPowerStrip - Outlet 1,2,5,100,100,flash,TestMultiSensor,,2
 # OccupationAction – IndigoActionGroups to execute based on area occupation
 #
 #   deviceName – The name of the OccupationAction
-#   occupationEvent -  'on', 'off', 'occupied' or 'unoccupied'
+#   occupationEvent -  'on', 'off', 'OccupiedAll' or 'UnoccupiedAll'
 #	when - When this occupationAction is valid ... 'day','night','anyTime'
 #   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
 #   activateDelayMinutes - The amount that must transpire (in minutes) after the occupationEvent before executing the action

@@ -51,7 +51,7 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 			if theDeviceParameters["occupancySensor"] != '':
 				self.occupancySensors = theDeviceParameters["occupancySensor"].split(';')
 				mmLib_Log.logForce( "HVAC Companion Device " + self.deviceName + " is reporting occupancySensors " + str(self.occupancySensors) + ".")
-				mmLib_Events.subscribeToEvents(['occupied', 'unoccupied'], self.occupancySensors, self.processControllerEvent, {}, self.deviceName)
+				mmLib_Events.subscribeToEvents(['OccupiedAll', 'UnoccupiedAll'], self.occupancySensors, self.processControllerEvent, {}, self.deviceName)
 			else:
 				self.occupancySensors = []
 				if self.debugDevice: mmLib_Log.logWarning("HVAC Companion Device " + self.deviceName + " is reporting no occupancySensors.")
@@ -95,7 +95,7 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 	#	theHandler format must be
 	#		theHandler(theEvent, theControllerDev) where:
 	#
-	#		theEvent is the text representation of a single event type listed above: we handle ['occupied', 'unoccupied'] here only
+	#		theEvent is the text representation of a single event type listed above: we handle ['OccupiedAll', 'UnoccupiedAll'] here only
 	#		theControllerDev is the mmInsteon of the controller that detected the event
 	#
 	def processControllerEvent(self, theEvent, eventParameters):
@@ -103,7 +103,7 @@ class mmHVACCompanion(mmLogic_HVAC.mmHVAC):
 		originalOnline = self.online
 		theControllerDev = mmLib_Low.MotionMapDeviceDict[eventParameters['publisher']]
 
-		if theEvent == 'occupied':
+		if theEvent == 'OccupiedAll':
 			mmLib_Log.logVerbose("HVAC Companion Device " + self.deviceName + " is now online and will be considered in climate calculations.")
 			self.online = 1
 		else:

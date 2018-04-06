@@ -29,7 +29,7 @@ import itertools
 import pickle
 import collections
 
-deactivationMap = {'occupied':'unoccupied', 'unoccupied':'occupied', 'on':'off', 'off':'on' }
+deactivationMap = {'OccupiedAll':'UnoccupiedAll', 'UnoccupiedAll':'OccupiedAll', 'on':'off', 'off':'on' }
 
 ######################################################
 #
@@ -45,14 +45,14 @@ class mmOccupationAction(mmComm_Indigo.mmIndigo):
 			#
 			# Set object variables
 			#
-			self.occupationEvent = theDeviceParameters["occupationEvent"]	# 'on', 'off', 'occupied' or 'unoccupied'
+			self.occupationEvent = theDeviceParameters["occupationEvent"]	# 'on', 'off', 'OccupiedAll' or 'UnoccupiedAll'
 			self.when = theDeviceParameters["when"]
 			self.mode = theDeviceParameters["mode"]
 			self.actionControllers = theDeviceParameters["actionControllers"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
 			self.actionControllerCount = len(self.actionControllers)
 			self.activateAction = theDeviceParameters["activateAction"]
 			self.activateDelaySeconds = int(theDeviceParameters["activateDelayMinutes"]) * 60
-			if self.occupationEvent == 'occupied':
+			if self.occupationEvent == 'OccupiedAll':
 				# We have to be careful that the actionControllers dont become unoccupied before our actionEvents get a chance to run, so set the floor for the activateDelay
 				occupancyTimeout =  mmLib_Low.calculateControllerOccupancyTimeout(self.actionControllers, 'lowest') * 60
 				if occupancyTimeout < self.activateDelaySeconds:

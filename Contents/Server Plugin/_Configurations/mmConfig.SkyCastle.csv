@@ -454,7 +454,7 @@ GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOffice
 # OccupationAction – IndigoActionGroups to execute based on area occupation
 #
 #   deviceName – The name of the OccupationAction
-#   occupationEvent -  'on', 'off', 'occupied' or 'unoccupied'
+#   occupationEvent -  'on', 'off', 'OccupiedAll', 'UnoccupiedAll' or 'OccupiedPartial'
 #   when - When this occupationAction is valid ... 'day','night','anyTime'
 #   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
 #   activateDelayMinutes - The amount that must transpire (in minutes) after the occupationEvent before executing the action
@@ -467,4 +467,4 @@ GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOffice
 
 #-h,OccupationAction
 #deviceName,occupationEvent,when,activateAction,activateDelayMinutes,deactivateAction,deactivateDelayMinutes,mode,actionControllers
-#GarageHouseDoorLockControl,unoccupied,anyTime,_Security_GarageHouseDoorLock,30,,0,all,Garage Multisensor;Laundry Multisensor
+#GarageHouseDoorLockControl,UnoccupiedAll,anyTime,_Security_GarageHouseDoorLock,30,,0,all,Garage Multisensor;Laundry Multisensor

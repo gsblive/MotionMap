@@ -123,10 +123,9 @@ GregsDeskMultisensor,60,10,noDebug
 #
 #   All occupation Events are relayed/generated, including:
 #
-#    'occupied'      One or more of the members in the group are reporting they are occupied
-#    'unoccupied'    One or more of the members in the group are reporting they are unoccupied
-#    'occupiedAll'   All of the members in the group are reporting they are occupied
-#    'unoccupiedAll' All of the members in the group are reporting they are unoccupied
+#    'OccupiedPartial'      One or more of the members in the group are reporting they are occupied
+#    'OccupiedAll'   All of the members in the group are reporting they are occupied
+#    'UnoccupiedAll' All of the members in the group are reporting they are unoccupied
 #
 # Other MotionMap devices can subscribe to an OccupationGroup to be notified of Occupation anywhere and everywhere in the
 # House/region/room/area being watched by the members
@@ -137,7 +136,7 @@ GregsDeskMultisensor,60,10,noDebug
 #     unnecessary event oscillation)
 #
 # Note: OccupationGroup also maintains an indigo variable 'NameOfOccupationGroup.Occupation' that contains the current occupation state
-#   ('occupied','unoccupied','occupiedAll',and 'UnoccupiedAll')
+#   ('OccupiedPartial','OccupiedAll',and 'UnoccupiedAll')
 #
 ########################################################
 
@@ -332,7 +331,7 @@ MasterBathroomAll,9,TopFloorMasterBathToiletFanLightP;TopFloorMasterShowerLightP
 # OccupationAction – IndigoActionGroups to execute based on area occupation
 #
 #   deviceName – The name of the OccupationAction
-#   occupationEvent -  'on', 'off', 'occupied', 'unoccupied', 'occupiedAll', or 'UnoccupiedAll'
+#   occupationEvent -  'on', 'off', 'OccupiedAll', 'UnoccupiedAll' or 'OccupiedPartial'
 #	when - When this occupationAction is valid ... 'day','night','anyTime'
 #   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
 #   activateDelayMinutes - The amount that must transpire (in minutes) after the occupationEvent before executing the action
@@ -348,8 +347,8 @@ MasterBathroomAll,9,TopFloorMasterBathToiletFanLightP;TopFloorMasterShowerLightP
 
 -h,OccupationAction
 deviceName,occupationEvent,when,activateAction,activateDelayMinutes,deactivateAction,deactivateDelayMinutes,mode,actionControllers
-UpperDoorLockControl,unoccupied,anyTime,_Security UpperDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;GregsDeskMultisensor
-LowerDoorLockControl,unoccupied,anyTime,_Security LowerDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;GregsDeskMultisensor
-TopFireplaceOffControl,unoccupied,anyTime,_MotionMap Top Floor Fireplace Off,30,,0,all,TopFloorMasterBathMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterMultisensor;GregsDeskMultisensor
-MiddleFireplaceOffControl,unoccupied,anyTime,_MotionMap Middle Floor Fireplace Off,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
-BottomFloorHeatCutoffControl,occupied,anyTime,BottomFloorHeatOn,0,BottomFloorHeatOff,120,any,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
+UpperDoorLockControl,UnoccupiedAll,anyTime,_Security UpperDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;GregsDeskMultisensor
+LowerDoorLockControl,UnoccupiedAll,anyTime,_Security LowerDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;GregsDeskMultisensor
+TopFireplaceOffControl,UnoccupiedAll,anyTime,_MotionMap Top Floor Fireplace Off,30,,0,all,TopFloorMasterBathMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterMultisensor;GregsDeskMultisensor
+MiddleFireplaceOffControl,UnoccupiedAll,anyTime,_MotionMap Middle Floor Fireplace Off,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
+BottomFloorHeatCutoffControl,OccupiedAll,anyTime,BottomFloorHeatOn,0,BottomFloorHeatOff,120,any,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor

@@ -282,7 +282,7 @@ class mmIndigo(object):
 	# getSecondsSinceEventInArea - Return the number of seconds of the last 'theEventOfInterest' in a given area (according to one or more controllers)
 	#
 	#  controllerList the controllers to evaluate
-	#  theEventOfInterest - the event type we are looking for 'on', 'off', 'occupied', and 'unoccupied'
+	#  theEventOfInterest - the event type we are looking for 'on', 'off', 'OccupiedAll', and 'UnoccupiedAll'
 	#  theMode - 	'all' - all the devices must be in the the correct 'theEventOfInterest'
 	#  			'any' - any of the devices must be in the the correct 'theEventOfInterest'
 	#  theTarget - 'least' = return the target with the Least number of seconds
@@ -307,9 +307,9 @@ class mmIndigo(object):
 				testResult = 1
 			elif theEventOfInterest == 'off' and theController.theIndigoDevice.onState == False:
 				testResult = 1
-			elif theEventOfInterest == 'occupied' and theController.occupiedState == True:
+			elif theEventOfInterest == 'OccupiedAll' and theController.occupiedState == True:
 				testResult = 1
-			elif theEventOfInterest == 'unoccupied' and theController.occupiedState == False:
+			elif theEventOfInterest == 'UnoccupiedAll' and theController.occupiedState == False:
 				testResult = 1
 			else:
 				testResult = 0

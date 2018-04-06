@@ -13,7 +13,7 @@ __author__ = 'gbrewer'
 
 kMotionDevTolerableMotionBounceTime = 2	#if off/on transition time is > 2 seconds, the device is not bouncing
 kMotionDevMaxSequentialBounces = 50	# if there are more than 50 bounces in a row, there may be a problem (usually requires a battery replacement or reset of parameters)
-OccupiedStateList = ["Unoccupied", "Occupied", "Unknown"]
+OccupiedStateList = ['UnoccupiedAll', 'OccupiedAll', 'Unknown']
 
 try:
 	import indigo
@@ -62,7 +62,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.controllerMissedCommandCount = 0
 			self.previousMotionOff = 0
 
-			mmLib_Events.registerPublisher(['on', 'off', 'occupied', 'unoccupied','occupiedAll', 'unoccupiedAll'], self.deviceName)
+			mmLib_Events.registerPublisher(['on', 'off', 'OccupiedAll', 'UnoccupiedAll'], self.deviceName)
 
 			self.supportedCommandsDict.update({})
 
@@ -164,8 +164,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)  # Its unoccupied, clear non occupied timer too
 		self.occupiedState = False
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
-		#self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
-		mmLib_Events.distributeEvents(self.deviceName, ['unoccupied','unoccupiedAll'], 0, {})  # dispatch to everyone who cares
+		mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {})  # dispatch to everyone who cares
 
 		return 0		# Cancel timer
 
@@ -179,8 +178,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)  # Its unoccupied, clear max occupation timer too
 		self.occupiedState = False
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
-		#self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
-		mmLib_Events.distributeEvents(self.deviceName, ['unoccupied','unoccupiedAll'], 0, {})  # dispatch to everyone who cares
+		mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {})  # dispatch to everyone who cares
 
 		return 0		# Cancel timer
 
@@ -222,9 +220,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 				# initial update to all devices who care
 				if self.occupiedState:
-					newEvents = ['occupied','occupiedAll']
+					newEvents = ['OccupiedAll']
 				else:
-					newEvents = ['unoccupied','unoccupiedAll']
+					newEvents = ['UnoccupiedAll']
 				try:
 					mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})  # dispatch to everyone who cares
 				except Exception as exception:
@@ -258,8 +256,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[newOccupiedState])
 			if self.debugDevice: mmLib_Log.logForce("Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 	
-			#self.dispatchEventToDeque(self.occupiedDeque, 'occupiedAll')  # process occupancy
-			mmLib_Events.distributeEvents(self.deviceName, ['occupied','occupiedAll'], 0, {})  # dispatch to everyone who cares
+			#self.dispatchEventToDeque(self.occupiedDeque, 'OccupiedAll')  # process occupancy
+			mmLib_Events.distributeEvents(self.deviceName, ['OccupiedAll'], 0, {})  # dispatch to everyone who cares
 			self.occupiedState = newOccupiedState
 
 	#

@@ -93,7 +93,7 @@ def initializeEvents():
 #		EventID			Publisher					Description
 #		'on'			MotionSensor (MMDevName)	The motion sensor is publishing on event
 #		'off'			Indigo						An Off Event was detected form an indigo device
-#		'occupied'		VirtualMotionSensor			A motion sensor generated an ON sigl\nal causing a group to be occupied
+#		'OccupiedAll'		VirtualMotionSensor		A motion sensor generated an ON sigl\nal causing a group to be fully occupied
 #		'stateChange'	Indigo						Indigo detected a statusUpdate from a device
 #		'execute'		'MMSys'						executeMMCommand (all MMDevices register for this event at a minimum)
 #
@@ -328,7 +328,7 @@ def deliverUpdateEvents(object1, object2, theSubscriber):
 #		EventID			Publisher					Description
 #		'on'			MotionSensor (MMDevName)	The motion sensor is publishing on event
 #		'off'			Indigo						An Off Event was detected form an indigo device
-#		'occupied'		VirtualMotionSensor			A motion sensor generated an ON sigl\nal causing a group to be occupied
+#		'OccupiedAll'	VirtualMotionSensor			A motion sensor generated an ON sigl\nal causing a group to be fully occupied
 #		'stateChange'	Indigo						Indigo detected a statusUpdate from a device
 #
 #	NOTE: FOR BEST RESULTS, EACH OBJECT SHOULD ONLY REGISTER ONE HANDLER FOR ANY PARTICULAR TYPE OF EVENT. For example, if you have two or more

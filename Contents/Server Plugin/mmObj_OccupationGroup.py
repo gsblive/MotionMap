@@ -30,17 +30,14 @@ import pickle
 import collections
 #from contextlib import suppress
 
-occupationRelatedEvents = ['occupied','unoccupied','occupiedAll','unoccupiedAll']
-occupationEvents = ['occupied','occupiedAll' ]	# occupation only, not unoccupation
-EventToOccupiedStateDict = {'unoccupied': "OccupiedPartial", 'unoccupiedAll': "UnoccupiedAll", 'occupied': "OccupiedPartial",
-							'occupiedAll': "OccupiedAll", 'unknown': "Unknown"}
+occupationRelatedEvents = ['OccupiedPartial','OccupiedAll','UnoccupiedAll']
 
 
 ######################################################
 #
 # mmOccupation - Virtual Device used to relay occupation events
 #
-# Events Supported: 'occupied', 'unoccupied', 'occupiedAll' and 'unoccupiedAll'
+# Events Supported: 'OccupiedPartial', 'OccupiedAll' and 'UnoccupiedAll'
 #
 ######################################################
 class mmOccupationGroup(mmComm_Indigo.mmIndigo):
@@ -61,7 +58,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			mmLib_Events.registerPublisher(occupationRelatedEvents, self.deviceName)
 			
 			# Subscribe to requested occupancy event
-			mmLib_Events.subscribeToEvents(occupationRelatedEvents, self.members, self.receiveOccupationEvent2, {}, self.deviceName)
+			mmLib_Events.subscribeToEvents(occupationRelatedEvents, self.members, self.receiveOccupationEvent, {}, self.deviceName)
 
 			self.occupiedAllDict = {}
 			self.unoccupiedAllDict = {}
@@ -73,10 +70,9 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 			# Dict of events we support, and which of the above lists get added to and deleted from for each event type
 			self.occupationdictAnalyticsMatrix =	{
-													'occupied': {'deleteFrom': [self.unoccupiedAllDict,self.occupiedAllDict], 'addTo': [self.occupiedPartialDict]},
-													'unoccupied': {'deleteFrom': [self.unoccupiedAllDict,self.occupiedAllDict], 'addTo': [self.occupiedPartialDict]},
-													'occupiedAll': {'deleteFrom': [self.unoccupiedAllDict,self.occupiedPartialDict], 'addTo': [self.occupiedAllDict]},
-													'unoccupiedAll': {'deleteFrom': [self.occupiedAllDict,self.occupiedPartialDict], 'addTo': [self.unoccupiedAllDict]}
+													'OccupiedPartial': {'deleteFrom': [self.unoccupiedAllDict,self.occupiedAllDict], 'addTo': [self.occupiedPartialDict]},
+													'OccupiedAll': {'deleteFrom': [self.unoccupiedAllDict,self.occupiedPartialDict], 'addTo': [self.occupiedAllDict]},
+													'UnoccupiedAll': {'deleteFrom': [self.occupiedAllDict,self.occupiedPartialDict], 'addTo': [self.unoccupiedAllDict]}
 													}
 
 			self.supportedCommandsDict.update({'devStatus':self.devStatus})
@@ -86,32 +82,22 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	# updateSubscribers - Send all our subscribers an update message with our current occupation Status
 	#
-	def updateSubscribers(self,theEvent):
+	def updateSubscribers(self):
 
 		if len(self.occupiedAllDict) == len(self.members):
 			# highest priority... all members are reporting full occupancy
-			newEvents = ['occupiedAll','occupied']
+			newEvents = ['OccupiedAll']
 		elif len(self.unoccupiedAllDict) == len(self.members):
 			# next highest priority... all members are reporting no occupancy
-			newEvents = ['unoccupiedAll','unoccupied']
+			newEvents = ['UnoccupiedAll']
 		else:
 			# We are partially occupied send the appropriate event
-			if theEvent:
-				if theEvent in occupationEvents:
-					newEvents = ['occupied']
-				else:
-					newEvents = ['unoccupied']
-			else:
-				# this is init time, lets manufacture an event that represents our current state
-				if len(self.occupiedPartialDict):
-					newEvents = ['occupied']
-				else:
-					newEvents = ['unoccupied']
+			newEvents = ['OccupiedPartial']
 
 		mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})
 
 		# and update the indigo variable
-		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, EventToOccupiedStateDict.get(newEvents[0], 'Unknown'))
+		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, newEvents[0])
 
 		return 0
 
@@ -120,7 +106,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def completeInit(self,eventID, eventParameters):
 
-		self.updateSubscribers(0)
+		self.updateSubscribers()
 
 		return 0
 
@@ -175,7 +161,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def unoccupiedTimerProc(self, parameters):
 
-		self.updateSubscribers('unoccupied')
+		self.updateSubscribers()
 
 		self.scheduledDeactivationTimeSeconds = 0
 
@@ -186,13 +172,13 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 
 	#
-	# receiveOccupationEvent2 - we received an activation event, process it
+	# receiveOccupationEvent - we received an activation event, process it
 	#
 	#			The type of occupation event we have been looking for is reported here. Based on the any/all mode factor,
 	# 			determine if we should schedule the activation event to later occur in deviceTime above
 	#
 
-	def receiveOccupationEvent2(self, theEvent, eventParameters):
+	def receiveOccupationEvent(self, theEvent, eventParameters):
 
 		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " received \'" + theEvent + "\' event from " + eventParameters['publisher'])
 
@@ -212,13 +198,13 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			addDict[eventParameters['publisher']] = theTimeString
 
 
-		if theEvent == 'occupiedAll':
+		if theEvent == 'OccupiedAll':
 			# Clearly, all unoccupied events pending are no longer valid
 			if self.unoccupiedRelayDelaySeconds:							# if unoccupied timer is running, stop it
 				mmLib_Low.cancelDelayedAction(self.unoccupiedTimerProc)		# This handles exception so it will cancel only if it exists
 				self.scheduledDeactivationTimeSeconds = 0
 
-			self.updateSubscribers(theEvent)		# let the subscribers know about our change
+			self.updateSubscribers()		# let the subscribers know about our change
 
 		else:
 
