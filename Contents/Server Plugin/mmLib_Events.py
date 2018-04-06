@@ -121,7 +121,7 @@ def registerPublisher(theEvents, thePublisher):
 	return (0)
 
 #
-# distributeEvent - When a publisher has an event to publish... this is how its done
+# distributeEvents - When a publisher has an event to publish... this is how its done
 #
 #	Calls the event handler registered in subscribeToEvents above for the event 'theEvent' given below
 #
@@ -138,38 +138,43 @@ def registerPublisher(theEvents, thePublisher):
 # 								is an indigo command event, we might include the whole indigo command record here)
 # timestamp					The time (in seconds) the event is being published/distributed
 #
-def distributeEvent(thePublisher, theEvent, theSubscriber, publisherDefinedData):
+def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedData):
 
 	global eventPublishers
 
-	if theSubscriber:
-		# load a deque with a single entry (no searching necessary) just go to deque the single handlerInfo entry
-		theQueue = targettedEvents.get(thePublisher + "." + theEvent + "." + theSubscriber, 0)
-	else:
-		try:
-			theQueue = eventPublishers[thePublisher][theEvent]
-		except:
-			theQueue = 0
+	#mmLib_Log.logForce("Publisher " + str(thePublisher) + "\'s event list: " + str(theEvents))
 
-	if not theQueue or len(theQueue) == 0:
-		#mmLib_Log.logWarning("No registrations for event " + theEvent + ".")
-		return (0)
+	for theEvent in theEvents:
+		#mmLib_Log.logForce("    Distributing Event: " + str(theEvent))
+		if theSubscriber:
+			# load a deque with a single entry (no searching necessary) just go to deque the single handlerInfo entry
+			theQueue = targettedEvents.get(thePublisher + "." + theEvent + "." + theSubscriber, 0)
+		else:
+			try:
+				theQueue = eventPublishers[thePublisher][theEvent]
+			except:
+				theQueue = 0
 
-	publisherDefinedData['theEvent'] = theEvent
-	publisherDefinedData['publisher'] = thePublisher
-	publisherDefinedData['timestamp'] = time.mktime(time.localtime())
+		if not theQueue or len(theQueue) == 0:
+			#mmLib_Log.logWarning("      No registrations for event \'" + theEvent + "\'.")
+			continue
 
-	for aSubscriber, theHandler, handlerDefinedData in theQueue:
-		# note that if a single subscriber was specified to be delivered to, the queue only has entries relevant to that subscriber (hopefully a single entry, for performance)
-		# if (theSubscriber == 0) or (theSubscriber == aSubscriber): # Removed this because its unnecessary as per the note above
-		# Add event, timestamp, and publisher
-		eventParameters = publisherDefinedData
-		eventParameters.update(handlerDefinedData)
-		try:
-			theHandler(theEvent, eventParameters)
-		except Exception as exception:
-			mmLib_Log.logForce("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + theSubscriber + " Error: " + str(exception))
-			pass
+		publisherDefinedData['theEvent'] = theEvent
+		publisherDefinedData['publisher'] = thePublisher
+		publisherDefinedData['timestamp'] = time.mktime(time.localtime())
+
+		for aSubscriber, theHandler, handlerDefinedData in theQueue:
+			#mmLib_Log.logForce("         Distributing Event: " + str(theEvent) + " to " + str(aSubscriber))
+			# note that if a single subscriber was specified to be delivered to, the queue only has entries relevant to that subscriber (hopefully a single entry, for performance)
+			# if (theSubscriber == 0) or (theSubscriber == aSubscriber): # Removed this because its unnecessary as per the note above
+			# Add event, timestamp, and publisher
+			eventParameters = publisherDefinedData
+			eventParameters.update(handlerDefinedData)
+			try:
+				theHandler(theEvent, eventParameters)
+			except Exception as exception:
+				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber + " Error: " + str(exception))
+				pass
 
 	return (0)
 

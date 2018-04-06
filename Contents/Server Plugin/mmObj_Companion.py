@@ -97,7 +97,7 @@ class mmCompanion(mmComm_Insteon.mmInsteon):
 
 		if self.loadDeviceName:
 			if self.debugDevice: mmLib_Log.logForce("Companion " + self.deviceName + " attempting event distribution for commandByte: " + str(theCommandByte))
-			mmLib_Events.distributeEvent(self.deviceName, eventID, 0, eventParameters)	# distribute to all subscribers
+			mmLib_Events.distributeEvents(self.deviceName, [eventID], 0, eventParameters)	# distribute to all subscribers
 
 		return
 

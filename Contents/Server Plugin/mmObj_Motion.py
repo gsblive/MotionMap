@@ -62,7 +62,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.controllerMissedCommandCount = 0
 			self.previousMotionOff = 0
 
-			mmLib_Events.registerPublisher(['on', 'off', 'occupied', 'unoccupied'], self.deviceName)
+			mmLib_Events.registerPublisher(['on', 'off', 'occupied', 'unoccupied','occupiedAll', 'unoccupiedAll'], self.deviceName)
 
 			self.supportedCommandsDict.update({})
 
@@ -165,7 +165,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.occupiedState = False
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 		#self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
-		mmLib_Events.distributeEvent(self.deviceName, 'unoccupied', 0, {})  # dispatch to everyone who cares
+		mmLib_Events.distributeEvents(self.deviceName, ['unoccupied','unoccupiedAll'], 0, {})  # dispatch to everyone who cares
 
 		return 0		# Cancel timer
 
@@ -180,7 +180,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.occupiedState = False
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 		#self.dispatchEventToDeque(self.unoccupiedDeque, 'unoccupied')  # process unoccupied
-		mmLib_Events.distributeEvent(self.deviceName, 'unoccupied', 0, {})  # dispatch to everyone who cares
+		mmLib_Events.distributeEvents(self.deviceName, ['unoccupied','unoccupiedAll'], 0, {})  # dispatch to everyone who cares
 
 		return 0		# Cancel timer
 
@@ -205,11 +205,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	def processOccupation(self):
 
+
 		if self.onlineState != 'on':
 			self.occupiedState = False	# if the device is offline, assume it is also unoccupied.
 			# if there are any delay procs, delete them, they are not valid anymore 
 			mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
 			mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
+			mmLib_Log.logForce( "Motion sensor " + self.deviceName + " is going offline because it\'s \'onlineState\' is " + str(self.onlineState))
 			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Offline #")
 			return(0)
 
@@ -220,13 +222,17 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 				# initial update to all devices who care
 				if self.occupiedState:
-					newEvent = 'occupied'
+					newEvents = ['occupied','occupiedAll']
 				else:
-					newEvent = 'unoccupied'
-				mmLib_Events.distributeEvent(self.deviceName, newEvent, 0, {})  # dispatch to everyone who cares
+					newEvents = ['unoccupied','unoccupiedAll']
+				try:
+					mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})  # dispatch to everyone who cares
+				except Exception as exception:
+					mmLib_Log.logError("Motion sensor " + self.deviceName + " failed to distribute events: " + str(newEvents) + ". Exception: " + str(exception))
 				return(0)
 			else:
 				if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is initializing to Occupied.")
+
 
 		if self.getOnState() == True:
 			# device is indicating motion, so set the timeout to the Maximum
@@ -252,8 +258,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[newOccupiedState])
 			if self.debugDevice: mmLib_Log.logForce("Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 	
-			#self.dispatchEventToDeque(self.occupiedDeque, 'occupied')  # process occupancy
-			mmLib_Events.distributeEvent(self.deviceName, 'occupied', 0, {})  # dispatch to everyone who cares
+			#self.dispatchEventToDeque(self.occupiedDeque, 'occupiedAll')  # process occupancy
+			mmLib_Events.distributeEvents(self.deviceName, ['occupied','occupiedAll'], 0, {})  # dispatch to everyone who cares
 			self.occupiedState = newOccupiedState
 
 	#
@@ -264,10 +270,10 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		# process Motion here
 		self.deviceTime()		# this will process occupancy events
 		if theCommandByte == mmComm_Insteon.kInsteonOn:	#kInsteonOn = 17
-			mmLib_Events.distributeEvent(self.deviceName, 'on', 0, {})  # dispatch to everyone who cares
+			mmLib_Events.distributeEvents(self.deviceName, ['on'], 0, {})  # dispatch to everyone who cares
 			#self.dispatchEventToDeque(self.onDeque, 'on')							# process on
 		elif theCommandByte == mmComm_Insteon.kInsteonOff:		#kInsteonOff = 19
-			mmLib_Events.distributeEvent(self.deviceName, 'off', 0, {})  # dispatch to everyone who cares
+			mmLib_Events.distributeEvents(self.deviceName, ['off'], 0, {})  # dispatch to everyone who cares
 			#self.dispatchEventToDeque(self.offDeque, 'off')							# process off
 		else:
 			mmLib_Log.logVerbose("Invalid insteon event received for " + self.deviceName + " of " + str(theCommandByte))

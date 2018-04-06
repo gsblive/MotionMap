@@ -185,7 +185,10 @@ class Plugin(indigo.PluginBase):
 		except:
 			mmLib_Log.logForce("MMSys SubscribeToEvents \'isNightTime\' or \'isDayTime\' failed.")
 
-		mmLib_Events.distributeEvent('MMSys', 'initComplete', 0, {})
+		try:
+			mmLib_Events.distributeEvents('MMSys', ['initComplete'], 0, {})
+		except Exception as exception:
+			mmLib_Log.logError( "MMSys Distributing \'initComplete\' failed. Exception: " + str(exception))
 
 		# initialize daytime value for all devices that care. We do this before the following
 		# subscribes because we dont want to see the morning reports every time we start up
@@ -218,7 +221,7 @@ class Plugin(indigo.PluginBase):
 	#	in startup
 	#
 	#	This function handles all command notices from indigo (i.e. when a light switch is turned on, that notification comes here)
-	#	It converts this notification to an mmEvent of type 'DevRcvCmd' and dispatches it through mmLib_Events.distributeEvent()
+	#	It converts this notification to an mmEvent of type 'DevRcvCmd' and dispatches it through mmLib_Events.distributeEvents()
 	#
 	#	For an mmObject to receive these events the object must call the following function at initialization time:
 	#  		def subscribeToEvents(['DevRcvCmd'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):
@@ -242,7 +245,7 @@ class Plugin(indigo.PluginBase):
 			return 0
 
 		try:
-			mmLib_Events.distributeEvent('Indigo', 'DevRcvCmd', mmDev.deviceName, {'cmd': cmd})		# for MM version 4
+			mmLib_Events.distributeEvents('Indigo', ['DevRcvCmd'], mmDev.deviceName, {'cmd': cmd})		# for MM version 4
 		except:
 			mmLib_Log.logWarning( "Failed to deliver a \'DevRcvCmd\' event")
 
@@ -259,7 +262,7 @@ class Plugin(indigo.PluginBase):
 	#
 	#	This function handles all command Sent notices from indigo (i.e. when a command MM sends completes, that notification comes here)
 	#	It converts the notification to an mmEvent of type 'DevCmdComplete' or 'DevCmdErr' depending on disposition and dispatches it
-	# 	through mmLib_Events.distributeEvent()
+	# 	through mmLib_Events.distributeEvents()
 	#
 	#	For an mmObject to receive these events the object must call the following function at initialization time:
 	#  		def subscribeToEvents(['DevCmdComplete'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):
@@ -306,7 +309,7 @@ class Plugin(indigo.PluginBase):
 			theEvent = 'DevCmdErr'
 
 		try:
-			mmLib_Events.distributeEvent('Indigo', theEvent, theDev.deviceName, {'cmd': cmd})		# for MM version 4
+			mmLib_Events.distributeEvents('Indigo', [theEvent], theDev.deviceName, {'cmd': cmd})		# for MM version 4
 		except:
 			mmLib_Log.logWarning( "Failed to deliver a \'" + theEvent + "\' event.")
 
@@ -329,7 +332,7 @@ class Plugin(indigo.PluginBase):
 	#	in startup
 	#
 	#	This function handles all device change notices from indigo (i.e. when a motion sensor changes state, that notification comes here)
-	#	It converts the notification to an mmEvent of type 'AtributeUpdate' and dispatches it through mmLib_Events.distributeEvent()
+	#	It converts the notification to an mmEvent of type 'AtributeUpdate' and dispatches it through mmLib_Events.distributeEvents()
 	#
 	#	For an mmObject to receive these events the object must call the following function at initialization time:
 	#  		def subscribeToEvents(['AtributeUpdate'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):

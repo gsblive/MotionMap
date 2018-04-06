@@ -313,7 +313,7 @@ def	mmDaylightTransition(isNowDaytime):
 	else:
 		theEvent = 'isNightTime'
 
-	mmLib_Events.distributeEvent('MMSys', theEvent, 0, {})
+	mmLib_Events.distributeEvents('MMSys', [theEvent], 0, {})
 
 	return
 

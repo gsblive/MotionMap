@@ -79,7 +79,7 @@
 #   deviceName – The English name of the device
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off into unoccupied state
 #   minMovement – How long (in minutes) that non motion is required before non occupancy is assumed
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass)
 #
@@ -95,7 +95,7 @@
 #   deviceName – The English name of the device
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off into unoccupied state
 #   minMovement – How long (in minutes) that non motion is required before non occupancy is assumed
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 #   IMPORTANT – Keep Multi sensors between motion sensors and all other devices because the other devices will register with the motion sensors during initialization (one pass)
 #
@@ -136,18 +136,18 @@ GregsDeskMultisensor,60,10,noDebug
 #   unoccupiedRelayDelayMinutes - When an occupatioin state becomes untrue, delay this long before relaying the new state (this helps reduce
 #     unnecessary event oscillation)
 #
-# Note: OccupationGroup also maintains an indigo variable "NameOfOccupationGroup.Occupation" that contains the current occupation state
+# Note: OccupationGroup also maintains an indigo variable 'NameOfOccupationGroup.Occupation' that contains the current occupation state
 #   ('occupied','unoccupied','occupiedAll',and 'UnoccupiedAll')
 #
 ########################################################
 
 -h,OccupationGroup
-deviceName,members,unoccupiedRelayDelayMinutes
-DeskArea,GregsDeskMultisensor,0
-TopFloor,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;TopFloorStairsMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterBathShowerMultisensor;GregsDeskMultisensor,0
-MiddleFloor,MiddleFloorBathToiletMultisensor;MiddleFloorBathMultisensor;MiddleFloorMultisensor,0
-BottomFloor,BottomFloorMultisensor;BottomFloorStairsMultisensor,0
-House,TopFloor;MiddleFloor;BottomFloor,0
+deviceName,members,unoccupiedRelayDelayMinutes,debugDeviceMode
+DeskArea,GregsDeskMultisensor,0,noDebug
+TopFloor,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;TopFloorStairsMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterBathShowerMultisensor;GregsDeskMultisensor,0,noDebug
+MiddleFloor,MiddleFloorBathToiletMultisensor;MiddleFloorBathMultisensor;MiddleFloorMultisensor,0,noDebug
+BottomFloor,BottomFloorMultisensor;BottomFloorStairsMultisensor,0,noDebug
+House,TopFloor;MiddleFloor;BottomFloor,0,noDebug
 
 ########################################################
 #
@@ -165,7 +165,7 @@ House,TopFloor;MiddleFloor;BottomFloor,0
 #   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
 #   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 #
 ########################################################
@@ -187,6 +187,7 @@ TopFloorMasterShowerLightP,10,60,0,100,flash,TopFloorMasterBathShowerMultisensor
 TopFloorMasterBathVanityLightP,10,60,100,60,flash,,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor,2,noDebug
 TopFloorMasterBathLinenP,10,60,100,60,flash,,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor,2,noDebug
 MiddleFloorBackDeckP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
+MiddleFloorBathShowerFanLightP,30,120,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
 MiddleFloorDiningLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
 MiddleFloorFamilyMainLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
 MiddleFloorFamilySpotlightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
@@ -212,7 +213,7 @@ MiddleFloorKitchenSinkLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,
 #   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
 #   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowed before marking this device unnresponsive
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 #
 ########################################################
@@ -228,7 +229,7 @@ MiddleFloorKitchenSinkLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,
 #   deviceName – The English name of the device
 #   loadDeviceName -  The LoadDevice for this companion
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 ########################################################
 
@@ -256,7 +257,7 @@ TopFloorMasterBathLavLight1,TopFloorMasterBathLavLight,2,noDebug
 #	fanOnThreshold - the maximum temperature threshold where the fans will turn on to mix the air
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
 #	allowAsync - Allow this device to receive async commands (1 or 0)
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 ########################################################
 
@@ -278,7 +279,7 @@ HVACMiddleFloor,HvacHeatMode,MiddleFloorBathToiletMultisensor;MiddleFloorBathMul
 #	fanOnThreshold - the maximum temperature threshold where the fans will turn on to mix the air
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
 #	allowAsync - Allow this device to receive async commands (1 or 0)
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 ########################################################
 
@@ -304,7 +305,7 @@ HVACMiddleFloor,HvacHeatMode,MiddleFloorBathToiletMultisensor;MiddleFloorBathMul
 #   heatInfluence – the amount of influence by percent this thermostat has on the master's heat setting
 #	occupancySensor - the occupancy sensor governing the motion detection for this thermostat
 #	allowAsync - Allow this device to receive async commands (1 or 0)
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be "noDebug" for silent, anything else for verbose)
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 ########################################################
 
