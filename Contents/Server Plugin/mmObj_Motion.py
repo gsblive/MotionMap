@@ -112,6 +112,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	#	'on'			The motion sensor received an on signal
 	#	'off'			The motion sensor received an off signal
+	#	'bedtime'		The motion sensor is sleeping till morning
 	def setOnOffLine(self, requestedState):
 
 		if self.onlineState != requestedState:
@@ -119,6 +120,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 			self.onlineState = requestedState
 			self.processOccupation()
+			if requestedState in ['off', 'bedtime']:
+				# while we are sleeping (or otherwise offline), we want to appear unoccupied to the system
+				mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {})  # dispatch to everyone who cares
 
 		return(0)
 
@@ -127,7 +131,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# getSecondsSinceState - how many seconds since the device was in the given on/off state
 	#
 	def getSecondsSinceState(self, theState):
-		if self.onlineState == 'off': return(int(60*60*24))	# default to a high number if the device is offline
+		if self.onlineState in ['off','bedtime']: return(int(60*60*24))	# default to a high number if the device is offline
 
 		if theState == 'on':
 			theStateTime = self.lastOnTimeSeconds
@@ -205,12 +209,15 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 
 		if self.onlineState != 'on':
-			self.occupiedState = False	# if the device is offline, assume it is also unoccupied.
+			self.occupiedState = False	# if the device is offline (or bedtime mode), assume it is also unoccupied.
 			# if there are any delay procs, delete them, they are not valid anymore 
 			mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
 			mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
 			mmLib_Log.logForce( "Motion sensor " + self.deviceName + " is going offline because it\'s \'onlineState\' is " + str(self.onlineState))
-			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Offline #")
+			if self.onlineState == 'off':
+				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Offline #")
+			else:
+				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Bedtime #")
 			return(0)
 
 		if self.occupiedState == 2:

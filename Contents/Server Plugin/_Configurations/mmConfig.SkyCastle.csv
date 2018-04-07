@@ -81,6 +81,9 @@
 #
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass)
 #
+# Note: Motionsensor also maintains an indigo variable 'NameOfMotionsensor.Occupation' that contains the current occupation state
+#   ('OccupiedAll','UnoccupiedAll','# Offline #' and '# Bedtime #')
+#
 ########################################################
 
 #-h,MotionSensor
@@ -97,6 +100,9 @@
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 #   IMPORTANT – Keep Multi sensors Before all other devices because the other devices will register with the motion sensors during initialization (one pass)
+#
+# Note: Multisensor also maintains an indigo variable 'NameOfMultisensor.Occupation' that contains the current occupation state
+#   ('OccupiedAll','UnoccupiedAll','# Offline #' and '# Bedtime #')
 #
 ########################################################
 

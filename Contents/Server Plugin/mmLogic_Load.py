@@ -251,7 +251,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		if self.bedtimeMode == mmLib_Low.BEDTIMEMODE_OFF and indigo.variables['MMDayTime'].value == 'false':
 			mmLib_Log.logReportLine("Bedtime Mode ON for device: " + self.deviceName)
 			self.bedtimeMode = mmLib_Low.BEDTIMEMODE_ON
-			self.setControllersOnOfflineState('off')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
+			self.setControllersOnOfflineState('bedtime')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
 			self.queueCommand({'theCommand':'beep', 'theDevice':self.deviceName, 'theValue':0, 'repeat':1, 'retry':2})
 			self.queueCommand({'theCommand':'brighten', 'theDevice':self.deviceName, 'theValue':0, 'retry':2})
 
