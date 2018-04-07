@@ -152,7 +152,7 @@ DeskArea,GregsDeskMultisensor,0,noDebug
 TopFloor,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;TopFloorStairsMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterBathShowerMultisensor;GregsDeskMultisensor,0,noDebug
 MiddleFloor,MiddleFloorBathToiletMultisensor;MiddleFloorBathMultisensor;MiddleFloorMultisensor,0,noDebug
 BottomFloor,BottomFloorMultisensor;BottomFloorStairsMultisensor,0,noDebug
-House,TopFloor;MiddleFloor;BottomFloor,0,noDebug
+House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 
 ########################################################
 #
@@ -337,24 +337,18 @@ MasterBathroomAll,9,TopFloorMasterBathToiletFanLightP;TopFloorMasterShowerLightP
 # OccupationAction – IndigoActionGroups to execute based on area occupation
 #
 #   deviceName – The name of the OccupationAction
-#   occupationEvent -  'on', 'off', 'OccupiedAll', 'UnoccupiedAll' or 'OccupiedPartial'
-#	when - When this occupationAction is valid ... 'day','night','anyTime'
+#   occupationEvent -  'on', 'off', 'OccupiedAll', 'UnoccupiedAll', or 'OccupiedPartial'
 #   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
-#   activateDelayMinutes - The amount that must transpire (in minutes) after the occupationEvent before executing the action
-#   deactivateAction – The name of the ActionGroup to perform when this occupation becomes deactivated
-#   deactivateDelayMinutes - The amount of time that must transpire (in minutes) after the reversal of occupationEvent before executing deactivateAction
-#	mode - What actionControllers must agree before the actiateAction occurs... 'any' or 'all'
-#	actionControllers - The controllers that can trigger this action
-#
-# Test Device:
-# UpperDoorLockControl,unoccupied,anyTime,2,_Security UpperDoorLock,1,,0,all,TestMultisensor
+#	  actionController - The Motion/Multisensor or OccupationGroup that can trigger this action
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 ########################################################
 
 -h,OccupationAction
-deviceName,occupationEvent,when,activateAction,activateDelayMinutes,deactivateAction,deactivateDelayMinutes,mode,actionControllers
-UpperDoorLockControl,UnoccupiedAll,anyTime,_Security UpperDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;GregsDeskMultisensor
-LowerDoorLockControl,UnoccupiedAll,anyTime,_Security LowerDoorLock,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;GregsDeskMultisensor
-TopFireplaceOffControl,UnoccupiedAll,anyTime,_MotionMap Top Floor Fireplace Off,30,,0,all,TopFloorMasterBathMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterMultisensor;GregsDeskMultisensor
-MiddleFireplaceOffControl,UnoccupiedAll,anyTime,_MotionMap Middle Floor Fireplace Off,30,,0,all,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;TopFloorMasterMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
-BottomFloorHeatCutoffControl,OccupiedAll,anyTime,BottomFloorHeatOn,0,BottomFloorHeatOff,120,any,MiddleFloorMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor;BottomFloorMultisensor;BottomFloorStairsMultisensor
+deviceName,occupationEvent,activateAction,actionController,debugDeviceMode
+UpperDoorLockControl,UnoccupiedAll,_Security UpperDoorLock,TopFloor,Debug
+LowerDoorLockControl,UnoccupiedAll,_Security LowerDoorLock,House,noDebug
+TopFireplaceOffControl,UnoccupiedAll,_MotionMap Top Floor Fireplace Off,House,noDebug
+MiddleFireplaceOffControl,UnoccupiedAll,_MotionMap Middle Floor Fireplace Off,House,noDebug
+BottomFloorHeatCutoffControlOn,OccupiedPartial,BottomFloorHeatOn,House,noDebug
+BottomFloorHeatCutoffControlOff,UnoccupiedAll,BottomFloorHeatOff,House,noDebug

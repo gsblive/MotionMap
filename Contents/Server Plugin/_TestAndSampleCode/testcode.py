@@ -29,6 +29,18 @@ from time import gmtime, strftime
 
 startTime = timer()
 
+resetEventMap = {'OccupiedAll':'UnoccupiedAll', 'UnoccupiedAll':'OccupiedAll', 'on':'off', 'off':'on' }
+occupationEvents = ['on', 'off', 'OccupiedPartial', 'OccupiedAll', 'UnoccupiedAll']
+#occupationEvents = ['on', 'off', 'OccupiedAll', 'UnoccupiedAll']
+resetEvents = []
+allEvents = []
+
+allEvents = occupationEvents[:]
+allEvents.append('test')
+
+for anEntry in allEvents: print anEntry
+print str(allEvents)
+print str(occupationEvents)
 
 endTime = timer()
 

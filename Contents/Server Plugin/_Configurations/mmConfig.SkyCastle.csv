@@ -460,17 +460,12 @@ GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOffice
 # OccupationAction – IndigoActionGroups to execute based on area occupation
 #
 #   deviceName – The name of the OccupationAction
-#   occupationEvent -  'on', 'off', 'OccupiedAll', 'UnoccupiedAll' or 'OccupiedPartial'
-#   when - When this occupationAction is valid ... 'day','night','anyTime'
+#   occupationEvent -  'on', 'off', 'OccupiedAll', 'UnoccupiedAll', 'OccupiedPartial' or any combination (separated by semicolon)
 #   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
-#   activateDelayMinutes - The amount that must transpire (in minutes) after the occupationEvent before executing the action
-#   deactivateAction – The name of the ActionGroup to perform when this occupation becomes deactivated
-#   deactivateDelayMinutes - The amount of time that must transpire (in minutes) after the reversal of occupationEvent before executing deactivateAction
-#	mode - What actionControllers must agree before the actiateAction occurs... 'any' or 'all'
-#	actionControllers - The controllers that can trigger this action
+#	  actionController - The Motion/Multisensor or OccupationGroup that can trigger this action
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 ########################################################
 
 #-h,OccupationAction
-#deviceName,occupationEvent,when,activateAction,activateDelayMinutes,deactivateAction,deactivateDelayMinutes,mode,actionControllers
-#GarageHouseDoorLockControl,UnoccupiedAll,anyTime,_Security_GarageHouseDoorLock,30,,0,all,Garage Multisensor;Laundry Multisensor
+#deviceName,occupationEvent,activateAction,actionController,debugDeviceMode

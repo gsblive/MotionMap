@@ -29,7 +29,13 @@ import itertools
 import pickle
 import collections
 
-deactivationMap = {'OccupiedAll':'UnoccupiedAll', 'UnoccupiedAll':'OccupiedAll', 'on':'off', 'off':'on' }
+resetEventMap = 	{
+					'OccupiedPartial':['OccupiedAll','UnoccupiedAll'],
+					'OccupiedAll':['UnoccupiedAll','OccupiedPartial'],
+					'UnoccupiedAll':['OccupiedAll','OccupiedPartial'],
+					'on':['off'],
+					'off':['on']
+					}
 
 ######################################################
 #
@@ -45,43 +51,24 @@ class mmOccupationAction(mmComm_Indigo.mmIndigo):
 			#
 			# Set object variables
 			#
-			self.occupationEvent = theDeviceParameters["occupationEvent"]	# 'on', 'off', 'OccupiedAll' or 'UnoccupiedAll'
-			self.when = theDeviceParameters["when"]
-			self.mode = theDeviceParameters["mode"]
-			self.actionControllers = theDeviceParameters["actionControllers"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
-			self.actionControllerCount = len(self.actionControllers)
+			self.occupationEvent = theDeviceParameters["occupationEvent"]		# 'on', 'off', 'OccupiedPartial', 'OccupiedAll' or 'UnoccupiedAll'
+			self.resetEvents = []
+			self.allEvents = []
+			self.resetEvents = resetEventMap.get(self.occupationEvent,0)
+
+			if self.resetEvents:
+				self.allEvents = self.resetEvents[:]
+				self.allEvents.append(self.occupationEvent)
+			else:
+				mmLib_Log.logForce( self.deviceName + " Is initializing with unsupported event \'" + self.occupationEvent + "\'.")
+
+			self.actionController = theDeviceParameters["actionController"]  			# can be an OccupationGroup
 			self.activateAction = theDeviceParameters["activateAction"]
-			self.activateDelaySeconds = int(theDeviceParameters["activateDelayMinutes"]) * 60
-			if self.occupationEvent == 'OccupiedAll':
-				# We have to be careful that the actionControllers dont become unoccupied before our actionEvents get a chance to run, so set the floor for the activateDelay
-				occupancyTimeout =  mmLib_Low.calculateControllerOccupancyTimeout(self.actionControllers, 'lowest') * 60
-				if occupancyTimeout < self.activateDelaySeconds:
-					mmLib_Log.logForce("**** mmOccupation " + self.deviceName + " ActivateDelay is too high for actionControllers, resetting to " + str(occupancyTimeout/60))
-					self.activateDelaySeconds = occupancyTimeout
-			self.deactivateAction = theDeviceParameters["deactivateAction"]
-			self.deactivateDelaySeconds = int(theDeviceParameters["deactivateDelayMinutes"]) * 60
-			self.scheduledDeactivationTime = 0
-			self.scheduledActivationTime = 0
 			self.isActive = 0
 
-			if self.activateDelaySeconds:
-				self.activationDelayTimerFrequency = self.activateDelaySeconds/2
-
-			if self.deactivateDelaySeconds:
-				self.deactivationDelayTimerFrequency = self.deactivateDelaySeconds/2
-
-			try:
-				self.deactivationEvent = deactivationMap[self.occupationEvent]
-			except:
-				mmLib_Log.logForce( "**** mmOccupation " + self.deviceName + ": Unsupported Event type " + self.occupationEvent)
-
 			# Subscribe to requested occupancy event
-			mmLib_Events.subscribeToEvents([self.occupationEvent], self.actionControllers, self.receiveActivationEvent, {}, self.deviceName)
-
-			# Subscribe to unlatch events in all cases for debounce (the opposite of the requested occupancy event)
-			mmLib_Events.subscribeToEvents([self.deactivationEvent], self.actionControllers, self.receiveDeactivationEvent, {}, self.deviceName)
-
-			self.monitorGroup = []
+			if self.debugDevice: mmLib_Log.logForce( "  Indigo Action Group \'" + self.deviceName + "\' is requesting events " + str(self.allEvents) + " from " + self.actionController + ".")
+			mmLib_Events.subscribeToEvents(self.allEvents, [self.actionController], self.receiveOccupationEvent, {}, self.deviceName)
 
 			self.supportedCommandsDict.update({'devStatus':self.devStatus})
 
@@ -100,139 +87,31 @@ class mmOccupationAction(mmComm_Indigo.mmIndigo):
 	#
 	def	devStatus(self, theCommandParameters):
 
-		nItems = len(self.monitorGroup)
-
-		if self.mode == 'any':
-			mmLib_Log.logForce("mmOccupation \'" + self.deviceName + "\' is monitoring an \'" + self.occupationEvent + "\' controller list for any items. It currently contains " + str(self.monitorGroup))
-		else:
-			mmLib_Log.logForce("mmOccupation \'" + self.deviceName + "\' is monitoring an \'" + self.occupationEvent + "\' controller list for " + str(self.actionControllerCount) + " items. It currently contains " + str(nItems) + " : " + str(self.monitorGroup))
-
-		mmLib_Log.logForce("  activation time and deactivation time are: " + str(self.scheduledActivationTime) + " and " + str(self.scheduledDeactivationTime) + ".")
-
 		if self.isActive:
-			mmLib_Log.logForce("  Indigo Action Group \'" + self.activateAction + "\' is currently Active" )
+			mmLib_Log.logForce("  Indigo Action Group \'" + self.activateAction + "\' is currently Active due to recent \'" + self.occupationEvent + "\' event." )
+			mmLib_Log.logForce("    Currently waiting for \'" + self.resetEvents + "\' event before becoming eligible for activation again." )
 		else:
-			mmLib_Log.logForce("  Indigo Action Group \'" + self.activateAction + "\' is currently Inactive" )
-
-		if self.activateAction:
-			if self.scheduledActivationTime:
-				theTimeString = mmLib_Low.minutesAndSecondsTillTime(self.scheduledActivationTime)
-				mmLib_Log.logForce("  It is scheduled to become Active and it\'s Activation Indigo Action Group \'" + self.activateAction + "\' is scheduled to run in " + str(theTimeString) + "." )
-			else:
-				mmLib_Log.logForce("  It\'s Activation Indigo Action Group \'" + self.activateAction + "\' is not currently scheduled to run" )
-		else:
-			mmLib_Log.logForce("  ERROR: No Activation Routine listed. " )
-			
-		if self.deactivateAction:
-			if self.scheduledDeactivationTime:
-				mmLib_Log.logForce("  It is scheduled to become Inactive and it\'s Deactivation Indigo Action Group \'" + self.deactivateAction + "\' is scheduled to run in " + str(self.scheduledDeactivationTime-time.mktime(time.localtime())) + " seconds. " )
-			else:
-				mmLib_Log.logForce("  It\'s Deactivation Indigo Action Group \'" + self.deactivateAction + "\' is not currently scheduled to run" )
-		else:
-			mmLib_Log.logForce("  It has no Deactivation Routine listed, will become Inactive in " + str(self.scheduledDeactivationTime-time.mktime(time.localtime())) + " seconds. " )
+			mmLib_Log.logForce( "mmOccupation \'" + self.deviceName + "\' is waiting for a \'" + self.occupationEvent + "\' event from " + str(self.actionController))
 
 
-	######################################################################################
-	#
-	# End Externally Addessable Routines
-	#
-	######################################################################################
 
 
 	#
-	# doActivation - Run activation Routine
-	#
-	def doActivation(self, parameters):
-		if not self.isActive and self.activateAction :
-			indigo.actionGroup.execute(self.activateAction)
-		self.isActive = 1
-		self.scheduledActivationTime = 0
-
-		return 0		# stop timer
-
-	#
-	# doDeactivation - Run Deactivation Routine
-	#
-	def doDeactivation(self, parameters):
-		if self.isActive and self.deactivateAction :
-			indigo.actionGroup.execute(self.deactivateAction)
-		self.isActive = 0
-		self.scheduledDeactivationTime = 0
-
-		return 0		# stop timer
-
-	#
-	# receiveActivationEvent - we received an activation event, process it
+	# receiveOccupationEvent - we received an activation event, process it
 	#
 	#			The type of occupation event we have been looking for is reported here. Based on the any/all mode factor,
 	# 			determine if we should schedule the activation event to later occur in deviceTime above
 	#
-	def receiveActivationEvent(self, theEvent, eventParameters):
+	def receiveOccupationEvent(self, theEvent, eventParameters):
 
-		processIt = 0
-		theControllerDev = mmLib_Low.MotionMapDeviceDict[eventParameters['publisher']]
+		if self.debugDevice: mmLib_Log.logForce( "  Indigo Action Group \'" + self.deviceName + "\' received \'" + theEvent + "\' event from " + eventParameters['publisher'] + ".")
 
-		if theControllerDev.deviceName not in self.monitorGroup:
-			self.monitorGroup.append(theControllerDev.deviceName)
-			mmLib_Log.logVerbose("mmOccupation \'" + self.deviceName + "\' received an " + str(theEvent) + " event from " + theControllerDev.deviceName + ". " +  str(self.occupationEvent) + " list is now: " + str(self.monitorGroup))
-
-		if not self.scheduledActivationTime:
-			mmLib_Log.logVerbose("   mmOccupation event was not latched, continuing processing")
-			if self.mode == 'any':
-				processIt = 1
-			elif self.mode == 'all':
-				if len(self.monitorGroup) == self.actionControllerCount:
-					processIt = 1
-			else:
-				mmLib_Log.logForce("mmOccupation \'" + self.deviceName + "\' illegal mode type \'" + str(self.mode) + "\'")
-
-			if processIt:
-				self.scheduledDeactivationTime = 0
-				mmLib_Low.cancelDelayedAction(self.doDeactivation)
-				if not self.activateDelaySeconds:
-					self.doActivation({})
-				else:
-					mmLib_Low.registerDelayedAction({'theFunction': self.doActivation, 'timeDeltaSeconds': self.activateDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "doActivation"})
-
-
-	#
-	# receiveDeactivationEvent - we received a deactivation event, process it
-	#
-	#			The opposite of our occupation is reported here. Based on the any/all mode factor,
-	# 			determine if the occupation has now ended and if we should schedule any deactivation event to later occur in deviceTime above
-	#
-	def receiveDeactivationEvent(self, theEvent, eventParameters):
-
-		processIt = 0
-		theControllerDev = mmLib_Low.MotionMapDeviceDict[eventParameters['publisher']]
-
-		try:
-			self.monitorGroup.remove(theControllerDev.deviceName)
-			mmLib_Log.logVerbose("mmOccupation \'" + self.deviceName + "\' received " + str(theEvent) + " event from " + theControllerDev.deviceName + ". " +  str(self.occupationEvent) + " list is now: " + str(self.monitorGroup))
-		except:
-			mmLib_Log.logVerbose("   mmOccupation event was not in the monitorGroup, stop processing")
-			return
-
-		if not self.scheduledDeactivationTime:
-
-			if self.mode == 'all':
-				#if we receive any deActivation event, we can deactivate
-				processIt = 1
-			elif self.mode == 'any':
-				# the list has to become empty to deactivate
-				if not self.monitorGroup:
-					processIt = 1
-			else:
-				mmLib_Log.logForce("mmOccupation \'" + self.deviceName + "\' illegal mode type \'" + str(self.mode) + "\'")
-
-			if processIt:
-				self.scheduledActivationTime = 0
-				mmLib_Low.cancelDelayedAction(self.doActivation)
-				if not self.deactivateDelaySeconds:
-					self.doDeactivation({})
-				else:
-					mmLib_Low.registerDelayedAction({'theFunction': self.doDeactivation, 'timeDeltaSeconds': self.deactivateDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "doDeactivation"})
-
-
-
+		if theEvent == self.occupationEvent:
+			if not self.isActive:
+				if self.activateAction: indigo.actionGroup.execute(self.activateAction)
+				self.isActive = 1
+		elif theEvent in self.resetEvents:
+			self.isActive = 0
+		else:
+			mmLib_Log.logWarning("mmOccupation \'" + self.deviceName + "\' received an unsupported Event \'" + str(theEvent) + "\' from " + eventParameters['publisher'] + ".")
 
