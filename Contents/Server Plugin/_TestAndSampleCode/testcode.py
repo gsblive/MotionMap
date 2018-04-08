@@ -29,21 +29,11 @@ from time import gmtime, strftime
 
 startTime = timer()
 
-resetEventMap = {'OccupiedAll':'UnoccupiedAll', 'UnoccupiedAll':'OccupiedAll', 'on':'off', 'off':'on' }
-occupationEvents = ['on', 'off', 'OccupiedPartial', 'OccupiedAll', 'UnoccupiedAll']
-#occupationEvents = ['on', 'off', 'OccupiedAll', 'UnoccupiedAll']
-resetEvents = []
-allEvents = []
-
-allEvents = occupationEvents[:]
-allEvents.append('test')
-
-for anEntry in allEvents: print anEntry
-print str(allEvents)
-print str(occupationEvents)
+myPath = os.path.realpath(__file__)
+indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
 
 endTime = timer()
 
-print str(endTime - startTime)
+print str(indigoPlugin)
 
 quit()
