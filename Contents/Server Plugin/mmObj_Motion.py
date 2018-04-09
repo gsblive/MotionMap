@@ -116,13 +116,10 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	def setOnOffLine(self, requestedState):
 
 		if self.onlineState != requestedState:
-			mmLib_Log.logForce("Setting " + self.deviceName + " onOfflineState to " + requestedState)
+			if self.debugDevice: mmLib_Log.logForce("Setting " + self.deviceName + " onOfflineState to \'" + requestedState + "\'.")
 
 			self.onlineState = requestedState
-			self.processOccupation()
-			if requestedState in ['off', 'bedtime']:
-				# while we are sleeping (or otherwise offline), we want to appear unoccupied to the system
-				mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {})  # dispatch to everyone who cares
+			self.processOccupation(1)
 
 		return(0)
 
@@ -158,6 +155,14 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		else:
 			self.lastOffTimeSeconds = self.lastUpdateTimeSeconds
 		return()
+
+	#
+	# delayProcForOnStateTimeout - if the device went ON 24 hours ago and never went off... it must be offline
+	#
+	def delayProcForOnStateTimeout(self, theParameters):
+		mmLib_Log.logWarning(self.deviceName + " received \'on\' command 24 hours ago and never received off... changing onOffline state to \'off\'.")
+		self.setOnOffLine('off')
+		return 0
 
 
 	# delayProcForMaxOccupancy - the device has been marked as occupied for the max amount of time
@@ -201,12 +206,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def initializationComplete(self,eventID, eventParameters):
 
-		self.processOccupation()
+		self.processOccupation(1)
 		return(0)
 
 
-	def processOccupation(self):
+	def processOccupation(self, forceDelivery):
 
+		if self.debugDevice: mmLib_Log.logForce("ProcessOccuption for " + self.deviceName + ". ForceDelivery = " + str(forceDelivery)+ ". onLineState = " + str(self.onlineState) + ". onState = " + str(self.getOnState()))
 
 		if self.onlineState != 'on':
 			self.occupiedState = False	# if the device is offline (or bedtime mode), assume it is also unoccupied.
@@ -218,6 +224,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Offline #")
 			else:
 				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Bedtime #")
+			mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {})  # dispatch to everyone who cares
 			return(0)
 
 		if self.occupiedState == 2:
@@ -258,14 +265,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		# figure out what state we should be in
 		
-		if self.occupiedState != newOccupiedState:	# occupiedState will be 2 to start... and will always allow the code below
+		if forceDelivery or self.occupiedState != newOccupiedState:	# occupiedState will be 2 to start... and will always allow the code below
 		
 			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[newOccupiedState])
 			if self.debugDevice: mmLib_Log.logForce("Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 	
-			#self.dispatchEventToDeque(self.occupiedDeque, 'OccupiedAll')  # process occupancy
-			mmLib_Events.distributeEvents(self.deviceName, ['OccupiedAll'], 0, {})  # dispatch to everyone who cares
 			self.occupiedState = newOccupiedState
+			mmLib_Events.distributeEvents(self.deviceName, [OccupiedStateList[newOccupiedState]], 0, {})  # dispatch to everyone who cares
 
 	#
 	# dispatchOnOffEvents - we received a command from our motion Sensor, process it
@@ -288,7 +294,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	#
 	# countBounce
-	#	Check to see if the device is rapidly
+	#	Check to see if the device is rapidly cycling between on and off
 	#
 	def countBounce(self):
 
@@ -313,15 +319,25 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# we separated this into two routines because CamMotion needs access to the lower level routine
 	def	deviceUpdatedEvent(self, eventID, eventParameters):
 
-		newonState = eventParameters.get('onState', 'na')
+		newOnState = eventParameters.get('onState', 'na')
+
+		if self.debugDevice: mmLib_Log.logForce("deviceUpdatedEvent for " + self.deviceName + ". newOnState = " + str(newOnState) + ". onlineState = " + str(self.onlineState))
+
+		if self.onlineState == 'off' and newOnState == True:
+			if self.debugDevice: mmLib_Log.logForce("Bringing " + self.deviceName + " back online.")
+			self.setOnOffLine('on')
 
 		if self.onlineState == 'on':
 
-			if newonState != 'na':
-				mmLib_Log.logVerbose(self.deviceName + ": Motion Onstate = " + str(newonState))
+			if newOnState != 'na':
+				mmLib_Log.logVerbose(self.deviceName + ": Motion Onstate = " + str(newOnState))
 				super(mmMotion, self).deviceUpdatedEvent(eventID, eventParameters)  # the base class just keeps track of the time since last change
 				self.controllerMissedCommandCount = 0			# Reset this because it looks like are controller is alive (battery report uses this)
-				if newonState == True:
+				if newOnState == True:
+					mmLib_Low.registerDelayedAction({'theFunction': self.delayProcForOnStateTimeout,
+													 'timeDeltaSeconds': int(60 * 60 * 24),
+													 'theDevice': self.deviceName,
+													 'timerMessage': "Motion Sensor OnStateTimeout Timer"})
 					# we are detecting motion
 					if self.debugDevice:
 						mmLib_Log.logForce( "Motion Sensor " + self.deviceName + " received update event: ON")
@@ -332,20 +348,19 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 					self.dispatchOnOffEvents( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
 
 				else:
+					mmLib_Low.cancelDelayedAction(self.delayProcForOnStateTimeout)
 					# We are detecting non-motion
-					if self.debugDevice:
-						mmLib_Log.logForce("Motion Sensor " + self.deviceName + " received update event: OFF")
+					if self.debugDevice: mmLib_Log.logForce("Motion Sensor " + self.deviceName + " received update event: OFF")
 
 					self.previousMotionOff = time.mktime(time.localtime())
 					# And dispatch the ON event
 					self.dispatchOnOffEvents(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
 
 				# do occupation event processing
-				self.processOccupation()
+				self.processOccupation(0)
 
 			else:
-				mmLib_Log.logDebug(self.deviceName + ": Received duplicate command: Onstate = " + str(newonState))
-
+				mmLib_Log.logDebug(self.deviceName + ": Received duplicate command: Onstate = " + str(newOnState))
 
 		return(0)
 

@@ -29,11 +29,8 @@ from time import gmtime, strftime
 
 startTime = timer()
 
-myPath = os.path.realpath(__file__)
-indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
 
 endTime = timer()
 
-print str(indigoPlugin)
 
 quit()
