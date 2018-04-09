@@ -307,7 +307,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			# count the sequential transaction
 			self.ourNonvolatileData["rapidTransitionTimeList"].append(str(time.ctime(time.mktime(time.localtime()))) + " Reporting only " + str(deltaSeconds) + " seconds of off time.")
 			if len(self.ourNonvolatileData["rapidTransitionTimeList"]) == kMotionDevMaxSequentialBounces:
-				self.reportMotionDebounceProblem(1)		# report the problem
+				self.reportFullStatus(1)		# report the problem
 				# we reported the problem, now reset
 				self.ourNonvolatileData["rapidTransitionTimeList"] = []
 				self.ourNonvolatileData["problemReportTime"] = 0
@@ -369,7 +369,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def devStatus(self, theCommandParameters):
 
-		self.reportMotionDebounceProblem(0)
+		self.reportFullStatus(0)
 
 		return (0)
 
@@ -383,9 +383,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		return(0)
 
 	#
-	# reportMotionDebounceProblem - report debounce Problem for this device, if any
+	# reportFullStatus - report debounce Problem for this device, if any
 	#
-	def reportMotionDebounceProblem(self, sendEmail):
+	def reportFullStatus(self, sendEmail):
 
 		theBody = "Debounce Report for " + self.deviceName
 
