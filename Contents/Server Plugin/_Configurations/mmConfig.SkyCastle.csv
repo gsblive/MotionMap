@@ -182,6 +182,55 @@ CamGarageMotion,60,5,GarageDoorLights;PatioCans,6,,noDebug
 CamRightFrontHouseMotion,60,5,PatioCarriageLights;Front Porch,6,PatioChandelier,noDebug
 CamHouseParkingMotion,60,5,CarPortLights;DogRunAndWaterfallFloodLight,6,,noDebug
 CamBackGateMotion,60,5,RearDeckCarraige;RearDeckCarraigeB,30,UnderRearDeckOutletWallLights - Bottom,noDebug
+CamDrivewayMotion,60,5,,30,,noDebug
+
+########################################################
+#
+# OccupationGroup – A collection of MMDevices (members) are monitored for Occupation related events that are then relayed to any subscriber
+#                   of the OccupationGroup. Devices being monitored include MotionSensors, Multisensors, and other Occupation Groups.
+#
+#   All occupation Events are relayed/generated, including:
+#
+#    'OccupiedPartial'      One or more of the members in the group are reporting they are occupied
+#    'OccupiedAll'   All of the members in the group are reporting they are occupied
+#    'UnoccupiedAll' All of the members in the group are reporting they are unoccupied
+#
+# Other MotionMap devices can subscribe to an OccupationGroup to be notified of Occupation anywhere and everywhere in the
+# House/region/room/area being watched by the members
+#
+#   deviceName – The name of the OccupationGroup
+#	  members - The MotionSensors, Multisensors, and other Occupation Groups that are being monitored for occupation events to be relayed
+#   unoccupiedRelayDelayMinutes - When an occupatioin state becomes untrue, delay this long before relaying the new state (this helps reduce
+#     unnecessary event oscillation)
+#
+# Note: OccupationGroup also maintains an indigo variable 'NameOfOccupationGroup.Occupation' that contains the current occupation state
+#   ('OccupiedPartial','OccupiedAll','UnoccupiedAll','# Offline #' and '# Bedtime #')
+#
+########################################################
+
+-h,OccupationGroup
+deviceName,members,unoccupiedRelayDelayMinutes,debugDeviceMode
+# Public areas
+DownstairsRight,ButlerKitchenMultisensor;WineRoomMultisensor;DownstairsHallRightBMultisensor;FamilyRoomMultisensor;FamilyRoomBathMultisensorGarageHall1Multisensor;GarageHall2Multisensor;GarageHall3Multisensor;KitchenBathMuiltisensor;LaundryRoomMultisensor,0,noDebug
+DownstairsLeft,DiningRoomMultisensorA;DiningRoomMultisensorB;DownstairsHallLeftLightsAMultisensor;DownstairsHallLeftLightsBMultisensor;DownstairsHallRightAMultisensorFoyerCoatClosetMultisensor;GuestBathMultisensor,0,noDebug
+UpstairsRight,BackStairsMultisensor;TheaterBackMultisensor;TheaterBathMultisensor;TheaterFrontMultisensor;UpstairsHallRightBMultisensor;UpstairsHallRightCMultisensor,0,noDebug
+UpstairsLeft,AeonMultisensorTest1;UpstairsHallRightAMultisensor;GregsOfficeClosetMultisensor;GregsOfficeBathMultisensor;GregsOfficeBathShowerMultisensor;GregsOfficeDoorMultisensor;GregsOfficeMultisensor;QuadMasterHallLightMultisensor;QuadMultisensorA;QuadMultisensorB,0,noDebug
+# Bedrooms
+DownstairsLeftBedrooms,GuestMultisensor,0,noDebug
+UpstairsLeftBedrooms,MasterBarbiesClosetMultisensor;MasterGregsClosetMultisensor;MasterBathMultiSensor;MasterBathShowerMultisensor;MasterBathLavMultisensor;MasterHallMultisensor,0,noDebug
+UpstairsRightBedrooms,MJBedroomBathMultisensor;MJBedroomClosetMultisensor;MJBedroomLavMultisensor;MJBedroomMainMultisensor;MJBedroomNookMultisensor;MJBedroomShowerMultisensor,0,noDebug
+# AC Zones
+AcZone1LeftSideHouse,DownstairsLeft;UpstairsLeft;UpstairsLeftBedrooms,0,noDebug
+AcZone2RightSideUpper,UpstairsRight;UpstairsRightBedrooms,0,noDebug
+AcZone3RightSideLower,DownstairsRight,0,noDebug
+# Security
+House,DownstairsRight;DownstairsLeft;UpstairsRight;UpstairsLeft,60,noDebug
+#DoorFrontPatioLockTrigger,House;PatioMultisensor,0,noDebug
+#DoorGarageDrivewayPatioLockTrigger,House,0,noDebug
+#DoorFrontLockTrigger,House,0,noDebug
+DoorCarPortGroup,House;CarPortMultisensor,0,noDebug
+DoorBackDeckGroup,House,0,noDebug
+#DoorAllGroup,House;CarPortMultisensor,0,noDebug
 
 ########################################################
 #
@@ -467,5 +516,8 @@ GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOffice
 #
 ########################################################
 
-#-h,OccupationAction
-#deviceName,occupationEvent,activateAction,actionController,debugDeviceMode
+-h,OccupationAction
+deviceName,occupationEvent,activateAction,actionController,debugDeviceMode
+BackDeckDoorTrigger,UnoccupiedAll,_Security_LockBackDeckDoor,DoorBackDeckGroup,noDebug
+CarPortDoorTrigger,UnoccupiedAll,_Security_LockCarPortDoor,DoorCarPortGroup,noDebug
+#allLocksOnHouseUnoccupied,UnoccupiedAll,_Security_LockAllDoors,DoorAllGroup,noDebug

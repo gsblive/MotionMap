@@ -20,6 +20,7 @@ import ntpath
 import ast
 from timeit import default_timer as timer
 from time import gmtime, strftime
+from datetime import datetime, timedelta
 
 
 
@@ -32,5 +33,10 @@ startTime = timer()
 
 endTime = timer()
 
+ft = "now is the time"
+if "the" in ft:
+	print "yes"
+else:
+	print "no"
 
 quit()

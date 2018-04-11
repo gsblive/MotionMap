@@ -31,6 +31,7 @@ import itertools
 import pickle
 import collections
 import random
+from datetime import datetime, timedelta
 
 ######################################################
 #
@@ -248,26 +249,34 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		if self.getOnState() == True:
 			# device is indicating motion, so set the timeout to the Maximum
+			timeDeltaSeconds = int(self.maxMovement) * 60
 			mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
 			mmLib_Low.registerDelayedAction( {	'theFunction': self.delayProcForMaxOccupancy,
-											  	'timeDeltaSeconds': int(self.maxMovement) * 60,
+											  	'timeDeltaSeconds': timeDeltaSeconds,
 				 								'theDevice': self.deviceName,
 												'timerMessage': "Motion Sensor MaxOccupancy Timer"})
 		else:
 			# device is NOT indicating motion, so set timeout to the minimum
+			timeDeltaSeconds = int(self.minMovement) * 60
 			mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
 			mmLib_Low.registerDelayedAction( {	'theFunction': self.delayProcForNonOccupancy,
-											  	'timeDeltaSeconds': int(self.minMovement) * 60,
+											  	'timeDeltaSeconds': timeDeltaSeconds,
 				 								'theDevice': self.deviceName,
 												'timerMessage': "Motion Sensor NonOccupancy Timer"})
 		# either way, we are occupied for now
 		newOccupiedState = True
 
+		if timeDeltaSeconds:
+			ft = datetime.now() + timedelta(seconds=timeDeltaSeconds)
+			varString = " ( Till " + '{:%-I:%M %p}'.format(ft) + " )"
+			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[newOccupiedState] + varString)
+		else:
+			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[newOccupiedState])
+
 		# figure out what state we should be in
 		
 		if forceDelivery or self.occupiedState != newOccupiedState:	# occupiedState will be 2 to start... and will always allow the code below
 		
-			mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[newOccupiedState])
 			if self.debugDevice: mmLib_Log.logForce("Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 	
 			self.occupiedState = newOccupiedState

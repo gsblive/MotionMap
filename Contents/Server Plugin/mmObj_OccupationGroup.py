@@ -10,7 +10,6 @@ __author__ = 'gbrewer'
 # import json
 #import os
 #import traceback
-#import datetime
 
 try:
 	import indigo
@@ -29,6 +28,7 @@ import itertools
 import pickle
 import collections
 #from contextlib import suppress
+from datetime import datetime, timedelta
 
 occupationRelatedEvents = ['OccupiedPartial','OccupiedAll','UnoccupiedAll']
 
@@ -54,6 +54,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			self.scheduledDeactivationTimeSeconds = 0
 			s = str(self.deviceName + ".Group.Occupation")
 			self.occupationIndigoVar = s.replace(' ', '.')
+			self.lastReportedOccupationState = 'none'
 
 			mmLib_Events.registerPublisher(occupationRelatedEvents, self.deviceName)
 			
@@ -84,6 +85,8 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def updateSubscribers(self):
 
+
+
 		if len(self.occupiedAllDict) == len(self.members):
 			# highest priority... all members are reporting full occupancy
 			newEvents = ['OccupiedAll']
@@ -94,9 +97,16 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			# We are partially occupied send the appropriate event
 			newEvents = ['OccupiedPartial']
 
-		mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})
+		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " calculated events " + str(newEvents) + " for delivery.")
 
-		# and update the indigo variable
+		# only report this update to subscribers if it has changed
+		if self.lastReportedOccupationState != newEvents:
+			self.lastReportedOccupationState = newEvents
+			mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})
+		else:
+			if self.debugDevice: mmLib_Log.logForce("    No delivery necessary. No Change to previous delivery.")
+
+		# either way, update the indigo variable
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, newEvents[0])
 
 		return 0
@@ -124,7 +134,11 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def	devStatus(self, theCommandParameters):
 
-		theMessage = '\n\n==== DeviceStatus for ' + self.deviceName + '====\n'
+		theMessage = '\n\n==== DeviceStatus for ' + self.deviceName + ' ====\n'
+
+		theMessage = theMessage + '\n Last Reported Occupation State = ' + str(self.lastReportedOccupationState)
+		theMessage = theMessage + "\n"
+		theMessage = theMessage + "\n"
 
 		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "Group", "Members/When")
 		theMessage = theMessage + "\n"
@@ -198,8 +212,11 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			addDict[eventParameters['publisher']] = theTimeString
 
 
-		if theEvent == 'OccupiedAll':
-			# Clearly, all unoccupied events pending are no longer valid
+		if theEvent in ['OccupiedAll', 'OccupiedPartial']:
+
+			# Process the ocupied event... Clearly
+
+			# All unoccupied events pending are no longer valid
 			if self.unoccupiedRelayDelaySeconds:							# if unoccupied timer is running, stop it
 				mmLib_Low.cancelDelayedAction(self.unoccupiedTimerProc)		# This handles exception so it will cancel only if it exists
 				self.scheduledDeactivationTimeSeconds = 0
@@ -208,7 +225,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 		else:
 
-			# now distribute the proper unoccupied events for any subscribers (delay as necessary)
+			# now distribute the unoccupiedAll event to any subscribers (delay as necessary)
 
 			# relay the event or set a timer to do so
 			if not self.unoccupiedRelayDelaySeconds:
@@ -216,7 +233,10 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			else:
 				mmLib_Low.registerDelayedAction({'theFunction': self.unoccupiedTimerProc, 'timeDeltaSeconds': self.unoccupiedRelayDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "unoccupiedTimerProc"})
 				self.scheduledDeactivationTimeSeconds = int(time.mktime(time.localtime()) + self.unoccupiedRelayDelaySeconds)
-
+				ft = datetime.now() + timedelta(seconds=self.unoccupiedRelayDelaySeconds)
+				varString = mmLib_Low.getIndigoVariable(self.occupationIndigoVar, "Unknown")
+				varString = varString.partition(' ')[0] + " ( Till " + '{:%-I:%M %p}'.format(ft) + " )"
+		 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, varString)
 		return 0
 
 
