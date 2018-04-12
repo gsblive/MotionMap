@@ -33,10 +33,6 @@ startTime = timer()
 
 endTime = timer()
 
-ft = "now is the time"
-if "the" in ft:
-	print "yes"
-else:
-	print "no"
-
+if not 1 or 2 > 1:
+	print "Yes"
 quit()

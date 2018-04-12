@@ -641,7 +641,8 @@ def processOfflineReport(theCommandParameters):
 				theRecipient = "greg@GSBrewer.com"
 				#mmLog.logReportLine( "Sending Email. Recipient: " + theRecipient + " TheSubject: " + theSubject)
 				indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=theEmail)
-
+				# we sent the email, clear the report
+				resetOfflineStatistics()
 
 ############################################################################################
 #

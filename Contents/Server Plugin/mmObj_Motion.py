@@ -452,13 +452,16 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		if sendEmail:
 			# send an email indicating the problem
 			# only allow sending emails every 24 hours for this device
-			if not self.ourNonvolatileData["problemReportTime"] or int(time.mktime(time.localtime()) - self.ourNonvolatileData["problemReportTime"]) > 60*60*24:
+			if not self.ourNonvolatileData["problemReportTime"] or int(time.mktime(time.localtime()) - int(self.ourNonvolatileData["problemReportTime"])) > 60*60*24:
 				theBody = "\r" + theBody + "\r"
 				theSubject = str("MotionMap2 " + str(indigo.variables["MMLocation"].value)+ " MotionSensor Failure Report: " + self.deviceName)
 				theRecipient = "greg@GSBrewer.com"
 				indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=theBody)
 				# update the problem report time
 				self.ourNonvolatileData["problemReportTime"] = time.mktime(time.localtime())
+				self.ourNonvolatileData["problemReportTimeHumanReadable"] = '{:%a %b %-d, %Y %-I:%M %p}'.format(datetime.now())
+			else:
+				mmLib_Log.logWarning( self.deviceName + " is reporting MotionSensorFailure, but email was supressed due to recent delivery at " + str(self.ourNonvolatileData["problemReportTimeHumanReadable"]))
 
 
 	#

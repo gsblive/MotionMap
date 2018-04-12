@@ -93,7 +93,7 @@
 
 ########################################################
 #
-# Multi Sensors
+# MultisensorMotion
 #
 #   deviceName – The English name of the device
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off into unoccupied state
@@ -105,21 +105,92 @@
 # Note: Multisensor also maintains an indigo variable 'NameOfMultisensor.Occupation' that contains the current occupation state
 #   ('OccupiedAll','UnoccupiedAll','# Offline #' and '# Bedtime #')
 #
+# NOTE: To supress LED on Fibaro Multisensor, You just need to change the value for Parameter 80 governing the LED signaling mode from 10 (default) to a 0
+#
 ########################################################
 
--h,Multisensor
+-h,MultisensorMotion
 deviceName,maxMovement,minMovement,debugDeviceMode
-TopFloorMasterBathMultisensor,60,10,noDebug
-BottomFloorMultisensor,60,20,noDebug
-BottomFloorStairsMultisensor,60,5,noDebug
-MiddleFloorBathToiletMultisensor,60,10,noDebug
-MiddleFloorBathMultisensor,60,10,noDebug
-MiddleFloorMultisensor,60,20,noDebug
-TopFloorMasterMultisensor,60,10,noDebug
-TopFloorStairsMultisensor,60,5,noDebug
-TopFloorMasterBathLavMultisensor,60,10,noDebug
-TopFloorMasterBathShowerMultisensor,60,10,noDebug
-GregsDeskMultisensor,60,10,noDebug
+TopFloorMasterBathMultisensorMotion,60,10,noDebug
+BottomFloorMultisensorMotion,60,20,noDebug
+BottomFloorStairsMultisensorrMotion,60,5,noDebug
+MiddleFloorBathToiletMultisensorMotion,60,10,noDebug
+MiddleFloorBathMultisensorMotion,60,10,noDebug
+MiddleFloorMultisensorMotion,60,20,noDebug
+TopFloorMasterMultisensorMotion,60,10,noDebug
+TopFloorStairsMultisensorMotion,60,5,noDebug
+TopFloorMasterBathLavMultisensorMotion,60,10,noDebug
+TopFloorMasterBathShowerMultisensorMotion,60,10,noDebug
+GregsDeskMultisensorMotion,60,10,noDebug
+
+########################################################
+#
+# MultisensorVibration
+#
+#   deviceName – The English name of the device
+#
+########################################################
+-h,MultisensorVibration
+deviceName,debugDeviceMode
+GregsDeskMultisensorVibration,noDebug
+
+
+########################################################
+#
+# MultisensorLuminance
+#
+#   deviceName – The English name of the device
+#
+########################################################
+-h,MultisensorLuminance
+deviceName,debugDeviceMode
+GregsDeskMultisensorLuminance,noDebug
+
+
+########################################################
+#
+# MultisensorHumidity
+#
+#   deviceName – The English name of the device
+#
+########################################################
+-h,MultisensorHumidity
+deviceName,debugDeviceMode
+GregsDeskMultisensorHumidity,noDebug
+
+
+########################################################
+#
+# MultisensorUltraviolet
+#
+#   deviceName – The English name of the device
+#
+########################################################
+-h,MultisensorUltraviolet
+deviceName,debugDeviceMode
+GregsDeskMultisensorUltraviolet,noDebug
+
+
+########################################################
+#
+# MultisensorTemperature
+#
+#   deviceName – The English name of the device
+#
+########################################################
+-h,MultisensorTemperature
+deviceName,proirity,debugDeviceMode
+TopFloorMasterBathMultisensorTemperature,5,noDebug
+BottomFloorMultisensorTemperature,5,noDebug
+BottomFloorStairsMultisensorrTemperature,5,noDebug
+MiddleFloorBathToiletMultisensorTemperature,5,noDebug
+MiddleFloorBathMultisensorTemperature,5,noDebug
+MiddleFloorMultisensorTemperature,5,noDebug
+TopFloorMasterMultisensorTemperature,5,noDebug
+TopFloorStairsMultisensorTemperature,5,noDebug
+TopFloorMasterBathLavMultisensorTemperature,5,noDebug
+TopFloorMasterBathShowerMultisensorTemperature,5,noDebug
+GregsDeskMultisensorTemperature,5,noDebug
 
 
 ########################################################
@@ -148,10 +219,10 @@ GregsDeskMultisensor,60,10,noDebug
 
 -h,OccupationGroup
 deviceName,members,unoccupiedRelayDelayMinutes,debugDeviceMode
-DeskArea,GregsDeskMultisensor,0,noDebug
-TopFloor,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;TopFloorStairsMultisensor;TopFloorMasterBathLavMultisensor;TopFloorMasterBathShowerMultisensor;GregsDeskMultisensor,0,noDebug
-MiddleFloor,MiddleFloorBathToiletMultisensor;MiddleFloorBathMultisensor;MiddleFloorMultisensor,0,noDebug
-BottomFloor,BottomFloorMultisensor;BottomFloorStairsMultisensor,0,noDebug
+DeskArea,GregsDeskMultisensorMotion,0,noDebug
+TopFloor,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;TopFloorStairsMultisensorMotion;TopFloorMasterBathLavMultisensorMotion;TopFloorMasterBathShowerMultisensorMotion;GregsDeskMultisensorMotion,0,noDebug
+MiddleFloor,MiddleFloorBathToiletMultisensorMotion;MiddleFloorBathMultisensorMotion;MiddleFloorMultisensorMotion,0,noDebug
+BottomFloor,BottomFloorMultisensorMotion;BottomFloorStairsMultisensorrMotion,0,noDebug
 House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 
 ########################################################
@@ -177,30 +248,30 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 
 -h,LoadDevice
 deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-BottomFloorStairsLightP,5,10,100,30,flash,BottomFloorStairsMultisensor,,2,noDebug
-BottomFloorRoomNearDoorP,20,360,0,30,flash;bedtime,,BottomFloorMultisensor,2,noDebug
-BottomFloorBunkLeftLightP,60,360,0,30,flash;bedtime,,BottomFloorMultisensor,2,noDebug
-BottomFloorBunkRIghtLightP,60,360,0,30,flash;bedtime,,BottomFloorMultisensor,2,noDebug
-MiddleFloorBathVanityLightP,20,60,100,60,flash,MiddleFloorBathMultisensor,,2,noDebug
-MiddleFloorBathToiletFanLightP,10,60,100,60,flash,MiddleFloorBathToiletMultisensor,,2,noDebug
-TopFloorStairwellLightP,5,20,0,60,flash,TopFloorStairsMultisensor,,2,noDebug
-TopFloorFoyerLightP,5,20,0,60,flash,TopFloorStairsMultisensor,,2,noDebug
-TopFloorMasterLightsP,60,180,0,60,flash,,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;GregsDeskMultisensor,2,noDebug
-TopFloorMasterUnderBedOutletTop,60,300,0,100,flash;bedtime,TopFloorMasterMultisensor,TopFloorMasterBathMultisensor;GregsDeskMultisensor,2,noDebug
-TopFloorMasterBathLavLight,10,60,0,14,flash,,TopFloorMasterBathLavMultisensor,2,noDebug
-TopFloorMasterShowerLightP,10,60,0,100,flash,TopFloorMasterBathShowerMultisensor,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor;TopFloorMasterBathLavMultisensor;GregsDeskMultisensor,2,noDebug
-TopFloorMasterBathVanityLightP,10,60,100,60,flash,,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor,2,noDebug
-TopFloorMasterBathLinenP,10,60,100,60,flash,,TopFloorMasterBathMultisensor;TopFloorMasterMultisensor,2,noDebug
-MiddleFloorBackDeckP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorBathShowerFanLightP,30,120,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorDiningLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorFamilyMainLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorFamilySpotlightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorFamilyTVLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorKitchenCabinetLeftLightSwitchP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorKitchenCabinetLightSwitchRightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorKitchenMainLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
-MiddleFloorKitchenSinkLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,2,noDebug
+BottomFloorStairsLightP,5,10,100,30,flash,BottomFloorStairsMultisensorrMotion,,2,noDebug
+BottomFloorRoomNearDoorP,20,360,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
+BottomFloorBunkLeftLightP,60,360,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
+BottomFloorBunkRIghtLightP,60,360,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
+MiddleFloorBathVanityLightP,20,60,100,60,flash,MiddleFloorBathMultisensorMotion,,2,noDebug
+MiddleFloorBathToiletFanLightP,10,60,100,60,flash,MiddleFloorBathToiletMultisensorMotion,,2,noDebug
+TopFloorStairwellLightP,5,20,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
+TopFloorFoyerLightP,5,20,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
+TopFloorMasterLightsP,60,180,0,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
+TopFloorMasterUnderBedOutletTop,60,300,0,100,flash;bedtime,TopFloorMasterMultisensorMotion,TopFloorMasterBathMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
+TopFloorMasterBathLavLight,10,60,0,14,flash,,TopFloorMasterBathLavMultisensorMotion,2,noDebug
+TopFloorMasterShowerLightP,10,60,0,100,flash,TopFloorMasterBathShowerMultisensorMotion,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;TopFloorMasterBathLavMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
+TopFloorMasterBathVanityLightP,10,60,100,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion,2,noDebug
+TopFloorMasterBathLinenP,10,60,100,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion,2,noDebug
+MiddleFloorBackDeckP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorBathShowerFanLightP,30,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorDiningLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorFamilyMainLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorFamilySpotlightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorFamilyTVLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorKitchenCabinetLeftLightSwitchP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorKitchenCabinetLightSwitchRightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorKitchenMainLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorKitchenSinkLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
 
 ########################################################
 #
@@ -225,7 +296,7 @@ MiddleFloorKitchenSinkLightP,120,360,0,30,flash;bedtime,,MiddleFloorMultisensor,
 
 #-h,zLoadDevice
 #deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-#TestRelay,2,10,100,100,flash,TestMultisensor,TopFloorMasterMultisensor,2,noDebug
+#TestRelay,2,10,100,100,flash,TestMultisensor,TopFloorMasterMultisensorMotion,2,noDebug
 
 ########################################################
 #
@@ -268,7 +339,7 @@ TopFloorMasterBathLavLight1,TopFloorMasterBathLavLight,2,noDebug
 
 -h,HVAC_Insteon
 deviceName,operationalMode,onControllers,sustainControllers,coolSetpoint,heatSetpoint,updateFrequency,fanOnThreshold,maxSequentialErrorsAllowed,allowAsync,debugDeviceMode
-HVACMiddleFloor,HvacHeatMode,MiddleFloorBathToiletMultisensor;MiddleFloorBathMultisensor;TopFloorStairsMultisensor,TopFloorMasterMultisensor,76,66,15,7,3,1,noDebug
+HVACMiddleFloor,HvacHeatMode,MiddleFloorBathToiletMultisensorMotion;MiddleFloorBathMultisensorMotion;TopFloorStairsMultisensorMotion,TopFloorMasterMultisensorMotion,76,66,15,7,3,1,noDebug
 
 ########################################################
 #

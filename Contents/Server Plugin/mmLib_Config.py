@@ -43,7 +43,24 @@ def parseConfig(theFilePath):
 
 	f = open(theFilePath, 'r')
 
-	objectJumpTable = {'MotionSensor':mmObj_Motion.mmMotion,'Multisensor':mmObj_Multisensor.mmMultisensor,'CamMotion':mmObj_CamMotion.mmCamMotion,'LoadDevice':mmDev_InsteonLoad.mmILoad, 'zLoadDevice':mmDev_ZWaveLoad.mmZLoad, 'Companion':mmObj_Companion.mmCompanion, 'HVAC_Insteon':mmDev_HVACInsteon.mmHVACInsteon, 'HVAC_Nest':mmDev_HVACNest.mmHVACNest, 'HVAC_Insteon_Companion':mmDev_HVACCompanion.mmHVACCompanion, 'Scene':mmObj_Scene.mmScene, 'OccupationAction':mmObj_OccupationAction.mmOccupationAction, 'OccupationGroup':mmObj_OccupationGroup.mmOccupationGroup}
+	objectJumpTable = 	{
+						'MotionSensor':mmObj_Motion.mmMotion,
+						'MultisensorMotion':mmObj_Multisensor.mmMultisensorMotion,
+						'MultisensorVibration':mmObj_Multisensor.mmMultisensorVibration,
+						'MultisensorLuminance':mmObj_Multisensor.mmMultisensorLuminance,
+						'MultisensorHumidity':mmObj_Multisensor.mmMultisensorHumidity,
+						'MultisensorUltraviolet':mmObj_Multisensor.mmMultisensorUltraviolet,
+						'MultisensorTemperature':mmObj_Multisensor.mmMultisensorTemperature,
+						'CamMotion':mmObj_CamMotion.mmCamMotion,
+						'LoadDevice':mmDev_InsteonLoad.mmILoad,
+						'zLoadDevice':mmDev_ZWaveLoad.mmZLoad,
+						'Companion':mmObj_Companion.mmCompanion,
+						'HVAC_Insteon':mmDev_HVACInsteon.mmHVACInsteon,
+						'HVAC_Nest':mmDev_HVACNest.mmHVACNest,
+						'HVAC_Insteon_Companion':mmDev_HVACCompanion.mmHVACCompanion,
+						'Scene':mmObj_Scene.mmScene,
+						'OccupationAction':mmObj_OccupationAction.mmOccupationAction,
+						'OccupationGroup':mmObj_OccupationGroup.mmOccupationGroup}
 
 	for line in f:
 		# Filter out blank lines

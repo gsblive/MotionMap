@@ -57,7 +57,12 @@ class mmMultisensor(object):
 
 	######################################################################################
 	#
-	#  __init__ mmMultisensor
+	#  __init__ mmMultisensor (OBSOLETE)
+	#
+	#	This routine initializes mm devices for every subModel of this multisensor.
+	#	We Obsoleted this routine in favor of calling the submodules' objects directly from mmLib_Config.py
+	#
+	#	AFAIK this routine would still work if we called it. Just adjust objectJumpTable in mmLib_Config.py as needed.
 	#
 	######################################################################################
 
@@ -106,7 +111,9 @@ class mmMultisensor(object):
 				mmLib_Log.logForce("==== WARNING ==== Handler not found for " + newDevName + ". Descriptor: " + theDeviceDescriptor)
 				return
 
+			# Update the device name to reflect the current submodel
 			subDeviceParameters["deviceName"] = newDevName
+			# Update the device type (though I dont think this is used)
 			subDeviceParameters["deviceType"] = newDev.subModel
 
 			if self.debugDevice != 0: mmLib_Log.logForce("Initializing: " + str(newDevName))
@@ -264,9 +271,6 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 
 
 		super(mmMultisensorVibration, self).__init__(theDeviceParameters)  # Initialize Base Class
-
-		if self.deviceName == "AeonMultisensorTest1":
-			mmLib_Log.logForce("### Initializing Vibration sensor with wrong name: " + self.deviceName )
 
 		if self.theIndigoDevice.onState == True: indigo.device.turnOff(self.devIndigoID)
 		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
