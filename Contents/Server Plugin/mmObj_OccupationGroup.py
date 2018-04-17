@@ -54,7 +54,8 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			self.scheduledDeactivationTimeSeconds = 0
 			s = str(self.deviceName + ".Group.Occupation")
 			self.occupationIndigoVar = s.replace(' ', '.')
-			self.lastReportedOccupationState = 'none'
+			self.lastReportedOccupationEvent = 'none'
+			self.occupiedState = 'none'
 
 			mmLib_Events.registerPublisher(occupationRelatedEvents, self.deviceName)
 			
@@ -90,18 +91,22 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		if len(self.occupiedAllDict) == len(self.members):
 			# highest priority... all members are reporting full occupancy
 			newEvents = ['OccupiedAll']
+			self.occupiedState = True
 		elif len(self.unoccupiedAllDict) == len(self.members):
 			# next highest priority... all members are reporting no occupancy
 			newEvents = ['UnoccupiedAll']
+			self.occupiedState = False
 		else:
 			# We are partially occupied send the appropriate event
 			newEvents = ['OccupiedPartial']
+			self.occupiedState = True
 
 		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " calculated events " + str(newEvents) + " for delivery.")
 
 		# only report this update to subscribers if it has changed
-		if self.lastReportedOccupationState != newEvents:
-			self.lastReportedOccupationState = newEvents
+		if self.lastReportedOccupationEvent != newEvents:
+			self.lastReportedOccupationEvent = newEvents
+			if self.debugDevice: mmLib_Log.logForce( "    " + self.deviceName + " Delivering events " + str(newEvents) + " to all subscribers.")
 			mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})
 		else:
 			if self.debugDevice: mmLib_Log.logForce("    No delivery necessary. No Change to previous delivery.")
@@ -136,7 +141,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 		theMessage = '\n\n==== DeviceStatus for ' + self.deviceName + ' ====\n'
 
-		theMessage = theMessage + '\n Last Reported Occupation State = ' + str(self.lastReportedOccupationState)
+		theMessage = theMessage + '\n Last Reported Occupation Event = ' + str(self.lastReportedOccupationEvent) + " OccupiedState = " + str(self.occupiedState)
 		theMessage = theMessage + "\n"
 		theMessage = theMessage + "\n"
 
@@ -158,7 +163,49 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		if self.scheduledDeactivationTimeSeconds:
 			theMessage = theMessage + str("    \'Unoccupied\' Event pending. To be delivered in " + str( mmLib_Low.minutesAndSecondsTillTime(self.scheduledDeactivationTimeSeconds)))
 
+		theMessage = theMessage + '\n==== End DeviceStatus for ' + self.deviceName + ' ====\n'
+		theMessage = theMessage + "\n"
+
 		mmLib_Log.logReportLine(theMessage)
+
+		return 0
+
+	#
+	# For occupation Group... On State is true if it is fully occupied
+	#
+	def getOnState(self):
+
+		if len(self.occupiedAllDict) == len(self.members):
+			return(True)
+		else:
+			return(False)
+
+	def getOccupiedState(self):
+
+		return(self.getOnState())
+
+	#
+	# setOnOffLine - we have to pass this command to the members
+	#
+	#	we support the following requestedStates:
+	#
+	#	'on'			The motion sensor received an on signal
+	#	'off'			The motion sensor received an off signal
+	#	'bedtime'		The motion sensor is sleeping till morning
+	def setOnOffLine(self, requestedState):
+
+		if self.onlineState != requestedState:
+			if self.debugDevice: mmLib_Log.logForce("Setting " + self.deviceName + " onOfflineState to \'" + requestedState + "\'.")
+
+			self.onlineState = requestedState
+
+			for member in self.members:
+				if not member: break
+				memberDev = mmLib_Low.MotionMapDeviceDict.get(member,0)
+				if memberDev: memberDev.setOnOffLine(requestedState)
+
+		return(0)
+
 
 													   
 	######################################################################################
@@ -239,6 +286,39 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, varString)
 		return 0
 
+	#
+	# loadDeviceNotificationOfOn - called from Load Devices... we pass it through to member controllers
+	#
+	def loadDeviceNotificationOfOn(self):
+		self.controllerMissedCommandCount = self.controllerMissedCommandCount + 1
+
+		for member in self.members:
+			if not member: break
+			memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
+			if memberDev:
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " sending loadDeviceNotificationOfOn to \'" + member + "\'.")
+				memberDev.loadDeviceNotificationOfOn()
+
+		return (0)
 
 
+	#
+	# forceTimeout - The device we are controlling was manually turned off, so cancel our offTimers if there are any
+	#
+	def forceTimeout(self):
 
+		# Forward this call to all of our members
+
+		for member in self.members:
+			if not member: break
+			memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
+			if memberDev:
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " sending forceTimeout to \'" + member + "\'.")
+				memberDev.forceTimeout()
+
+		# Now process the call for ourselves
+		if self.scheduledDeactivationTimeSeconds:  # if unoccupied timer is running, stop it
+			mmLib_Low.cancelDelayedAction(self.unoccupiedTimerProc)  # This handles exception so it will cancel only if it exists
+			self.unoccupiedTimerProc({})
+
+		return 0

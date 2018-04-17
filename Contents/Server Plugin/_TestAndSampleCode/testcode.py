@@ -20,7 +20,7 @@ import ntpath
 import ast
 from timeit import default_timer as timer
 from time import gmtime, strftime
-from datetime import datetime, timedelta
+import datetime
 
 
 
@@ -33,6 +33,18 @@ startTime = timer()
 
 endTime = timer()
 
-if not 1 or 2 > 1:
-	print "Yes"
+line = "deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode"
+lineList = line.strip()
+lineList = lineList.split(",")
+currentHeader = lineList
+
+line = "BackStairsLights,5,60,25,flash,GarageHall3MultisensorMotion;BackStairsMultisensorMotion,,2,noDebug"
+
+lineList = line.strip()
+lineList = lineList.split(",")
+initParameters = dict(zip(currentHeader, lineList))
+
+print str(initParameters)
+
+if not initParameters['sustainControllers']:print "no controllers"
 quit()

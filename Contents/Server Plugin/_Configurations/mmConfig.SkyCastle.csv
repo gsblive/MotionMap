@@ -110,17 +110,17 @@
 
 -h,MultisensorMotion
 deviceName,maxMovement,minMovement,debugDeviceMode
-AeonTest1MultisensorMotion,60,5,noDebug
+AeonTest1MultisensorMotion,60,2,Debug
 BackStairsMultisensorMotion,60,5,noDebug
-ButlerKitchenMultisensorMotion,60,10,noDebug
+ButlerKitchenMultisensorMotion,60,5,noDebug
 CarPortMultisensorMotion,60,5,noDebug
-DiningRoomMultisensorAMotion,60,5,noDebug
-DiningRoomMultisensorBMotion,60,5,noDebug
+DiningRoomMultisensorAMotion,360,5,noDebug
+DiningRoomMultisensorBMotion,360,5,noDebug
 DownstairsHallLeftLightsAMultisensorMotion,60,5,noDebug
 DownstairsHallLeftLightsBMultisensorMotion,60,5,noDebug
 DownstairsHallRightAMultisensorMotion,60,5,noDebug
 DownstairsHallRightBMultisensorMotion,60,5,noDebug
-FamilyRoomMultisensorMotion,60,10,noDebug
+FamilyRoomMultisensorMotion,360,10,noDebug
 FamilyRoomBathMultisensorMotion,60,10,noDebug
 FoyerCoatClosetMultisensorMotion,60,10,noDebug
 GarageHall1MultisensorMotion,60,10,noDebug
@@ -129,33 +129,33 @@ GarageHall3MultisensorMotion,60,10,noDebug
 GregsOfficeClosetMultisensorMotion,60,5,noDebug
 GregsOfficeBathMultisensorMotion,60,10,noDebug
 GregsOfficeBathShowerMultisensorMotion,60,5,noDebug
-GregsOfficeDoorMultisensorMotion,480,15,noDebug
-GregsOfficeMultisensorMotion,480,15,noDebug
+GregsOfficeDoorMultisensorMotion,480,2,noDebug
+GregsOfficeMultisensorMotion,480,2,noDebug
 GuestBathMultisensorMotion,60,10,noDebug
 GuestMultisensorMotion,60,10,noDebug
 KitchenBathMuiltisensorMotion,60,10,noDebug
 LaundryRoomMultisensorMotion,60,10,noDebug
 MasterBarbiesClosetMultisensorMotion,60,5,noDebug
-MasterBedroomMultisensorMotion,60,20,noDebug
+MasterBedroomMultisensorMotion,360,20,noDebug
 MasterGregsClosetMultisensorMotion,60,5,noDebug
-MasterBathMultiSensorMotion,60,10,noDebug
+MasterBathMultiSensorMotion,120,10,noDebug
 MasterBathShowerMultisensorMotion,60,5,noDebug
 MasterBathLavMultisensorMotion,60,10,noDebug
 MasterHallMultisensorMotion,60,5,noDebug
-MJBedroomBathMultisensorMotion,60,5,noDebug
+MJBedroomBathMultisensorMotion,120,5,noDebug
 MJBedroomClosetMultisensorMotion,60,5,noDebug
 MJBedroomLavMultisensorMotion,60,5,noDebug
-MJBedroomMainMultisensorMotion,60,5,noDebug
-MJBedroomNookMultisensorMotion,60,5,noDebug
+MJBedroomMainMultisensorMotion,360,5,noDebug
+MJBedroomNookMultisensorMotion,360,5,noDebug
 MJBedroomShowerMultisensorMotion,60,5,noDebug
-PatioMultisensorMotion,60,10,noDebug
+PatioMultisensorMotion,360,10,noDebug
 QuadMasterHallLightMultisensorMotion,60,5,noDebug
-QuadMultisensorAMotion,60,5,noDebug
-QuadMultisensorBMotion,60,5,noDebug
-ServerClosetMultisensorMotion,60,10,noDebug
-TheaterBackMultisensorMotion,120,10,noDebug
+QuadMultisensorAMotion,120,5,noDebug
+QuadMultisensorBMotion,120,5,noDebug
+ServerClosetMultisensorMotion,60,5,noDebug
+TheaterBackMultisensorMotion,360,10,noDebug
 TheaterBathMultisensorMotion,60,10,noDebug
-TheaterFrontMultisensorMotion,120,10,noDebug
+TheaterFrontMultisensorMotion,360,10,noDebug
 UpstairsHallRightAMultisensorMotion,60,5,noDebug
 UpstairsHallRightBMultisensorMotion,60,5,noDebug
 UpstairsHallRightCMultisensorMotion,60,5,noDebug
@@ -343,13 +343,14 @@ House,DownstairsRight;DownstairsLeft;UpstairsRight;UpstairsLeft,60,noDebug
 DoorCarPortGroup,House;CarPortMultisensorMotion,0,noDebug
 DoorBackDeckGroup,House,0,noDebug
 #DoorAllGroup,House;CarPortMultisensorMotion,0,noDebug
+GregsOfficeTestGroup,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,2,noDebug
 
 ########################################################
 #
 #    LoadDevices – Usually a Dimmer Switch or Outlet
 #
 #   deviceName – The English name of the device
-#   maxNonMotionTime – The maximum of time (in minutes) that this device is allowed to stay on while receiving no motion events
+#   unoccupationDelay – A delay before turning the device off after an unoccupation event
 #   maxOnTime – The maximum of time (in minutes) that this device is allowed to stay on (regardless of motion sensor)
 #   daytimeOnLevel – The light level to turn this device during the daytime 0 is off1 is on for switch1-100 is percent for dimmer
 #   nighttimeOnLevel – The light level to turn this device during the daytime (0 is off1 is on for switch1-100 is percent for dimmer)
@@ -357,122 +358,123 @@ DoorBackDeckGroup,House,0,noDebug
 #						flash: flash the device 1 mionute prior to turning off;
 #						beep: beep the device 1 minute prior to turning off;
 #						bedtime: Disable Controllers until morning
-#   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
-#   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
+#   onControllers* – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
+#   sustainControllers* – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 #	Note: if a load device doesnt have any motions sensors defined, they will stay on for maxOnTime before auto Off
 # Note2: Some of the devices are commented out... that is because we are not using them for anything at the moment (or they are temporarilly disconnected) and we have no need to process them
-#
+# Note3: *LoadDevices make custom OccupationDevices during initialization for all groups of motion sensors declared as onControllers and sustainControllers
+#								They are named 'deviceName'_OG for occupation Groups and 'deviceName'_SG for sustainGroups
 ########################################################
 
 -h,LoadDevice
-deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-BackStairsLights,5,30,60,25,flash,GarageHall3MultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
-ButlerKitchenLight,5,60,80,60,flash,ButlerKitchenMultisensorMotion,,2,noDebug
-CarPortCarriageLights,5,60,0,30,flash,CarPortMultisensorMotion;CamCarPortMotion,,2,noDebug
-CarPortLights,5,360,0,100,,CamHouseParkingMotion,,2,noDebug
-DogRunAndWaterfallFloodLight,5,60,0,100,,CamDogRunMotion,,2,noDebug
-DownstairsHallLeftLights,5,60,0,30,flash,DownstairsHallLeftLightsAMultisensorMotion;DownstairsHallLeftLightsBMultisensorMotion,,2,noDebug
-DownstairsHallRightLights,5,60,60,30,flash,DownstairsHallRightAMultisensorMotion;DownstairsHallRightBMultisensorMotion,,2,noDebug
-Dining Chandelier,30,600,0,30,flash,,DiningRoomMultisensorBMotion;DiningRoomMultisensorAMotion;DownstairsHallRightAMultisensorMotion;DownstairsHallLeftLightsAMultisensorMotion,2,noDebug
-DiningRoomCans,10,600,0,30,flash,DownstairsHallRightAMultisensorMotion;DiningRoomMultisensorAMotion;DownstairsHallLeftLightsAMultisensorMotion,DiningRoomMultisensorBMotion,2,noDebug
-FamilyRoomBathVanityLight,20,60,100,30,flash,FamilyRoomBathMultisensorMotion,,2,noDebug
-DrivewayPostCarriageLights,600,600,100,100,flash,,,2,noDebug
-FamilyRoomBathFan,20,60,100,100,flash,,FamilyRoomBathMultisensorMotion,2,noDebug
-FamilyRoomBathFanLight,20,60,100,30,flash,,FamilyRoomBathMultisensorMotion,2,noDebug
-FamilyRoomCanLights,60,300,0,40,flash,DownstairsHallRightBMultisensorMotion;FamilyRoomMultisensorMotion,,2,noDebug
-#FamilyRoomOutletTop,360,360,100,100,,,,2,noDebug
-FamilyRoomOutletBottom,360,0,100,100,,,,2,noDebug
-FoyerCoatClosetLight,5,60,100,50,flash,FoyerCoatClosetMultisensorMotion,,2,noDebug
-FoyerFrontRightOutletBottom,360,0,100,100,,,,2,noDebug
-#FoyerFrontRightOutletTop,360,0,100,100,,,,2,noDebug
-FoyerFrontLeftOutletBottom,360,0,100,100,,,,2,noDebug
-#FoyerFrontLeftOutletTop,360,0,60,30,,,,2,noDebug
-FoyerLeftOutletBottom,360,0,100,100,,,,2,noDebug
-#FoyerLeftOutletTop,360,0,60,30,,,,2,noDebug
-FrontPondOutletTop,480,480,100,100,,,,2,noDebug
-FrontPondOutletBottom,480,480,100,100,,,,2,noDebug
-Front Porch,5,360,0,100,,CamLeftFrontHouseMotion,,2,noDebug
-GarageDoorLights,5,360,0,100,,CamGarageMotion,,2,noDebug
-GarageHall,5,60,60,30,flash,GarageHall1MultisensorMotion;GarageHall2MultisensorMotion;GarageHall3MultisensorMotion,,2,noDebug
-GregsOfficeClosetDimmer,5,360,100,20,flash,GregsOfficeClosetMultisensorMotion,,2,noDebug
-GregsOfficeClosetCabinets - Top,5,60,0,100,flash,GregsOfficeClosetMultisensorMotion;GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
-#GregsOfficeShelfLights,5,60,100,100,flash,AeonTest1MultisensorMotion,,2,noDebug
-GregsOfficeOutlet,5,60,100,100,flash,AeonTest1MultisensorMotion,,2,noDebug
-GregsOfficeBathVanityLight,10,60,100,0,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
-GregsOfficeBathFanLight,10,60,0,30,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
-GregsOfficeBathShowerLight,5,60,100,30,flash,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
-GregsOfficeBathFan,5,60,100,100,,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
-GregsOfficeLight,10,360,0,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
-GuestBedroomFanLight,30,180,0,30,flash;bedtime,,GuestMultisensorMotion,2,noDebug
-GuestBathVanityLight,30,120,100,25,flash,GuestBathMultisensorMotion,,2,noDebug
-GuestBathFan,30,60,0,0,flash,,GuestBathMultisensorMotion,2,noDebug
-GuestBathFanLight,30,60,100,25,flash,,GuestBathMultisensorMotion,2,noDebug
-KitchenBathLight,5,60,100,25,flash,KitchenBathMuiltisensorMotion,,2,noDebug
-KitchenLavLight,30,60,100,25,flash,,KitchenBathMuiltisensorMotion,2,noDebug
-KitchenLavFan,30,60,0,0,flash,,KitchenBathMuiltisensorMotion,2,noDebug
-LaundryRoomLight,5,60,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
-LaundryRoomFan,5,10,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug
-LivingRoomOutletBottom,360,0,100,100,,,,2,noDebug
-#LivingRoomOutletTop,360,360,100,100,,,,2,noDebug
-Main Stairs Chandelier,60,300,0,100,flash,,QuadMultisensorAMotion;QuadMultisensorBMotion;DiningRoomMultisensorAMotion;DiningRoomMultisensorBMotion,2,noDebug
-Main Stairs Left,60,120,0,30,flash,,,2,noDebug
-Main Stairs Right,60,120,0,30,flash,,,2,noDebug
-MasterHallLight,5,30,0,24,flash,MasterHallMultisensorMotion,,2,noDebug
-MasterCanLights,120,180,70,30,flash,,,2,noDebug
-MasterFanLight,120,180,0,5,flash;bedtime,MasterHallMultisensorMotion,,2,noDebug
-MasterBarbiesClosetLight,5,60,100,40,flash,MasterBarbiesClosetMultisensorMotion,,2,noDebug
-MasterBathLavLight,10,60,100,6,flash,MasterBathLavMultisensorMotion,,2,noDebug
-MasterBathLavFan,10,60,0,0,flash,,MasterBathLavMultisensorMotion,2,noDebug
-MasterBathShowerLight,5,60,100,50,flash,MasterBathShowerMultisensorMotion,MasterBathMultiSensorMotion,2,noDebug
-MasterBathCenterLight,5,60,0,20,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
-MasterBathRightVanityLight,15,90,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
-MasterBathLeftVanityLight,5,60,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
-MasterBathTubLight,5,60,0,23,flash,MasterBathMultiSensorMotion,MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
-MasterGregsClosetLight,5,60,100,30,flash,MasterGregsClosetMultisensorMotion,,2,noDebug
-MJBathroom,10,60,100,10,flash,,,2,noDebug
-MJCloset,5,60,100,20,flash,MJBedroomClosetMultisensorMotion,,2,noDebug
-MJBedroomLights,30,300,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
-MJBedroomLight,30,300,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
-MJBedroomAlcoveCanLights,30,300,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
-MJBedroomAlcoveChandelier,30,300,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
-MJBedroomFan,300,300,0,40,,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
-MJBathroomLavLight,10,60,100,16,flash,MJBedroomLavMultisensorMotion,,2,noDebug
-MJBathroomLavFan,10,60,0,0,flash,,MJBedroomLavMultisensorMotion,2,noDebug
-MJBathroomRightSink,15,90,70,30,flash,,MJBedroomBathMultisensorMotion;MJBedroomClosetMultisensorMotion;MJBedroomShowerMultisensorMotion;MJBedroomLavMultisensorMotion,2,noDebug
-MJBathroomLeftSink,5,60,70,30,flash,,MJBedroomBathMultisensorMotion;MJBedroomClosetMultisensorMotion;MJBedroomShowerMultisensorMotion;MJBedroomLavMultisensorMotion,2,noDebug
-MJShowerLight,5,60,100,50,flash,MJBedroomShowerMultisensorMotion,,2,noDebug
-MJShowerFan,5,60,100,50,,MJBedroomShowerMultisensorMotion,,2,noDebug
-MJShowerSconce,5,60,100,50,flash,MJBedroomShowerMultisensorMotion,,2,noDebug
-#OutdoorTempFrontDoor,360,360,100,100,,,,2,noDebug
-#OutdoorTempDriveway,360,360,100,100,,,,2,noDebug
-#OutdoorTempKitchen,360,360,100,100,,,,2,noDebug
-PatioCarriageLights,60,300,0,20,flash,,PatioMultisensorMotion,2,noDebug
-PatioChandelier,60,300,0,54,flash,PatioMultisensorMotion,,2,noDebug
-PatioCans,6,300,0,100,,CamRightFrontHouseMotion,,2,noDebug
-RearDeckCarriage,240,240,100,30,,,,2,noDebug
-RearDeckCarraigeB,15,240,0,30,,CamBackGateMotion,,2,noDebug
-QuadMasterHallLight,5,60,0,20,flash,MasterHallMultisensorMotion;QuadMasterHallLightMultisensorMotion,,2,noDebug
-Quad Front,5,120,0,20,flash,QuadMultisensorAMotion,,2,noDebug
-Quad Back,5,120,0,20,flash,QuadMasterHallLightMultisensorMotion;UpstairsHallRightAMultisensorMotion;QuadMultisensorBMotion,QuadMultisensorAMotion,2,noDebug
-ServerClosetLight,5,60,100,50,flash,ServerClosetMultisensorMotion,,2,noDebug
-TheaterBalconyLight,60,60,100,100,flash,,,2,noDebug
-TheaterBathFan,15,60,100,100,flash,,TheaterBathMultisensorMotion,2,noDebug
-TheaterBathFanLight,15,60,0,24,flash,TheaterBathMultisensorMotion,,2,noDebug
-TheaterBackLight,60,300,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
-TheaterKitchenLight,60,300,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
-TheaterMainLight,60,300,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
-TheaterBathVanityLight,15,60,100,65,flash,,TheaterBathMultisensorMotion,2,noDebug
-#UnderRearDeckOutletIR - Top,240,240,100,100,,,,2,Debug
-UnderRearDeckOutletWallLights - Bottom,360,360,100,100,,,,2,noDebug
-UpstairsHallRightA,5,30,0,24,flash,UpstairsHallRightAMultisensorMotion;UpstairsHallRightBMultisensorMotion,,2,noDebug
-UpstairsHallRightB,5,30,0,24,flash,UpstairsHallRightAMultisensorMotion;UpstairsHallRightBMultisensorMotion,,2,noDebug
-UpstairsHallRightC,5,30,0,24,flash,UpstairsHallRightAMultisensorMotion;UpstairsHallRightBMultisensorMotion;UpstairsHallRightCMultisensorMotion,,2,noDebug
-UpstairsHallRightD,5,30,0,24,flash,UpstairsHallRightCMultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
-WineRoomLight,5,60,40,40,flash,WineRoomMultisensorMotion,,2,noDebug
-#FakeLoadDevice,480,480,100,100,flash,,,2,noDebug
+deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
+BackStairsLights,5,60,25,flash,GarageHall3MultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
+ButlerKitchenLight,5,80,60,flash,ButlerKitchenMultisensorMotion,,2,noDebug
+CarPortCarriageLights,5,0,30,flash,CarPortMultisensorMotion;CamCarPortMotion,,2,noDebug
+CarPortLights,5,0,100,,CamHouseParkingMotion,,2,noDebug
+DogRunAndWaterfallFloodLight,5,0,100,,CamDogRunMotion,,2,noDebug
+DownstairsHallLeftLights,5,0,30,flash,DownstairsHallLeftLightsAMultisensorMotion;DownstairsHallLeftLightsBMultisensorMotion,,2,noDebug
+DownstairsHallRightLights,5,60,30,flash,DownstairsHallRightAMultisensorMotion;DownstairsHallRightBMultisensorMotion,,2,noDebug
+Dining Chandelier,30,0,30,flash,,DiningRoomMultisensorBMotion;DiningRoomMultisensorAMotion;DownstairsHallRightAMultisensorMotion;DownstairsHallLeftLightsAMultisensorMotion,2,noDebug
+DiningRoomCans,10,0,30,flash,DownstairsHallRightAMultisensorMotion;DiningRoomMultisensorAMotion;DownstairsHallLeftLightsAMultisensorMotion,DiningRoomMultisensorBMotion,2,noDebug
+FamilyRoomBathVanityLight,20,100,30,flash,FamilyRoomBathMultisensorMotion,,2,noDebug
+DrivewayPostCarriageLights,600,100,100,flash,,,2,noDebug
+FamilyRoomBathFan,20,100,100,flash,,FamilyRoomBathMultisensorMotion,2,noDebug
+FamilyRoomBathFanLight,20,100,30,flash,,FamilyRoomBathMultisensorMotion,2,noDebug
+FamilyRoomCanLights,60,0,40,flash,DownstairsHallRightBMultisensorMotion;FamilyRoomMultisensorMotion,,2,noDebug
+#FamilyRoomOutletTop,360,100,100,,,,2,noDebug
+FamilyRoomOutletBottom,360,100,100,,,,2,noDebug
+FoyerCoatClosetLight,5,100,50,flash,FoyerCoatClosetMultisensorMotion,,2,noDebug
+FoyerFrontRightOutletBottom,360,100,100,,,,2,noDebug
+#FoyerFrontRightOutletTop,360,100,100,,,,2,noDebug
+FoyerFrontLeftOutletBottom,360,100,100,,,,2,noDebug
+#FoyerFrontLeftOutletTop,360,60,30,,,,2,noDebug
+FoyerLeftOutletBottom,360,100,100,,,,2,noDebug
+#FoyerLeftOutletTop,360,60,30,,,,2,noDebug
+FrontPondOutletTop,480,100,100,,,,2,noDebug
+FrontPondOutletBottom,480,100,100,,,,2,noDebug
+Front Porch,5,0,100,,CamLeftFrontHouseMotion,,2,noDebug
+GarageDoorLights,5,0,100,,CamGarageMotion,,2,noDebug
+GarageHall,5,60,30,flash,GarageHall1MultisensorMotion;GarageHall2MultisensorMotion;GarageHall3MultisensorMotion,,2,noDebug
+GregsOfficeClosetDimmer,5,100,20,flash,GregsOfficeClosetMultisensorMotion,,2,noDebug
+GregsOfficeClosetCabinets - Top,5,0,100,flash,GregsOfficeClosetMultisensorMotion;GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
+#GregsOfficeShelfLights,5,100,100,flash,AeonTest1MultisensorMotion,,2,noDebug
+GregsOfficeOutlet,0,100,100,flash,AeonTest1MultisensorMotion,,2,noDebug
+GregsOfficeBathVanityLight,10,100,0,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
+GregsOfficeBathFanLight,10,0,30,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
+GregsOfficeBathShowerLight,5,100,30,flash,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
+GregsOfficeBathFan,5,100,100,,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
+GregsOfficeLight,1,100,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
+GuestBedroomFanLight,30,0,30,flash;bedtime,,GuestMultisensorMotion,2,noDebug
+GuestBathVanityLight,30,100,25,flash,GuestBathMultisensorMotion,,2,noDebug
+GuestBathFan,30,0,0,flash,,GuestBathMultisensorMotion,2,noDebug
+GuestBathFanLight,30,100,25,flash,,GuestBathMultisensorMotion,2,noDebug
+KitchenBathLight,5,100,25,flash,KitchenBathMuiltisensorMotion,,2,noDebug
+KitchenLavLight,30,100,25,flash,,KitchenBathMuiltisensorMotion,2,noDebug
+KitchenLavFan,30,0,0,flash,,KitchenBathMuiltisensorMotion,2,noDebug
+LaundryRoomLight,5,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
+LaundryRoomFan,5,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug
+LivingRoomOutletBottom,360,100,100,,,,2,noDebug
+#LivingRoomOutletTop,360,100,100,,,,2,noDebug
+Main Stairs Chandelier,60,0,100,flash,,QuadMultisensorAMotion;QuadMultisensorBMotion;DiningRoomMultisensorAMotion;DiningRoomMultisensorBMotion,2,noDebug
+Main Stairs Left,60,0,30,flash,,,2,noDebug
+Main Stairs Right,60,0,30,flash,,,2,noDebug
+MasterHallLight,5,0,24,flash,MasterHallMultisensorMotion,,2,noDebug
+MasterCanLights,120,70,30,flash,,,2,noDebug
+MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion,,2,noDebug
+MasterBarbiesClosetLight,5,100,40,flash,MasterBarbiesClosetMultisensorMotion,,2,noDebug
+MasterBathLavLight,10,100,6,flash,MasterBathLavMultisensorMotion,,2,noDebug
+MasterBathLavFan,10,0,0,flash,,MasterBathLavMultisensorMotion,2,noDebug
+MasterBathShowerLight,5,100,50,flash,MasterBathShowerMultisensorMotion,MasterBathMultiSensorMotion,2,noDebug
+MasterBathCenterLight,5,0,20,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
+MasterBathRightVanityLight,15,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
+MasterBathLeftVanityLight,5,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
+MasterBathTubLight,5,0,23,flash,MasterBathMultiSensorMotion,MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
+MasterGregsClosetLight,5,100,30,flash,MasterGregsClosetMultisensorMotion,,2,noDebug
+MJBathroom,10,100,10,flash,,,2,noDebug
+MJCloset,5,100,20,flash,MJBedroomClosetMultisensorMotion,,2,noDebug
+MJBedroomLights,30,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
+MJBedroomLight,30,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
+MJBedroomAlcoveCanLights,30,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
+MJBedroomAlcoveChandelier,30,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
+MJBedroomFan,300,0,40,,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
+MJBathroomLavLight,10,100,16,flash,MJBedroomLavMultisensorMotion,,2,noDebug
+MJBathroomLavFan,10,0,0,flash,,MJBedroomLavMultisensorMotion,2,noDebug
+MJBathroomRightSink,15,70,30,flash,,MJBedroomBathMultisensorMotion;MJBedroomClosetMultisensorMotion;MJBedroomShowerMultisensorMotion;MJBedroomLavMultisensorMotion,2,noDebug
+MJBathroomLeftSink,5,70,30,flash,,MJBedroomBathMultisensorMotion;MJBedroomClosetMultisensorMotion;MJBedroomShowerMultisensorMotion;MJBedroomLavMultisensorMotion,2,noDebug
+MJShowerLight,5,100,50,flash,MJBedroomShowerMultisensorMotion,,2,noDebug
+MJShowerFan,5,100,50,,MJBedroomShowerMultisensorMotion,,2,noDebug
+MJShowerSconce,5,100,50,flash,MJBedroomShowerMultisensorMotion,,2,noDebug
+#OutdoorTempFrontDoor,360,100,100,,,,2,noDebug
+#OutdoorTempDriveway,360,100,100,,,,2,noDebug
+#OutdoorTempKitchen,360,100,100,,,,2,noDebug
+PatioCarriageLights,60,0,20,flash,,PatioMultisensorMotion,2,noDebug
+PatioChandelier,60,0,54,flash,PatioMultisensorMotion,,2,noDebug
+PatioCans,6,0,100,,CamRightFrontHouseMotion,,2,noDebug
+RearDeckCarriage,240,100,30,,,,2,noDebug
+RearDeckCarraigeB,15,0,30,,CamBackGateMotion,,2,noDebug
+QuadMasterHallLight,5,0,20,flash,MasterHallMultisensorMotion;QuadMasterHallLightMultisensorMotion,,2,noDebug
+Quad Front,5,0,20,flash,QuadMultisensorAMotion,,2,noDebug
+Quad Back,5,0,20,flash,QuadMasterHallLightMultisensorMotion;UpstairsHallRightAMultisensorMotion;QuadMultisensorBMotion,QuadMultisensorAMotion,2,noDebug
+ServerClosetLight,5,100,50,flash,ServerClosetMultisensorMotion,,2,noDebug
+TheaterBalconyLight,60,100,100,flash,,,2,noDebug
+TheaterBathFan,15,100,100,flash,,TheaterBathMultisensorMotion,2,noDebug
+TheaterBathFanLight,15,0,24,flash,TheaterBathMultisensorMotion,,2,noDebug
+TheaterBackLight,60,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
+TheaterKitchenLight,60,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
+TheaterMainLight,60,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
+TheaterBathVanityLight,15,100,65,flash,,TheaterBathMultisensorMotion,2,noDebug
+#UnderRearDeckOutletIR - Top,240,100,100,,,,2,Debug
+UnderRearDeckOutletWallLights - Bottom,360,100,100,,,,2,noDebug
+UpstairsHallRightA,5,0,24,flash,UpstairsHallRightAMultisensorMotion;UpstairsHallRightBMultisensorMotion,,2,noDebug
+UpstairsHallRightB,5,0,24,flash,UpstairsHallRightAMultisensorMotion;UpstairsHallRightBMultisensorMotion,,2,noDebug
+UpstairsHallRightC,5,0,24,flash,UpstairsHallRightAMultisensorMotion;UpstairsHallRightBMultisensorMotion;UpstairsHallRightCMultisensorMotion,,2,noDebug
+UpstairsHallRightD,5,0,24,flash,UpstairsHallRightCMultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
+WineRoomLight,5,40,40,flash,WineRoomMultisensorMotion,,2,noDebug
+#FakeLoadDevice,480,100,100,flash,,,2,noDebug
 
 ########################################################
 #
