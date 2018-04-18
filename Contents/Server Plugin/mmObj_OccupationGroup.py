@@ -293,7 +293,6 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	# loadDeviceNotificationOfOn - called from Load Devices... we pass it through to member controllers
 	#
 	def loadDeviceNotificationOfOn(self):
-		self.controllerMissedCommandCount = self.controllerMissedCommandCount + 1
 
 		for member in self.members:
 			if not member: break
