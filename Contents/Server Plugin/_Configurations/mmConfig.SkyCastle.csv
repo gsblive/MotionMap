@@ -293,7 +293,7 @@ CamLeftFrontHouseMotion,60,5,Front Porch;Main Stairs Chandelier,6,,noDebug
 CamGarageMotion,60,5,GarageDoorLights;PatioCans,6,,noDebug
 CamRightFrontHouseMotion,60,5,PatioCarriageLights;Front Porch,6,PatioChandelier,noDebug
 CamHouseParkingMotion,60,5,CarPortLights;DogRunAndWaterfallFloodLight,6,,noDebug
-CamBackGateMotion,60,5,RearDeckCarraige;RearDeckCarraigeB,30,UnderRearDeckOutletWallLights - Bottom,noDebug
+CamBackGateMotion,60,5,RearDeckCarriage;RearDeckCarriageB,30,UnderRearDeckOutletWallLights - Bottom,noDebug
 CamDrivewayMotion,60,5,,30,,noDebug
 
 ########################################################
@@ -455,7 +455,7 @@ PatioCarriageLights,60,0,20,flash,,PatioMultisensorMotion,2,noDebug
 PatioChandelier,60,0,54,flash,PatioMultisensorMotion,,2,noDebug
 PatioCans,6,0,100,,CamRightFrontHouseMotion,,2,noDebug
 RearDeckCarriage,240,100,30,,,,2,noDebug
-RearDeckCarraigeB,15,0,30,,CamBackGateMotion,,2,noDebug
+RearDeckCarriageB,15,0,30,,CamBackGateMotion,,2,noDebug
 QuadMasterHallLight,5,0,20,flash,MasterHallMultisensorMotion;QuadMasterHallLightMultisensorMotion,,2,noDebug
 Quad Front,5,0,20,flash,QuadMultisensorAMotion,,2,noDebug
 Quad Back,5,0,20,flash,QuadMasterHallLightMultisensorMotion;UpstairsHallRightAMultisensorMotion;QuadMultisensorBMotion,QuadMultisensorAMotion,2,noDebug
@@ -520,7 +520,7 @@ Quad Back 1,Quad Back,2,noDebug
 Quad Back 2,Quad Back,2,noDebug
 Quad Back 3,Quad Back,2,noDebug
 QuadMasterHallLight1,QuadMasterHallLight,2,noDebug
-RearDeckCarraige 1,RearDeckCarriage,2,noDebug
+RearDeckCarriage 1,RearDeckCarriage,2,noDebug
 RearDeckWallLightA,UnderRearDeckOutletWallLights - Bottom,2,noDebug
 RearDeckWallLightB,UnderRearDeckOutletWallLights - Bottom,2,noDebug
 TheaterBackLight2,TheaterBackLight,2,noDebug
