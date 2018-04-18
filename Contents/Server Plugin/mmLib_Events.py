@@ -354,7 +354,7 @@ def subscribeToEvents(theEvents, thePublishers, theHandler, handlerDefinedData, 
 			try:
 				theQueue = eventPublishers[thePublisher][theEvent]
 			except:
-				if mmLib_Low.DebugDevices.get(subscriberName, 0): mmLib_Log.logWarning("Publisher " + str(thePublisher) + " is not publishing requested event " + theEvent + " as requested by " + subscriberName)
+				if mmLib_Low.DebugDevices.get(subscriberName, 0): mmLib_Log.logWarning("Publisher " + str(thePublisher) + " is not publishing requested event \'" + theEvent + "\' as requested by " + subscriberName)
 				continue
 
 			try:

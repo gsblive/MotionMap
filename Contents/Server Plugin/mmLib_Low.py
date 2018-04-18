@@ -494,7 +494,12 @@ def	mmRunDelayedProcs():
 			DelayedFunction = theParameters['theFunction']
 			delayQueue.pop(0)
 			delayedFunctionKeys[DelayedFunction] = 0  # We now mark this function as waiting
-			resetDelta = DelayedFunction(theParameters)
+			try:
+				resetDelta = DelayedFunction(theParameters)
+			except Exception as exception:
+				mmLib_Log.logError(" DelayedProc Error: " + str(exception))
+				resetDelta = 0
+
 			if resetDelta:
 				theParameters['timeDeltaSeconds'] = resetDelta
 				# if we got here, there is a reset value... queue it up again. Otherwise, its been deleted above, so ready to continue

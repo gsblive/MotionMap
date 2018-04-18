@@ -48,6 +48,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		# set things that must be setup before Base Class
 		self.lastOnTimeSeconds = 0
 		self.lastOffTimeSeconds = 0
+		self.blackOutTill = 0
 
 		super(mmMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 		if self.initResult == 0:
@@ -157,7 +158,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	def getOccupiedState(self):
 
-		return(self.theIndigoDevice.occupiedState)
+		return(OccupiedStateList[self.occupiedState])
 
 	#
 	# setLastUpdateTimeSeconds - note the time when the device changed state
@@ -225,32 +226,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def initializationComplete(self,eventID, eventParameters):
 
-		# Based on the time of the last update (as provided by indigo), set a timer or send the appropriate event out.
-		# Note that all devices start our as unoccupied, so we would normally only be looking for occupied events, but
-		# there may be a load device that is on that should be turned off, so we have to also propogate unoccupied events
-		# however this is likely a rare event.
-
-		lastUpdateDeltaSeconds = time.mktime( time.localtime()) - self.lastUpdateTimeSeconds  # lastUpdateTimeSeconds should always be accurate
-
 		# lest start with a clean slate
 
 		mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
 		mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
-
-		if self.getOnState() == True:
-			self.dispatchOnOffEvents(mmComm_Insteon.kInsteonOn)		# legacy
-			# Its on... is it beyond the max time?
-			if lastUpdateDeltaSeconds >= int(self.maxMovement) * 60:
-				self.delayProcForMaxOccupancy({"defeatDistribution":1})  # do the max occupancy proc now... sets self.occupiedState to false. Dont relay an unoccupied event... it defaulted to that state
-			else:
-				# relay that this device is occupied
-				self.distributeOccupation(True, (int(self.maxMovement) * 60) - lastUpdateDeltaSeconds, "Limited to")  # whenever we go into occupied mode, we dont need a timer to distribute
-		else:
-			# dont relay an unoccupied event... it defaulted to that state
-			self.dispatchOnOffEvents(mmComm_Insteon.kInsteonOff)	# legacy
-			# its off, but is it still in the timeframe of min Movement?
-			if lastUpdateDeltaSeconds < int(self.minMovement) * 60:
-				self.delayProcForNonOccupancy({"defeatDistribution":1})		# do the proc now ... sets self.occupiedState to false
+		self.processOccupation(1)
 
 		return(0)
 
@@ -259,13 +239,16 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# processOccupation		We are normally running and got an update event from the motion sensor,
 	#						lets send or schedule the appropriate update
 	#
-	def processOccupation(self):
+	def processOccupation(self, startup):
 
 		if self.debugDevice: mmLib_Log.logForce("ProcessOccuption for " + self.deviceName + ". onLineState = " + str(self.onlineState) + ". onState = " + str(self.getOnState()))
 
 		currentOnState = self.getOnState()
 
-		lastUpdateDeltaSeconds = 0
+		# Its possible, especially during startup, the time the motion sensor made its last change was some amount of timeback. We account for that
+		# by correcting min and max timeouts by lastUpdateTimeSeconds below
+
+		lastUpdateDeltaSeconds = time.mktime( time.localtime()) - self.lastUpdateTimeSeconds  # lastUpdateTimeSeconds should always be accurate
 
 
 		if currentOnState == True:
@@ -273,7 +256,14 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			# device is indicating motion, so set the timeout to the Maximum
 
 			timeDeltaSeconds = int(self.maxMovement) * 60	# do delayProcForMaxOccupancy later
-			stringExtension = "Limited to"
+
+			if self.occupiedState == 2:  # startup time?
+				if lastUpdateDeltaSeconds < timeDeltaSeconds:
+					timeDeltaSeconds = timeDeltaSeconds - lastUpdateDeltaSeconds
+				else:
+					timeDeltaSeconds = 30		# the minimum... timeout in 30 seconds. Chances are, the motion sensor will timeout before this and we will get to the code below anyway
+
+			stringExtension = "Motion Limit at"
 
 			mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
 			mmLib_Low.registerDelayedAction( {	'theFunction': self.delayProcForMaxOccupancy,
@@ -287,13 +277,27 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			# device is NOT indicating motion, so set timeout to the minimum. We will still claim occupied until the timer expires
 
 			timeDeltaSeconds = int(self.minMovement) * 60	# do delayProcForNonOccupancy later
-			stringExtension = "Delayed till"
 
-			mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
-			mmLib_Low.registerDelayedAction( {	'theFunction': self.delayProcForNonOccupancy,
-												'timeDeltaSeconds': timeDeltaSeconds,
-												'theDevice': self.deviceName,
-												'timerMessage': "Motion Sensor NonOccupancy Timer"})
+			if self.occupiedState == 2:  # startup time?
+				# since we are not calling distributeOccupation, we have to set occupiedState
+
+				if lastUpdateDeltaSeconds < timeDeltaSeconds:
+					timeDeltaSeconds = timeDeltaSeconds - lastUpdateDeltaSeconds
+					self.occupiedState = True		# Technically Occupied (will set timer)
+				else:
+					self.occupiedState = False		# it would have already timed out... mark as unoccupied, no timer
+					timeDeltaSeconds = 0  # no need to process further
+
+			stringExtension = "Non-Motion Timeout at"
+
+			if timeDeltaSeconds:
+				mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
+				mmLib_Low.registerDelayedAction({'theFunction': self.delayProcForNonOccupancy,
+												 'timeDeltaSeconds': timeDeltaSeconds,
+												 'theDevice': self.deviceName,
+												 'timerMessage': "Motion Sensor NonOccupancy Timer"})
+
+			# We dont distribute unoccupied events here, but we want to update the infigo variable in all cases
 			self.resetIndigoOccupationVariable(timeDeltaSeconds, stringExtension)
 
 
@@ -377,6 +381,12 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		newOnState = eventParameters.get('onState', 'na')
 
+		# If we are blacked out, dont process the event.
+
+		if self.blackOutTill > int(time.mktime(time.localtime())):
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " is not processing event \'" + str(newOnState) + "\' because it was receive during blackout time.")
+			return 0
+
 		if self.debugDevice: mmLib_Log.logForce("deviceUpdatedEvent for " + self.deviceName + ". newOnState = " + str(newOnState) + ". onlineState = " + str(self.onlineState))
 
 		if self.onlineState == 'off' and newOnState == True:
@@ -404,16 +414,23 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 					self.dispatchOnOffEvents( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
 
 				else:
+					# Dispatch the Off event
+					self.dispatchOnOffEvents(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
+
+					# if we are already marked as unoccupied, debounce this event
+
+					if self.occupiedState == False:
+						if self.debugDevice: mmLib_Log.logForce(self.deviceName + " receivced an \'" + str(newOnState) + "\' event, but was already in unoccupied state... Ignoring the event.")
+						return 0
+
 					mmLib_Low.cancelDelayedAction(self.delayProcForOnStateTimeout)
 					# We are detecting non-motion
 					if self.debugDevice: mmLib_Log.logForce("Motion Sensor " + self.deviceName + " received update event: OFF")
 
 					self.previousMotionOff = time.mktime(time.localtime())
-					# And dispatch the ON event
-					self.dispatchOnOffEvents(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
 
 				# do occupation event processing
-				self.processOccupation()
+				self.processOccupation(0)
 
 			else:
 				mmLib_Log.logError(self.deviceName + ": Unknown Onstate = " + str(newOnState))
@@ -542,9 +559,12 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	#
 	# forceTimeout - The device we are controlling was manually turned off, so cancel our offTimers if there are any
+	# plus, blackout for a few seconds as specified
 	#
-	def forceTimeout(self):
+	def forceTimeout(self,BlackOutTimeSecs):
 
+
+		self.blackOutTill = int(time.mktime(time.localtime())) + BlackOutTimeSecs
 		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " received a forceTimeout.")
 		mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)  # No Longer Valid
 		mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)  # No longer Valid

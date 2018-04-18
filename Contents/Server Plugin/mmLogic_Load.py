@@ -31,6 +31,7 @@ import random
 import datetime
 
 kLoadDeviceTimeSeconds = 60
+kBlackOutTimeSecondsAfterOff = 10
 
 ######################################################
 #
@@ -48,10 +49,6 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			# Set object variables
 			#
 			self.unoccupationDelay = int(theDeviceParameters["unoccupationDelay"]) * 60			# its defined in config file in minutes... keep it handy in seconds
-			if self.theIndigoDevice.__class__ == indigo.DimmerDevice:
-				self.maxOnTime = int(60*60*24)														# 24 hour maximum on time for any dimmer/light device
-			else:
-				self.maxOnTime = int(0)														# 24 hour maximum on time for any dimmer/light device
 			self.specialFeatures = theDeviceParameters["specialFeatures"].split(';')			# Can be a list, split by semicolons... normalize it into a proper list
 			self.daytimeOnLevel = theDeviceParameters["daytimeOnLevel"]
 			self.nighttimeOnLevel = theDeviceParameters["nighttimeOnLevel"]
@@ -76,7 +73,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				else:
 					onControllerName = theDeviceParameters["onControllers"]
 
-				self.allControllerGroups.append(onControllerName)
+				if onControllerName: self.allControllerGroups.append(onControllerName)
 				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'OccupiedAll\', \'OccupiedPartial\']" + " from " + str([onControllerName]))
 				mmLib_Events.subscribeToEvents(['OccupiedAll', 'OccupiedPartial'], [onControllerName], self.processOccupationEvent, {}, self.deviceName)
 
@@ -87,10 +84,15 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				else:
 					sustainControllerName = theDeviceParameters["sustainControllers"]
 
-				self.allControllerGroups.append(sustainControllerName)
+				if sustainControllerName: self.allControllerGroups.append(sustainControllerName)
 				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'UnoccupiedAll\']" + " from " + str(self.allControllerGroups))
 				mmLib_Events.subscribeToEvents(['UnoccupiedAll'], self.allControllerGroups, self.processUnoccupationEvent, {}, self.deviceName)
 
+			# Load devices with no controllers can stay on forever
+			if len(self.allControllerGroups):
+				self.maxOnTime = int(60*60*24)													# 24 hour maximum for any device with controllers
+			else:
+				self.maxOnTime = int(0)															# If no controllers, no timeout
 
 
 			self.companions = []
@@ -253,7 +255,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
 				if memberDev:
 					if self.debugDevice: mmLib_Log.logForce( self.deviceName + " sending forceTimeout to \'" + member + "\'.")
-					memberDev.forceTimeout()
+					memberDev.forceTimeout(kBlackOutTimeSecondsAfterOff)
 
 
 		return(0)
@@ -314,6 +316,43 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def completeInit(self,eventID, eventParameters):
 
+		# If the device is ON, but the associated Motion Sensors say it should be off, turn it off.
+		# But, do it in a few seconds to give the motion sensors and groups a chance to settle
+
+		if self.theIndigoDevice.onState == True and self.maxOnTime:			# maxOnTime to indicate that the device has controllers
+			mmLib_Low.registerDelayedAction({'theFunction': self.completeInit2,
+											 'timeDeltaSeconds': 10,
+											 'theDevice': self.deviceName,
+											 'timerMessage': "completeInit2"})
+
+		return 0
+
+	#
+	# completeInit - Complete the initialization process for this device (Part 2)
+	# we gave all motion devices a chance to settle..  now lets see if we should turn ourselves off
+	#
+	def completeInit2(self, parameters):
+
+		# If the device is ON, but the associated Motion Sensors say it should be off, turn it off.
+
+		try:
+			for member in self.allControllerGroups:
+				if not member: return 0
+				memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
+				if memberDev:
+					if self.debugDevice: mmLib_Log.logForce( self.deviceName + " calling " + member + ".getOccupiedState")
+					if memberDev.getOccupiedState() != 'UnoccupiedAll': return 0	# at least one member is occupied, so being ON now is fine
+				else:
+					mmLib_Log.logWarning(self.deviceName + " found no mmDevice called " + member + " while trying to access getOccupiedState")
+					return(0)
+
+				# if we got here all members ate showing unoccupied, turn off our device
+
+			mmLib_Log.logWarning( "Turning deivce " + self.deviceName + " off as all coltrollers are reporting Unoccupied")
+			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
+
+		except Exception as exception:
+			mmLib_Log.logWarning( self.deviceName + " Error: " + str(exception))
 
 		return 0
 
@@ -343,7 +382,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# if we are currently not processing motion events, bail early
 		if indigo.variables['MMDefeatMotion'].value == 'true': return(0)
 
-		if self.lastOffCommandTime and int(time.mktime(time.localtime())) - self.lastOffCommandTime < 10:
+		if self.lastOffCommandTime and int(time.mktime(time.localtime())) - self.lastOffCommandTime < kBlackOutTimeSecondsAfterOff:
 				mmLib_Log.logForce( "=== " + self.deviceName + " is ignoring /'" + theEvent + "/' controller event from " + theControllerDev.deviceName + " " + str(int(time.mktime(time.localtime())) - self.lastOffCommandTime) + " seconds after user off command.")
 				return(0)
 

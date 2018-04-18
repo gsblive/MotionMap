@@ -110,7 +110,7 @@
 
 -h,MultisensorMotion
 deviceName,maxMovement,minMovement,debugDeviceMode
-AeonTest1MultisensorMotion,60,2,Debug
+AeonTest1MultisensorMotion,60,2,noDebug
 BackStairsMultisensorMotion,60,5,noDebug
 ButlerKitchenMultisensorMotion,60,5,noDebug
 CarPortMultisensorMotion,60,5,noDebug
@@ -467,7 +467,7 @@ TheaterBackLight,60,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultise
 TheaterKitchenLight,60,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
 TheaterMainLight,60,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
 TheaterBathVanityLight,15,100,65,flash,,TheaterBathMultisensorMotion,2,noDebug
-#UnderRearDeckOutletIR - Top,240,100,100,,,,2,Debug
+#UnderRearDeckOutletIR - Top,240,100,100,,,,2,noDebug
 UnderRearDeckOutletWallLights - Bottom,360,100,100,,,,2,noDebug
 UpstairsHallRightA,5,0,24,flash,UpstairsHallRightAMultisensorMotion;UpstairsHallRightBMultisensorMotion,,2,noDebug
 UpstairsHallRightB,5,0,24,flash,UpstairsHallRightAMultisensorMotion;UpstairsHallRightBMultisensorMotion,,2,noDebug

@@ -84,30 +84,21 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	# updateSubscribers - Send all our subscribers an update message with our current occupation Status
 	#
-	def updateSubscribers(self):
+	def updateSubscribers(self, skipEvent):
 
-
-
-		if len(self.occupiedAllDict) == len(self.members):
-			# highest priority... all members are reporting full occupancy
-			newEvents = ['OccupiedAll']
-			self.occupiedState = True
-		elif len(self.unoccupiedAllDict) == len(self.members):
-			# next highest priority... all members are reporting no occupancy
-			newEvents = ['UnoccupiedAll']
-			self.occupiedState = False
-		else:
-			# We are partially occupied send the appropriate event
-			newEvents = ['OccupiedPartial']
-			self.occupiedState = True
+		newEvents = self.getOccupiedState()
 
 		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " calculated events " + str(newEvents) + " for delivery.")
 
 		# only report this update to subscribers if it has changed
 		if self.lastReportedOccupationEvent != newEvents:
 			self.lastReportedOccupationEvent = newEvents
-			if self.debugDevice: mmLib_Log.logForce( "    " + self.deviceName + " Delivering events " + str(newEvents) + " to all subscribers.")
-			mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})
+			if newEvents[0] != skipEvent:
+				if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " Delivering events " + str(newEvents) + " to all subscribers.")
+				mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})
+			else:
+				if self.debugDevice: mmLib_Log.logForce( "Occupation Group " + self.deviceName + " Skipping delivery of event \'" + str(skipEvent) + "\'.")
+
 		else:
 			if self.debugDevice: mmLib_Log.logForce("    No delivery necessary. No Change to previous delivery.")
 
@@ -121,7 +112,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def completeInit(self,eventID, eventParameters):
 
-		self.updateSubscribers()
+		self.updateSubscribers('UnoccupiedAll')		# skip UnoccupiedAll events because that is the default at startup time
 
 		return 0
 
@@ -182,7 +173,20 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 	def getOccupiedState(self):
 
-		return(self.getOnState())
+		if len(self.occupiedAllDict) == len(self.members):
+			# highest priority... all members are reporting full occupancy
+			newEvents = ['OccupiedAll']
+			self.occupiedState = True
+		elif len(self.unoccupiedAllDict) == len(self.members):
+			# next highest priority... all members are reporting no occupancy
+			newEvents = ['UnoccupiedAll']
+			self.occupiedState = False
+		else:
+			# We are partially occupied send the appropriate event
+			newEvents = ['OccupiedPartial']
+			self.occupiedState = True
+
+		return(newEvents)
 
 	#
 	# setOnOffLine - we have to pass this command to the members
@@ -222,9 +226,8 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def unoccupiedTimerProc(self, parameters):
 
-		self.updateSubscribers()
-
 		self.scheduledDeactivationTimeSeconds = 0
+		self.updateSubscribers(0)
 
 		return 0	# do not continue timer
 
@@ -268,7 +271,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 				mmLib_Low.cancelDelayedAction(self.unoccupiedTimerProc)		# This handles exception so it will cancel only if it exists
 				self.scheduledDeactivationTimeSeconds = 0
 
-			self.updateSubscribers()		# let the subscribers know about our change
+			self.updateSubscribers(0)		# let the subscribers know about our change
 
 		else:
 
@@ -305,7 +308,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	# forceTimeout - The device we are controlling was manually turned off, so cancel our offTimers if there are any
 	#
-	def forceTimeout(self):
+	def forceTimeout(self,BlackOutTimeSecs):
 
 		# Forward this call to all of our members
 
@@ -314,7 +317,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
 			if memberDev:
 				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " sending forceTimeout to \'" + member + "\'.")
-				memberDev.forceTimeout()
+				memberDev.forceTimeout(BlackOutTimeSecs)
 
 		# Now process the call for ourselves
 		if self.scheduledDeactivationTimeSeconds:  # if unoccupied timer is running, stop it

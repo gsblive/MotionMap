@@ -50,6 +50,7 @@ class mmIndigo(object):
 			if theDeviceParameters["debugDeviceMode"] != "noDebug":
 				self.debugDevice = 1
 				mmLib_Low.DebugDevices[self.deviceName] = 1
+				mmLib_Log.logForce("### Debugging Device " + self.deviceName)
 			else:
 				mmLib_Low.DebugDevices[self.deviceName] = 0
 		except:
