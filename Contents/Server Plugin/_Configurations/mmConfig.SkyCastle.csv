@@ -422,9 +422,6 @@ LivingRoomOutletBottom,360,100,100,,,,2,noDebug
 Main Stairs Chandelier,60,0,100,flash,,QuadMultisensorAMotion;QuadMultisensorBMotion;DiningRoomMultisensorAMotion;DiningRoomMultisensorBMotion,2,noDebug
 Main Stairs Left,60,0,30,flash,,,2,noDebug
 Main Stairs Right,60,0,30,flash,,,2,noDebug
-MasterHallLight,5,0,24,flash,MasterHallMultisensorMotion,,2,noDebug
-MasterCanLights,120,70,30,flash,,,2,noDebug
-MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion,,2,noDebug
 MasterBarbiesClosetLight,5,100,40,flash,MasterBarbiesClosetMultisensorMotion,,2,noDebug
 MasterBathLavLight,10,100,6,flash,MasterBathLavMultisensorMotion,,2,noDebug
 MasterBathLavFan,10,0,0,flash,,MasterBathLavMultisensorMotion,2,noDebug
@@ -433,7 +430,10 @@ MasterBathCenterLight,5,0,20,flash,,MasterBathMultiSensorMotion;MasterBathShower
 MasterBathRightVanityLight,15,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterBathLeftVanityLight,5,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterBathTubLight,5,0,23,flash,MasterBathMultiSensorMotion,MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
+MasterCanLights,120,70,30,flash,,,2,noDebug
+MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,,2,noDebug
 MasterGregsClosetLight,5,100,30,flash,MasterGregsClosetMultisensorMotion,,2,noDebug
+MasterHallLight,5,0,24,flash,MasterHallMultisensorMotion,,2,noDebug
 MJBathroom,10,100,10,flash,,,2,noDebug
 MJCloset,5,100,20,flash,MJBedroomClosetMultisensorMotion,,2,noDebug
 MJBedroomLights,30,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
