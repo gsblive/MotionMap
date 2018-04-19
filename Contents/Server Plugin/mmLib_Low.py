@@ -766,13 +766,12 @@ def refreshControllers():
 
 ############################################################################################
 #
-# minutesAndSecondsTillTime
+# secondsToMinutesAndSecondsString
 #
 #
 ############################################################################################
-def minutesAndSecondsTillTime(futureTimeInSeconds):
+def secondsToMinutesAndSecondsString(theTimeSeconds):
 
-	theTimeSeconds = int(futureTimeInSeconds - time.mktime(time.localtime()))
 	theTimeMinutes = int(theTimeSeconds / 60)
 	if theTimeMinutes:
 		theTimeSeconds = int(theTimeSeconds % 60)
@@ -781,6 +780,18 @@ def minutesAndSecondsTillTime(futureTimeInSeconds):
 		theResultString = str(theTimeSeconds) + " seconds"
 
 	return theResultString
+
+
+############################################################################################
+#
+# minutesAndSecondsTillTime
+#
+#
+############################################################################################
+def minutesAndSecondsTillTime(futureTimeInSeconds):
+
+	theTimeSeconds = int(futureTimeInSeconds - time.mktime(time.localtime()))
+	return secondsToMinutesAndSecondsString(theTimeSeconds)
 
 
 ######################################################

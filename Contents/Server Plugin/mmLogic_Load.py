@@ -348,7 +348,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 				# if we got here all members ate showing unoccupied, turn off our device
 
-			mmLib_Log.logWarning( "Turning deivce " + self.deviceName + " off as all coltrollers are reporting Unoccupied")
+			if self.debugDevice: mmLib_Log.logForce( "Turning deivce " + self.deviceName + " off as all coltrollers are reporting Unoccupied")
 			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
 
 		except Exception as exception:

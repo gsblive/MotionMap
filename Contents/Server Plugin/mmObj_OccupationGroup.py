@@ -86,16 +86,16 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def updateSubscribers(self, skipEvent):
 
-		newEvents = self.getOccupiedState()
+		newEvent = self.getOccupiedState()
 
-		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " calculated events " + str(newEvents) + " for delivery.")
+		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " calculated events " + str(newEvent) + " for delivery.")
 
 		# only report this update to subscribers if it has changed
-		if self.lastReportedOccupationEvent != newEvents:
-			self.lastReportedOccupationEvent = newEvents
-			if newEvents[0] != skipEvent:
-				if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " Delivering events " + str(newEvents) + " to all subscribers.")
-				mmLib_Events.distributeEvents(self.deviceName, newEvents, 0, {})
+		if self.lastReportedOccupationEvent != newEvent:
+			self.lastReportedOccupationEvent = newEvent
+			if newEvent != skipEvent:
+				if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " Delivering events " + str(newEvent) + " to all subscribers.")
+				mmLib_Events.distributeEvents(self.deviceName, [newEvent], 0, {})
 			else:
 				if self.debugDevice: mmLib_Log.logForce( "Occupation Group " + self.deviceName + " Skipping delivery of event \'" + str(skipEvent) + "\'.")
 
@@ -103,7 +103,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			if self.debugDevice: mmLib_Log.logForce("    No delivery necessary. No Change to previous delivery.")
 
 		# either way, update the indigo variable
-		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, newEvents[0])
+		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, newEvent)
 
 		return 0
 
@@ -142,17 +142,17 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "All", str(self.members))
 		theMessage = theMessage + "\n"
 
-		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "occupiedAll", str(self.occupiedAllDict))
+		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "OccupiedAll", str(self.occupiedAllDict))
 		theMessage = theMessage + "\n"
 
-		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "occupiedPartial", str(self.occupiedPartialDict))
+		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "OccupiedPartial", str(self.occupiedPartialDict))
 		theMessage = theMessage + "\n"
 
-		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "unoccupiedAll", str(self.unoccupiedAllDict))
+		theMessage = theMessage + '{0:<3} {1:<18} {2:<100}'.format(" ", "UnoccupiedAll", str(self.unoccupiedAllDict))
 		theMessage = theMessage + "\n\n"
 
 		if self.scheduledDeactivationTimeSeconds:
-			theMessage = theMessage + str("    \'Unoccupied\' Event pending. To be delivered in " + str( mmLib_Low.minutesAndSecondsTillTime(self.scheduledDeactivationTimeSeconds)))
+			theMessage = theMessage + str("    \'UnoccupiedAll\' Event pending. To be delivered in " + str( mmLib_Low.minutesAndSecondsTillTime(self.scheduledDeactivationTimeSeconds)))
 
 		theMessage = theMessage + '\n==== End DeviceStatus for ' + self.deviceName + ' ====\n'
 		theMessage = theMessage + "\n"
@@ -175,18 +175,18 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 		if len(self.occupiedAllDict) == len(self.members):
 			# highest priority... all members are reporting full occupancy
-			newEvents = ['OccupiedAll']
+			newEvent = 'OccupiedAll'
 			self.occupiedState = True
 		elif len(self.unoccupiedAllDict) == len(self.members):
 			# next highest priority... all members are reporting no occupancy
-			newEvents = ['UnoccupiedAll']
+			newEvent = 'UnoccupiedAll'
 			self.occupiedState = False
 		else:
 			# We are partially occupied send the appropriate event
-			newEvents = ['OccupiedPartial']
+			newEvent = 'OccupiedPartial'
 			self.occupiedState = True
 
-		return(newEvents)
+		return(newEvent)
 
 	#
 	# setOnOffLine - we have to pass this command to the members
@@ -262,8 +262,10 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			addDict[eventParameters['publisher']] = theTimeString
 
 
-		if theEvent in ['OccupiedAll', 'OccupiedPartial']:
+		theEvent = self.getOccupiedState()		# the rest is based on our current group event state
+		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " calculated LocalState as \'" + str(theEvent) + "\'.")
 
+		if theEvent in ['OccupiedAll', 'OccupiedPartial']:
 			# Process the ocupied event... Clearly
 
 			# All unoccupied events pending are no longer valid
@@ -281,11 +283,12 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			if not self.unoccupiedRelayDelaySeconds:
 				self.unoccupiedTimerProc({})
 			else:
+				if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " registering delayed action \'unoccupiedTimerProc\' for execution in " + str(mmLib_Low.secondsToMinutesAndSecondsString(self.unoccupiedRelayDelaySeconds)))
 				mmLib_Low.registerDelayedAction({'theFunction': self.unoccupiedTimerProc, 'timeDeltaSeconds': self.unoccupiedRelayDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "unoccupiedTimerProc"})
 				self.scheduledDeactivationTimeSeconds = int(time.mktime(time.localtime()) + self.unoccupiedRelayDelaySeconds)
 				ft = datetime.now() + timedelta(seconds=self.unoccupiedRelayDelaySeconds)
 				varString = mmLib_Low.getIndigoVariable(self.occupationIndigoVar, "Unknown")
-				varString = varString.partition(' ')[0] + " ( Till " + '{:%-I:%M %p}'.format(ft) + " )"
+				varString = varString.partition(' ')[0] + " ( Non-Motion Timeout at " + '{:%-I:%M %p}'.format(ft) + " )"
 		 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, varString)
 		return 0
 

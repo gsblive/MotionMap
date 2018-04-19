@@ -129,7 +129,7 @@ GarageHall3MultisensorMotion,60,10,noDebug
 GregsOfficeClosetMultisensorMotion,60,5,noDebug
 GregsOfficeBathMultisensorMotion,60,10,noDebug
 GregsOfficeBathShowerMultisensorMotion,60,5,noDebug
-GregsOfficeDoorMultisensorMotion,480,2,noDebug
+GregsOfficeDoorMultisensorMotion,480,3,noDebug
 GregsOfficeMultisensorMotion,480,2,noDebug
 GuestBathMultisensorMotion,60,10,noDebug
 GuestMultisensorMotion,60,10,noDebug
