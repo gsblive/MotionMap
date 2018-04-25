@@ -151,24 +151,29 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def deviceUpdatedEvent(self, eventID, eventParameters):
 
-		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " update. Event: " + str(eventParameters))
 
 		# 'na' below means no change if either onstate or brightness changed, processCompanions
 		newBrightnessState = eventParameters.get('brightness', 'na')
 		newOnState = eventParameters.get('onState', 'na')
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " update. Event: " + str(eventParameters) + " NewOnState = " + str(newOnState))
 		processCompanions = 0
 
 		if self.defeatTimerUpdate:
 			mmLib_Log.logVerbose(self.deviceName + " processing " + str(self.defeatTimerUpdate) + " command, not updating timers and resetting flash flag.")
 			self.defeatTimerUpdate = 0
 		else:
-			if newBrightnessState != 'na' or newOnState != 'na': processCompanions=1
+			if newBrightnessState != 'na' or newOnState != 'na':
+				processCompanions=1
+				if newOnState == False:
+					# We are not flashing (indicated by defeatTimerUpdate), an newOnState is now off, so the device was turned off, clear the off timers
+					self.forceControllerTimeouts()
 
 		# do bedtimeMode reset if needed
 		if newOnState == True and self.bedtimeMode == mmLib_Low.BEDTIMEMODE_ON:
 			self.bedtimeMode = mmLib_Low.BEDTIMEMODE_OFF
 			mmLib_Log.logReportLine("Bedtime Mode OFF for device: " + self.deviceName)
 			self.setControllersOnOfflineState('on')
+
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " checking processCompanions, OnState: " + str(newOnState) + " Brightness State: " + str(newBrightnessState) + " processCompanions: " + str(processCompanions) + " Companions: " + str(self.companions))
 
@@ -244,22 +249,35 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 					if self.debugDevice: mmLib_Log.logForce( self.deviceName + " sending loadDeviceNotificationOfOn to \'" + member + "\'.")
 					memberDev.loadDeviceNotificationOfOn()
 
-		elif theCommandByte == mmComm_Insteon.kInsteonOff or theCommandByte == mmComm_Insteon.kInsteonOffFast:
-			# defeat the motion sensors for a couple seconds to keep the light from coming back on immediately
-			self.lastOffCommandTime = int(time.mktime(time.localtime()))
+		# the following was obsoleted... it is now processed in deviceUpdatedEvent above
+
+		#elif theCommandByte == mmComm_Insteon.kInsteonOff or theCommandByte == mmComm_Insteon.kInsteonOffFast:
 
 			# Now defeat any pending unoccupation events from our controllers
 
-			for member in self.allControllerGroups:
-				if not member: break
-				memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
-				if memberDev:
-					if self.debugDevice: mmLib_Log.logForce( self.deviceName + " sending forceTimeout to \'" + member + "\'.")
-					memberDev.forceTimeout(kBlackOutTimeSecondsAfterOff)
-
+		#	self.forceControllerTimeouts()
 
 		return(0)
 
+
+	#
+	# Now defeat any pending unoccupation events from our controllers
+
+	def forceControllerTimeouts(self):
+
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " processing forceControllerTimeouts")
+
+		# defeat the motion sensors for a couple seconds to keep the light from coming back on immediately
+		self.lastOffCommandTime = int(time.mktime(time.localtime()))
+
+		for member in self.allControllerGroups:
+			if not member: break
+			memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
+			if memberDev:
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " sending forceTimeout to \'" + member + "\'.")
+				memberDev.forceTimeout(kBlackOutTimeSecondsAfterOff)
+
+		return(0)
 
 	#
 	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.

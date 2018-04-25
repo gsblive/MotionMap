@@ -403,7 +403,7 @@ GregsOfficeClosetDimmer,5,100,20,flash,GregsOfficeClosetMultisensorMotion,,2,noD
 GregsOfficeClosetCabinets - Top,5,0,100,flash,GregsOfficeClosetMultisensorMotion;GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
 #GregsOfficeShelfLights,5,100,100,flash,AeonTest1MultisensorMotion,,2,noDebug
 GregsOfficeOutlet,0,100,100,flash,AeonTest1MultisensorMotion,,2,noDebug
-GregsOfficeBathVanityLight,10,100,0,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
+GregsOfficeBathVanityLight,10,100,0,flash,GregsOfficeBathMultisensorMotion,,2,Debug
 GregsOfficeBathFanLight,10,0,30,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
 GregsOfficeBathShowerLight,5,100,30,flash,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
 GregsOfficeBathFan,5,100,100,,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
