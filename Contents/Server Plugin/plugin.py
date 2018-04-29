@@ -181,6 +181,7 @@ class Plugin(indigo.PluginBase):
 		# Run subscriptions for all objects in the init queue
 		mmLib_Low.refreshControllers()
 		try:
+			# subscribe to daily transitions to do system things (battery reporting offline reporting etc)
 			mmLib_Events.subscribeToEvents(['isNightTime', 'isDayTime'], ['MMSys'], mmLib_Low.daytimeTransition, {}, 'MMSys')
 		except:
 			mmLib_Log.logForce("MMSys SubscribeToEvents \'isNightTime\' or \'isDayTime\' failed.")
@@ -189,11 +190,6 @@ class Plugin(indigo.PluginBase):
 			mmLib_Events.distributeEvents('MMSys', ['initComplete'], 0, {})
 		except Exception as exception:
 			mmLib_Log.logError( "MMSys Distributing \'initComplete\' failed. Exception: " + str(exception))
-
-		# initialize daytime value for all devices that care. We do this before the following
-		# subscribes because we dont want to see the morning reports every time we start up
-		mmLib_Low.mmDaylightTransition(indigo.variables['MMDayTime'].value)
-
 
 		mmLib_Log.mmDebugNote("--- " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
 
@@ -375,7 +371,7 @@ class Plugin(indigo.PluginBase):
 
 		global pluginInitialized
 
-		localIsDaylight = indigo.variables['MMDayTime'].value
+		previousDaylightValue = "n/a"
 
 		try:
 			while True:
@@ -392,12 +388,19 @@ class Plugin(indigo.PluginBase):
 					mmLib_Low.mmRunTimer()
 					newDaylightValue = indigo.variables['MMDayTime'].value
 
-					if localIsDaylight != newDaylightValue:
-						mmLib_Log.logDebug("Running mmDaylightTransition(). localIsDaylight and newDaylightValue are " + str(localIsDaylight) + " and " + str(newDaylightValue))
-						localIsDaylight = newDaylightValue
-						mmLib_Low.mmDaylightTransition(newDaylightValue)
+					# process Daytime/Nighttime Trsansitions
 
-#		except self.StopThread:
+					if previousDaylightValue != newDaylightValue:
+						mmLib_Log.logDebug("Change in Daylight indigo.variables[\'MMDayTime\'] value. previousDaylightValue and newDaylightValue are " + str(previousDaylightValue) + " and " + str(newDaylightValue))
+						previousDaylightValue = newDaylightValue
+						if newDaylightValue == 'true':
+							theEvent = 'isDayTime'
+						else:
+							theEvent = 'isNightTime'
+
+						mmLib_Events.distributeEvents('MMSys', [theEvent], 0, {})
+
+		#		except self.StopThread:
 		except:
 			# do any cleanup here
 			pass

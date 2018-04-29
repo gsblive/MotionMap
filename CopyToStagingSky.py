@@ -1,27 +1,36 @@
 import distutils.core
 import os
+import subprocess
 
-#Copy the MotionMap Indigo Plugin to MotionMapStaging
+#
+#
+# Copy the MotionMap Indigo Plugin to MotionMapStaging
+#
+#
+
+def	doCopy(targetVolName, pluginName):
+
+	theCommand = "rsync -av --exclude .git --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + str(pluginName) + " " + targetVolName
+	print str(theCommand)
+	#subprocess.call([theCommand])		# this is preferable (with try/except), but I couldnt get it to work right away... revisit.
+	result = os.system(theCommand)
+	if result: print str("### Copying to " + targetVolName + " failed ###")
+
+	return result
+
+
+##############
+#  Main
+##############
 
 myPath = os.path.realpath(__file__)
 indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
-#indigoPlugin = indigoPlugin + '/'
 print str(indigoPlugin)
-#quit()
 indigoPlugin = indigoPlugin.replace(' ', '\\ ')
-theCommand = "rsync -av --exclude .git --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + str(indigoPlugin) + " /Volumes/MotionMapStagingSkyCastle-1"
-#theCommand = "ditto -v " + str(indigoPlugin) + " /Volumes/MotionMapStagingSkyCastle-2/MotionMap\ 3.IndigoPlugin"
-print str(theCommand)
-os.system(theCommand)
-#os.system("rsync -av indigoPlugin /Volumes/MotionMapStagingSkyCastle-2")
-#os.system("rsync -av /MotionMap\ 3.indigoPlugin /Volumes/MotionMapStagingSkyCastle-2")
+
+if doCopy("/Volumes/MotionMapStagingSkyCastle", indigoPlugin):
+	print str("   trying /Volumes/MotionMapStagingSkyCastle-1")
+	doCopy("/Volumes/MotionMapStagingSkyCastle-1", indigoPlugin)
+
 quit()
 
-# Main Code
-#targetPath = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop') + "/MotionMapStaging/MotionMap 3.indigoPlugin"
-targetPath = "/Volumes/MotionMapStagingSkyCastle/MotionMap 3.indigoPlugin"
-myPath = os.path.realpath(__file__)
-indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
-
-print "copy " + indigoPlugin + " to " + targetPath
-distutils.dir_util.copy_tree(indigoPlugin, targetPath)
