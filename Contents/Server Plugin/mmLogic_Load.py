@@ -79,34 +79,33 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 					onControllerName = 'OG_' + self.deviceName
 					mmObj_OccupationGroup.mmOccupationGroup({'deviceType': 'OccupationGroup', 'deviceName': onControllerName, 'members': theDeviceParameters["onControllers"],'unoccupiedRelayDelayMinutes': 0, 'debugDeviceMode': theDeviceParameters["debugDeviceMode"]})
 				else:
-					onControllerName = theDeviceParameters["onControllers"]
+					onControllerName = theDeviceParameters["onControllers"]				# This could be null, thats why we have the 'if' below
 
-				if onControllerName: self.allControllerGroups.append(onControllerName)
-				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'OccupiedAll\', \'OccupiedPartial\']" + " from " + str([onControllerName]))
-				mmLib_Events.subscribeToEvents(['OccupiedAll', 'OccupiedPartial'], [onControllerName], self.processOccupationEvent, {}, self.deviceName)
+				if onControllerName: self.allControllerGroups.append(onControllerName)	# we dont want to append a null
 
 			if theDeviceParameters["sustainControllers"]:
 				if len(self.sustainControllers) > 1:
 					sustainControllerName = 'SG_' + self.deviceName
 					mmObj_OccupationGroup.mmOccupationGroup({'deviceType': 'OccupationGroup', 'deviceName': sustainControllerName, 'members': theDeviceParameters["sustainControllers"],'unoccupiedRelayDelayMinutes': 0, 'debugDeviceMode': theDeviceParameters["debugDeviceMode"]})
 				else:
-					sustainControllerName = theDeviceParameters["sustainControllers"]
+					sustainControllerName = theDeviceParameters["sustainControllers"]				# This could be null, thats why we have the 'if' below
 
-				if sustainControllerName:
-					self.allControllerGroups.append(sustainControllerName)
-					mmLib_Events.subscribeToEvents(['OccupiedAll', 'OccupiedPartial'], [sustainControllerName], self.processOccupationEvent, {"sustainOnly":True}, self.deviceName)
+				if sustainControllerName: self.allControllerGroups.append(sustainControllerName)	# we dont want to append a null
 
-				# Sustain controllers include on controllers.
-				# They ALL have to be unoccupied for the load off-delay timer to start counting
+			# All controllers must subscribe to both occupied events and unoccupied.
+			# Sustain/On controller differentiation happens inside processOccupationEvent
 
-				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'UnoccupiedAll\']" + " from " + str(self.allControllerGroups))
-				mmLib_Events.subscribeToEvents(['UnoccupiedAll'], self.allControllerGroups, self.processUnoccupationEvent, {}, self.deviceName)
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'OccupiedAll\', \'OccupiedPartial\']" + " from " + str(self.allControllerGroups))
+			mmLib_Events.subscribeToEvents(['OccupiedAll', 'OccupiedPartial'], self.allControllerGroups, self.processOccupationEvent, {}, self.deviceName)
+
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'UnoccupiedAll\']" + " from " + str(self.allControllerGroups))
+			mmLib_Events.subscribeToEvents(['UnoccupiedAll'], self.allControllerGroups, self.processUnoccupationEvent, {}, self.deviceName)
 
 			# Load devices with no controllers can stay on forever
 			if len(self.allControllerGroups):
-				self.maxOnTime = int(60*60*24)													# 24 hour maximum for any device with controllers
+				self.maxOnTime = int(60*60*24)		# 24 hour maximum for any device with controllers
 			else:
-				self.maxOnTime = int(0)															# If no controllers, no timeout
+				self.maxOnTime = int(0)				# If no controllers, no timeout
 
 
 			self.companions = []
@@ -428,9 +427,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		mmLib_Low.cancelDelayedAction(self.offCallback)
 
 		# if are only sustaining, bail out before processing an ON command
-		if eventParameters.get("sustainOnly",0):
-			if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " processed Sustain Event.")
+		if eventParameters['publisher'] not in self.onControllers:
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " not in " + str(self.onControllers) + ". Processing Sustain Event complete.")
 			return(0)
+		else:
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " in " + str(self.onControllers) + ". Continue processing OccupationEvent.")
 
 		if self.theIndigoDevice.onState == False:
 			# the light is off, should we turn it on? Doesnt matter if this is a sustain or ON controller. Just care about bedtime mode.
