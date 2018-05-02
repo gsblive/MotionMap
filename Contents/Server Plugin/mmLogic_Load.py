@@ -58,6 +58,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.lastOffCommandTime = 0
 			self.allControllerGroups = []
 			self.ourNonvolatileData = mmLib_Low.initializeNVDict(self.deviceName)
+			self.onControllerName = ""
+			self.sustainControllerName = ""
 
 			# Initialize bedtime mode
 
@@ -76,21 +78,21 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			if theDeviceParameters["onControllers"]:
 				if len(self.onControllers) > 1:
-					onControllerName = 'OG_' + self.deviceName
-					mmObj_OccupationGroup.mmOccupationGroup({'deviceType': 'OccupationGroup', 'deviceName': onControllerName, 'members': theDeviceParameters["onControllers"],'unoccupiedRelayDelayMinutes': 0, 'debugDeviceMode': theDeviceParameters["debugDeviceMode"]})
+					self.onControllerName = 'OG_' + self.deviceName
+					mmObj_OccupationGroup.mmOccupationGroup({'deviceType': 'OccupationGroup', 'deviceName': self.onControllerName, 'members': theDeviceParameters["onControllers"],'unoccupiedRelayDelayMinutes': 0, 'debugDeviceMode': theDeviceParameters["debugDeviceMode"]})
 				else:
-					onControllerName = theDeviceParameters["onControllers"]				# This could be null, thats why we have the 'if' below
+					self.onControllerName = theDeviceParameters["onControllers"]				# This could be null, thats why we have the 'if' below
 
-				if onControllerName: self.allControllerGroups.append(onControllerName)	# we dont want to append a null
+				if self.onControllerName: self.allControllerGroups.append(self.onControllerName)	# we dont want to append a null
 
 			if theDeviceParameters["sustainControllers"]:
 				if len(self.sustainControllers) > 1:
-					sustainControllerName = 'SG_' + self.deviceName
-					mmObj_OccupationGroup.mmOccupationGroup({'deviceType': 'OccupationGroup', 'deviceName': sustainControllerName, 'members': theDeviceParameters["sustainControllers"],'unoccupiedRelayDelayMinutes': 0, 'debugDeviceMode': theDeviceParameters["debugDeviceMode"]})
+					self.sustainControllerName = 'SG_' + self.deviceName
+					mmObj_OccupationGroup.mmOccupationGroup({'deviceType': 'OccupationGroup', 'deviceName': self.sustainControllerName, 'members': theDeviceParameters["sustainControllers"],'unoccupiedRelayDelayMinutes': 0, 'debugDeviceMode': theDeviceParameters["debugDeviceMode"]})
 				else:
-					sustainControllerName = theDeviceParameters["sustainControllers"]				# This could be null, thats why we have the 'if' below
+					self.sustainControllerName = theDeviceParameters["sustainControllers"]				# This could be null, thats why we have the 'if' below
 
-				if sustainControllerName: self.allControllerGroups.append(sustainControllerName)	# we dont want to append a null
+				if self.sustainControllerName: self.allControllerGroups.append(self.sustainControllerName)	# we dont want to append a null
 
 			# All controllers must subscribe to both occupied events and unoccupied.
 			# Sustain/On controller differentiation happens inside processOccupationEvent
@@ -427,11 +429,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		mmLib_Low.cancelDelayedAction(self.offCallback)
 
 		# if are only sustaining, bail out before processing an ON command
-		if eventParameters['publisher'] not in self.onControllers:
-			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " not in " + str(self.onControllers) + ". Processing Sustain Event complete.")
+		if eventParameters['publisher'] != self.onControllerName:
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " not equal to " + str(self.onControllerName) + ". Processing Sustain Event complete.")
 			return(0)
 		else:
-			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " in " + str(self.onControllers) + ". Continue processing OccupationEvent.")
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " equal to " + str(self.onControllerName) + ". Continue processing OccupationEvent.")
 
 		if self.theIndigoDevice.onState == False:
 			# the light is off, should we turn it on? Doesnt matter if this is a sustain or ON controller. Just care about bedtime mode.

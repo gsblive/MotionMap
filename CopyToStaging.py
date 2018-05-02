@@ -2,6 +2,7 @@ import distutils.core
 import os
 import subprocess
 import os
+import time
 
 #
 #
@@ -40,9 +41,11 @@ def copyToStaging(volList):
 		# print str("### Attempting to copy to " + theVol)
 		if not doCopy(theVol, indigoPlugin):
 			print str("")
-			print str("**********************")
-			print str("**** Copy Success ****")
-			print str("**********************")
+			print str("**********************************")
+			print str("****       Copy Success       ****")
+			theTimeString = time.strftime("%m/%d/%Y %I:%M:%S %p")
+			print str("****  " + theTimeString + "  ****")
+			print str("**********************************")
 			break
 
 

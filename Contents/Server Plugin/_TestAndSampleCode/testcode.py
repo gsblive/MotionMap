@@ -29,9 +29,9 @@ import subprocess
 #============  Main  ================
 #====================================
 
+theTimeString = time.strftime("%m/%d/%Y %I:%M:%S %p")
 
-result = os.access("/Volumes/MotionMapStagingSkyCastle-1", os.R_OK)
-print(str(result))
+print(theTimeString)
 quit()
 
 
