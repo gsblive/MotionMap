@@ -29,9 +29,9 @@ import subprocess
 #============  Main  ================
 #====================================
 
-theTimeString = time.strftime("%m/%d/%Y %I:%M:%S %p")
-
-print(theTimeString)
+occupied = False
+if occupied: print("occupied = True")
+if not occupied: print("occupied == False")
 quit()
 
 

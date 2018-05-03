@@ -234,7 +234,7 @@ FoyerCoatClosetMultisensorTemperature,5,noDebug
 GarageHall1MultisensorTemperature,5,noDebug
 GarageHall2MultisensorTemperature,5,noDebug
 GarageHall3MultisensorTemperature,5,noDebug
-GregsOfficeClosetMultisensorTemperature,5,noDebug
+GregsOfficeClosetMultisensorTemperature,5,Debug
 GregsOfficeBathMultisensorTemperature,5,noDebug
 GregsOfficeBathShowerMultisensorTemperature,5,noDebug
 GregsOfficeDoorMultisensorTemperature,5,noDebug
