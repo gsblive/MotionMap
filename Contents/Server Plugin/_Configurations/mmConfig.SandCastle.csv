@@ -113,7 +113,7 @@
 deviceName,maxMovement,minMovement,debugDeviceMode
 TopFloorMasterBathMultisensorMotion,60,10,noDebug
 BottomFloorMultisensorMotion,60,20,noDebug
-BottomFloorStairsMultisensorrMotion,60,5,noDebug
+BottomFloorStairsMultisensorMotion,60,5,noDebug
 MiddleFloorBathToiletMultisensorMotion,60,10,noDebug
 MiddleFloorBathMultisensorMotion,60,10,noDebug
 MiddleFloorMultisensorMotion,60,20,noDebug
@@ -182,7 +182,7 @@ GregsDeskMultisensorUltraviolet,noDebug
 deviceName,proirity,debugDeviceMode
 TopFloorMasterBathMultisensorTemperature,5,noDebug
 BottomFloorMultisensorTemperature,5,noDebug
-BottomFloorStairsMultisensorrTemperature,5,noDebug
+BottomFloorStairsMultisensorTemperature,5,noDebug
 MiddleFloorBathToiletMultisensorTemperature,5,noDebug
 MiddleFloorBathMultisensorTemperature,5,noDebug
 MiddleFloorMultisensorTemperature,5,noDebug
@@ -222,7 +222,7 @@ deviceName,members,unoccupiedRelayDelayMinutes,debugDeviceMode
 DeskArea,GregsDeskMultisensorMotion,0,noDebug
 TopFloor,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;TopFloorStairsMultisensorMotion;TopFloorMasterBathLavMultisensorMotion;TopFloorMasterBathShowerMultisensorMotion;GregsDeskMultisensorMotion,0,noDebug
 MiddleFloor,MiddleFloorBathToiletMultisensorMotion;MiddleFloorBathMultisensorMotion;MiddleFloorMultisensorMotion,0,noDebug
-BottomFloor,BottomFloorMultisensorMotion;BottomFloorStairsMultisensorrMotion,0,noDebug
+BottomFloor,BottomFloorMultisensorMotion;BottomFloorStairsMultisensorMotion,0,noDebug
 House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 
 ########################################################
@@ -248,7 +248,7 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-BottomFloorStairsLightP,5,100,30,flash,BottomFloorStairsMultisensorrMotion,,2,noDebug
+BottomFloorStairsLightP,5,100,30,flash,BottomFloorStairsMultisensorMotion,,2,noDebug
 BottomFloorRoomNearDoorP,20,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
 BottomFloorBunkLeftLightP,60,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
 BottomFloorBunkRIghtLightP,60,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
@@ -256,7 +256,7 @@ MiddleFloorBathVanityLightP,20,100,60,flash,MiddleFloorBathMultisensorMotion,,2,
 MiddleFloorBathToiletFanLightP,10,100,60,flash,MiddleFloorBathToiletMultisensorMotion,,2,noDebug
 TopFloorStairwellLightP,5,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
 TopFloorFoyerLightP,5,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
-TopFloorMasterLightsP,60,0,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
+TopFloorMasterLightsP,60,0,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;GregsDeskMultisensorMotion,2,Debug
 TopFloorMasterUnderBedOutletTop,60,0,100,flash;bedtime,TopFloorMasterMultisensorMotion,TopFloorMasterBathMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorMasterBathLavLight,10,0,14,flash,,TopFloorMasterBathLavMultisensorMotion,2,noDebug
 TopFloorMasterShowerLightP,10,0,100,flash,TopFloorMasterBathShowerMultisensorMotion,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;TopFloorMasterBathLavMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
@@ -272,31 +272,6 @@ MiddleFloorKitchenCabinetLeftLightSwitchP,120,0,30,flash;bedtime,,MiddleFloorMul
 MiddleFloorKitchenCabinetLightSwitchRightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
 MiddleFloorKitchenMainLightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
 MiddleFloorKitchenSinkLightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-
-########################################################
-#
-#    zLoadDevices – Usually a Dimmer Switch or Outlet (Z-Wave Version)
-#
-#   deviceName – The English name of the device
-#   maxNonMotionTime – The maximum of time (in minutes) that this device is allowed to stay on while receiving no motion events
-#   maxOnTime – The maximum of time (in minutes) that this device is allowed to stay on (regardless of motion sensor)
-#   daytimeOnLevel – The light level to turn this device during the daytime 0 is off1 is on for switch1-100 is percent for dimmer
-#   nighttimeOnLevel – The light level to turn this device during the daytime (0 is off1 is on for switch1-100 is percent for dimmer)
-#	specialFeatures = A list that can contain any or the following string commands
-#						flash: flash the device 1 minute prior to turning off;
-#						beep: beep the device 1 minute prior to turning off;
-#						bedtime: beep the device 1 minute prior to turning off
-#   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
-#   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
-#	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowed before marking this device unnresponsive
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
-#
-#
-########################################################
-
-#-h,zLoadDevice
-#deviceName,maxNonMotionTime,maxOnTime,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-#TestRelay,2,10,100,100,flash,TestMultisensor,TopFloorMasterMultisensorMotion,2,noDebug
 
 ########################################################
 #

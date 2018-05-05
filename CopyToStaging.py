@@ -35,7 +35,6 @@ def copyToStaging(volList):
 	indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
 	#print str(indigoPlugin)
 	indigoPlugin = indigoPlugin.replace(' ', '\\ ')
-
 	for theVol in volList:
 		print str("")
 		# print str("### Attempting to copy to " + theVol)
