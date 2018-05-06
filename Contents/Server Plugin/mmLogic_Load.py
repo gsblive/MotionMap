@@ -649,14 +649,20 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				self.setControllersOnOfflineState('bedtime')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
 
 			# if we are occupied in the day->night transition, we have to turn on the light or it wont come on when
-			# we enter the room (until thoccupancy sensor times out first)
+			# we enter the room (until thoccupancy sensor times out first).
+			# But only for the lights that are set to come on automatially (i.e. listed in self.onControllers
 			# Special Case... if Both nighttime and daytime are 0... Its a manual light, dont adjust
 
-			if occupied and self.daytimeOnLevel == "0" and self.nighttimeOnLevel != "0":
-				processBrightness = True
+			if 	self.theIndigoDevice.onState == False and \
+				self.daytimeOnLevel == "0" and \
+				self.nighttimeOnLevel != "0" and \
+				self.onControllerName and \
+				self.getAreaOccupiedState([self.onControllerName]):
+					processBrightness = True
 
-		# process day/night brightness transitions
+		# process both day/night brightness transitions
 		# If the device is on, set its brightness to the appropriate level, but only if there is nobody in the room
+
 		if self.theIndigoDevice.onState == True and self.theIndigoDevice.__class__ == indigo.DimmerDevice and not occupied and int(newBrightnessVal) != int(self.theIndigoDevice.states["brightnessLevel"]):
 			processBrightness = True
 

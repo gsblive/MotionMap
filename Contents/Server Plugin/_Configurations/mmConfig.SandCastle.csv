@@ -256,7 +256,7 @@ MiddleFloorBathVanityLightP,20,100,60,flash,MiddleFloorBathMultisensorMotion,,2,
 MiddleFloorBathToiletFanLightP,10,100,60,flash,MiddleFloorBathToiletMultisensorMotion,,2,noDebug
 TopFloorStairwellLightP,5,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
 TopFloorFoyerLightP,5,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
-TopFloorMasterLightsP,60,0,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;GregsDeskMultisensorMotion,2,Debug
+TopFloorMasterLightsP,60,0,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorMasterUnderBedOutletTop,60,0,100,flash;bedtime,TopFloorMasterMultisensorMotion,TopFloorMasterBathMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorMasterBathLavLight,10,0,14,flash,,TopFloorMasterBathLavMultisensorMotion,2,noDebug
 TopFloorMasterShowerLightP,10,0,100,flash,TopFloorMasterBathShowerMultisensorMotion,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;TopFloorMasterBathLavMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
@@ -392,7 +392,7 @@ MasterBathroomAll,9,TopFloorMasterBathToiletFanLightP;TopFloorMasterShowerLightP
 
 -h,OccupationAction
 deviceName,occupationEvent,activateAction,actionController,debugDeviceMode
-UpperDoorLockControl,UnoccupiedAll,_Security UpperDoorLock,TopFloor,Debug
+UpperDoorLockControl,UnoccupiedAll,_Security UpperDoorLock,TopFloor,noDebug
 LowerDoorLockControl,UnoccupiedAll,_Security LowerDoorLock,House,noDebug
 TopFireplaceOffControl,UnoccupiedAll,_MotionMap Top Floor Fireplace Off,House,noDebug
 MiddleFireplaceOffControl,UnoccupiedAll,_MotionMap Middle Floor Fireplace Off,House,noDebug
