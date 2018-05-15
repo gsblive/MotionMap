@@ -14,6 +14,7 @@ __author__ = 'gbrewer'
 # import itertools
 # import pickle
 # import collections
+import bisect
 
 try:
 	import indigo
@@ -26,6 +27,8 @@ import mmLib_CommandQ
 import time
 from collections import deque
 
+# For BrightenWithRamp
+tenthValues = [1,3,20,65,190,230,280,320,380,470,900,1500,2100,2700,3600,4800]
 
 ######################################################
 #
@@ -200,6 +203,43 @@ class mmIndigo(object):
 		indigo.device.toggle(self.devIndigoID)
 
 	#
+	#	Support for SetBrightnessWithRamp (0x2E)
+	#
+	#	makeRampCmdModifier(level,RampRateSeconds)
+	# 		where
+	# 			Level = 0-100%
+	# 		and
+	# 			RampRateSeconds = .1-480 seconds
+	#
+	# cmd modifier = Bits 4-7 = OnLevel + 0x0F and Bits 0-3 = 2 x RampRate + 1
+	#		where
+	# 			onLevel is 16 levels of brightness (0-15) : 0 = off and 15 = 100%
+	# 		and
+	# 			RampRate = 0-15 log indexed into [1,3,20,65,190,230,280,320,380,470,900,1500,2100,2700,3600,4800] seconds,
+	# 			then inverted by subtracting it by 15:
+	#
+	def makeRampCmdModifier(self, theLevel, RampRateSeconds):
+
+		global tenthValues
+
+		if RampRateSeconds < 0.1:
+			RampRateSeconds = 0.1
+		elif RampRateSeconds > 480:
+			RampRateSeconds = 480
+
+		onLevel = int(theLevel / 6.5) * 0x10
+
+		iPoint = bisect.bisect_left(tenthValues, int(RampRateSeconds * 10))
+		# print str(tenthValues[iPoint]/10.0) + " is closest to requested " + str(RampRateSeconds) + " seconds"
+
+		finalCmd = onLevel + (15 - iPoint)
+		return finalCmd
+
+	def completeAutonomousDimming(self):
+
+		self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
+
+	#
 	#  Set Brightness
 	#
 	def brightenDevice(self, theCommandParameters):
@@ -209,7 +249,7 @@ class mmIndigo(object):
 			return 'unresponsive'
 
 		try:
-			theValue = theCommandParameters['theValue']
+			theValue = int(theCommandParameters['theValue'])
 		except:
 			mmLib_Log.logError("brightenDevice - Must specify a value for: " + self.deviceName)
 			return 'brightenDevice: required parameter not present'
@@ -217,13 +257,33 @@ class mmIndigo(object):
 		if self.theIndigoDevice.__class__ == indigo.DimmerDevice:
 			mmLib_Log.logDebug("brightenDevice - theCommand Value: " + str(theValue))
 
-			try:
-				defeatTimerUpdateParm = theCommandParameters["defeatTimerUpdate"]
-			except:
-				defeatTimerUpdateParm = 0
+			self.defeatTimerUpdate = theCommandParameters.get("defeatTimerUpdate",0)
 
-			self.defeatTimerUpdate = defeatTimerUpdateParm
-			indigo.dimmer.setBrightness(self.devIndigoID, value=int(theValue))
+			theRampRate = int(theCommandParameters.get("ramp",0))
+			theCommand = 0
+
+			if theRampRate:
+				if self.theIndigoDevice.version >= 69:
+					# i2cs engine uses command 0x34
+					theCommand = 0x34		# (52  mmComm_Insteon.kInsteonBrightenWithRamp2)
+				elif self.theIndigoDevice.version <= 65:
+					# i2 engine uses command 0x2E
+					theCommand = 0x2E		# (46 mmComm_Insteon.kInsteonBrightenWithRamp)
+				else:
+					mmLib_Log.logWarning("### Unknown insteon version " + + " for device " + self.deviceName + " while attempting BrightenWithRamp. Defaulting to standard Brighten function.")
+
+			if theCommand:
+				self.sendRawInsteonCommandLow([theCommand,self.makeRampCmdModifier(theValue, theRampRate)], 0, 0)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
+				# update the periodicStatusUpdateRequest to make sure the brightness gets updated in indigo when the brightening concludes.
+				# since this is a dimmer device, we know this function exists
+				mmLib_Low.registerDelayedAction( {	'theFunction': self.periodicStatusUpdateRequest,
+												  	'timeDeltaSeconds': theRampRate,
+					 								'theDevice': self.deviceName,
+													'timerMessage': "periodicStatusUpdateRequest"})
+			else:
+				# use traditional set command
+				indigo.dimmer.setBrightness(self.devIndigoID, value=theValue)
+
 		else:
 			return self.onOffDevice(theCommandParameters)
 

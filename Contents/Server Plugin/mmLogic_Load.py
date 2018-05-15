@@ -55,6 +55,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.onControllers = filter(None, theDeviceParameters["onControllers"].split(';'))  # Can be a list, split by semicolons... normalize it into a proper list
 			self.sustainControllers = filter(None, theDeviceParameters["sustainControllers"].split(';'))
 			self.combinedControllers = self.onControllers + self.sustainControllers							# combinedControllers contain both sustainControllers and onControllers
+			if not (self.daytimeOnLevel + self.nighttimeOnLevel) or not len(self.combinedControllers): self.manualControl = 1
+			else: self.manualControl = 0
 			self.lastOffCommandTime = 0
 			self.allControllerGroups = []
 			self.ourNonvolatileData = mmLib_Low.initializeNVDict(self.deviceName)
@@ -562,7 +564,18 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if memberDev: memberDev.setOnOffLine(requestedState)
 		return(0)
 
+	#
+	# getAreaOnState - are any of our controllers currently in an ON state?
+	#
+	def getAreaOnState(self, theControllers):
 
+		for otherControllerName in theControllers:
+			if not otherControllerName: break
+			theController = mmLib_Low.MotionMapDeviceDict.get(otherControllerName,0)
+			if theController:
+				if theController.getOnState():
+					return (otherControllerName + " is ON")
+		return(False)
 
 	#
 	# getAreaOccupiedState - are any of our controllers currently in an occupied state?
@@ -572,11 +585,32 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# If any of our controllers are "Occupied", return True
 
 		for otherControllerName in theControllers:
+
+			# If one of our Off Timers are running, return "Occupied with that timer value
+
+			scheduledOffTime = mmLib_Low.delayedFunctionKeys.get(self.offDelayCallback,0)
+			if not scheduledOffTime:
+				scheduledOffTime = mmLib_Low.delayedFunctionKeys.get(self.offCallback,0)
+			if scheduledOffTime:
+				theTimeString = mmLib_Low.minutesAndSecondsTillTime(scheduledOffTime)
+				return(self.deviceName + ":" + " timeout in " + str(theTimeString))
+
 			if not otherControllerName: break
 			theController = mmLib_Low.MotionMapDeviceDict.get(otherControllerName,0)
-			if theController and theController.onlineState == 'on' and theController.occupiedState == True:
-				mmLib_Log.logVerbose(otherControllerName + " is is keeping device " + self.deviceName + " on")
-				return(True)
+			if theController:
+				if theController.onlineState == 'on' and theController.occupiedState == True:
+					mmLib_Log.logVerbose(otherControllerName + " is is keeping device " + self.deviceName + " on")
+					try:
+						resultMessage = mmLib_Low.readIndigoVariable(theController.occupationIndigoVar)
+					except:
+						pass
+
+					if resultMessage != 'n/a': return(otherControllerName + ":" + resultMessage)
+					else: return(otherControllerName)
+
+			else:
+				mmLib_Log.logWarning(otherControllerName + ", is being referenced by " + self.deviceName + ", however there is no such MotionMap device.")
+
 		return(False)
 
 	#
@@ -618,11 +652,38 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	# 		mmDayNightTransition - process day/night transition
 	#
 	def mmDayNightTransition(self,eventID, eventParameters):
-		processBrightness = False
 
-		occupied = self.getAreaOccupiedState(self.allControllerGroups)
+		if self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_ON:
+			processBedtime = True
+		else:
+			processBedtime = False
 
-		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " is processing mmDayNightTransition of " + str(eventID) + ". BedtimeMode NV Value is " + str(self.ourNonvolatileData["bedtimeMode"]) + ". Occupied = " + str(occupied))
+		processBrightness = True		# assume we are gping to process brightness (unless the logic below changes this)
+		areaIsOccupied = self.getAreaOccupiedState(self.allControllerGroups)
+
+		if not self.manualControl:
+			# If a device is off, and the ONController says unoccupied, leave it off
+			if self.theIndigoDevice.onState == False and not self.getAreaOnState([self.onControllerName]):
+				processBrightness = False
+
+		# now get the current Brightness
+		try:
+			currentBrightness = int(self.theIndigoDevice.states["brightnessLevel"])
+		except:
+			# Must be an on/off device
+			if self.theIndigoDevice.onState == False:
+				currentBrightness = 0
+			else:
+				currentBrightness = 100
+
+		newBrightnessVal = currentBrightness		# assume no change
+
+		if areaIsOccupied:
+			mmLib_Log.logForce(self.deviceName + " is processing mmDayNightTransition of " + str(eventID) + ". BedtimeMode NV Value is " + str(self.ourNonvolatileData["bedtimeMode"]))
+			if areaIsOccupied:
+				mmLib_Log.logForce("       processBrightness is " + str(processBrightness) + ". area is occupied according to " + str(areaIsOccupied) + ". currentBrightness is " + str(currentBrightness))
+			else:
+				mmLib_Log.logForce("       processBrightness is " + str(processBrightness) + ". area is not occupied. currentBrightness is " + str(currentBrightness))
 
 		# do day/night processing
 
@@ -630,50 +691,44 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		if eventID == 'isDayTime':
 			#
 			#  process night to day transition
-			newBrightnessVal = self.daytimeOnLevel
+			#
+			if areaIsOccupied: newBrightnessVal = self.daytimeOnLevel
 
 			# do bedtimeMode reset if needed
-			if self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_ON:
+			if processBedtime:
 				self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_OFF
 				mmLib_Log.logReportLine("Bedtime Mode OFF for device: " + self.deviceName)
 				self.setControllersOnOfflineState('on')  # we are turning badtime mode off, so start commands from our controllers again
+
 		else:
 			#
 			#  process day to night transition
-			newBrightnessVal = self.nighttimeOnLevel
-
+			#
 			# if we are supposed to be in bedtime mode (based on NV variable) and we are transitioning into night, we might have restarted
 			# put us back into bedtime mode
-			if self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_ON:
+
+			if processBedtime:
 				mmLib_Log.logReportLine("Restoring Bedtime Mode ON for device: " + self.deviceName)
 				self.setControllersOnOfflineState('bedtime')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
+			else:
+				if areaIsOccupied: newBrightnessVal = self.nighttimeOnLevel
 
-			# if we are occupied in the day->night transition, we have to turn on the light or it wont come on when
-			# we enter the room (until thoccupancy sensor times out first).
-			# But only for the lights that are set to come on automatially (i.e. listed in self.onControllers
-			# Special Case... if Both nighttime and daytime are 0... Its a manual light, dont adjust
 
-			if 	self.theIndigoDevice.onState == False and \
-				self.daytimeOnLevel == "0" and \
-				self.nighttimeOnLevel != "0" and \
-				self.onControllerName and \
-				self.getAreaOccupiedState([self.onControllerName]):
-					processBrightness = True
+		# if we are going to process brightness and the current brightness does not match the expected brightness
+		# change it
 
-		# process both day/night brightness transitions
-		# If the device is on, set its brightness to the appropriate level, but only if there is nobody in the room
+		if 	processBrightness and \
+			int(currentBrightness) != int(newBrightnessVal):
+				mmLib_Log.logReportLine("Day/Night transition for device: " + self.deviceName + " from brightness " + str(currentBrightness) + " to brightness " + str(newBrightnessVal) + " with ramp 360")
+				# use ramp mode 360 to smooth the brightness transition
+				self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'dayNightTransition','ramp':360, 'retry': 2})
+				# If we just turned thee off, clear the off timers
+				if newBrightnessVal == "0":
+					# none of the delay callbacks are valid now
+					mmLib_Low.cancelDelayedAction(self.offDelayCallback)
+					mmLib_Low.cancelDelayedAction(self.offCallback)
 
-		if self.theIndigoDevice.onState == True and self.theIndigoDevice.__class__ == indigo.DimmerDevice and not occupied and int(newBrightnessVal) != int(self.theIndigoDevice.states["brightnessLevel"]):
-			processBrightness = True
-
-		if processBrightness:
-			mmLib_Log.logReportLine("Day/Night transition for device: " + self.deviceName + " to brightness " + str(newBrightnessVal))
-			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'dayNightTransition', 'retry': 2})
-			# If we just turned thee off, clear the off timers
-			if newBrightnessVal == "0":
-				# none of the delay callbacks are valid now
-				mmLib_Low.cancelDelayedAction(self.offDelayCallback)
-				mmLib_Low.cancelDelayedAction(self.offCallback)
+		return 0
 
 	#
 	# periodicStatusUpdateRequest - status requests every now and then

@@ -272,6 +272,22 @@ def getIndigoVariable(theVarName, theDefaultValue):
 	return(theVarValue)
 
 
+############################################################################################
+#
+#	readIndigoVariable
+#
+#		Get an insteon Variable.
+#
+############################################################################################
+def readIndigoVariable(theVarName):
+
+	try:
+		theVarValue = indigo.variables[theVarName].value
+	except:
+		theVarValue = "n/a"
+
+	return(theVarValue)
+
 
 
 ############################################################################################

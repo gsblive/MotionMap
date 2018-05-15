@@ -49,6 +49,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.lastOnTimeSeconds = 0
 		self.lastOffTimeSeconds = 0
 		self.blackOutTill = 0
+		self.onlineState = 'on'
 
 		super(mmMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 		if self.initResult == 0:
@@ -153,6 +154,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	def getOnState(self):
 
+		if self.onlineState != 'on': return(False)
 		return(self.theIndigoDevice.onState)
 
 

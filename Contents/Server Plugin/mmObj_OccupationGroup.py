@@ -162,15 +162,22 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		return 0
 
 	#
-	# For occupation Group... On State is true if it is fully occupied
+	# For occupation Group... On State is true if any members are True
 	#
 	def getOnState(self):
 
-		if len(self.occupiedAllDict) == len(self.members):
-			return(True)
-		else:
-			return(False)
+		if self.onlineState != 'on': return(False)
 
+		for member in self.members:
+			if not member: continue
+			memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
+			if memberDev and memberDev.getOnState(): return(True)
+		return(False)
+
+
+	#
+	# For occupation Group... Occupied State is true if it is fully occupied
+	#
 	def getOccupiedState(self):
 
 		if len(self.occupiedAllDict) == len(self.members):

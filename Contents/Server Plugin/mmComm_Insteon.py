@@ -38,6 +38,8 @@ kInsteonStartBrightDim = 23
 kInsteonStopBrightDim = 24
 kInsteonStatusRequest = 25
 kInsteonBeep = 48
+kInsteonBrightenWithRamp = 46
+kInsteonBrightenWithRamp2 = 52
 kInsteonHVACMode = 107
 kInsteonHVACCoolSetpoint = 108
 kInsteonHVACHeatSetpoint = 109
@@ -50,7 +52,7 @@ mapCommandToInsteon = {	'setHVACMode': [kInsteonHVACMode],
 						'setHVACFanMode': [kInsteonHVACMode],
 						'setHVACHeatSetpoint': [kInsteonHVACHeatSetpoint],
 						'setHVACCoolSetpoint': [kInsteonHVACCoolSetpoint],
-						'brighten': [kInsteonOn,kInsteonOff],
+						'brighten': [kInsteonOn,kInsteonOff,kInsteonBrightenWithRamp,kInsteonBrightenWithRamp2],
 						'onOffDevice': [kInsteonOn,kInsteonOff],
 						'sceneOn': [kInsteonOn],
 						'sceneOff': [kInsteonOff],
@@ -69,7 +71,9 @@ mapInsteonToCommand = {kInsteonOn:['brighten','toggle', 'flash', 'onOffDevice','
 					   kInsteonStartBrightDim:['brighten','toggle', 'flash'],\
 					   kInsteonStopBrightDim:['brighten','toggle', 'flash'],\
 					   kInsteonStatusRequest:['sendStatusRequest'],\
-					   kInsteonBeep:['beep'],\
+					   kInsteonBeep:['beep'], \
+					   kInsteonBrightenWithRamp:['brighten'],\
+					   kInsteonBrightenWithRamp2:['brighten'],\
 					   kInsteonHVACMode:['setHVACFanMode', 'setHVACMode'],\
 					   kInsteonHVACCoolSetpoint:['setHVACHeatSetpoint'],\
 					   kInsteonHVACHeatSetpoint:['setHVACCoolSetpoint']}
