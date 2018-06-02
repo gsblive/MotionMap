@@ -692,7 +692,15 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			#
 			#  process night to day transition
 			#
-			if areaIsOccupied: newBrightnessVal = self.daytimeOnLevel
+
+			# special processing... skip if current brightness is already brighter than daytime level
+
+			if areaIsOccupied:
+				# special processing... skip if current brightness is already brighter than daytime level
+				if int(currentBrightness) > int(self.daytimeOnLevel):
+					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Skipping brightness adjustment because current brightness is already brighter than daytime level")
+				else:
+					newBrightnessVal = self.daytimeOnLevel
 
 			# do bedtimeMode reset if needed
 			if processBedtime:
@@ -711,7 +719,12 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				mmLib_Log.logReportLine("Restoring Bedtime Mode ON for device: " + self.deviceName)
 				self.setControllersOnOfflineState('bedtime')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
 			else:
-				if areaIsOccupied: newBrightnessVal = self.nighttimeOnLevel
+				if areaIsOccupied:
+					# special processing... skip if current brightness is already dimmer than nighttimeOnLevel level
+					if int(currentBrightness) and int(currentBrightness) < int(self.nighttimeOnLevel):
+						if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Skipping brightness adjustment because current brightness is already dimmer than nighttimeOnLevel level")
+					else:
+						newBrightnessVal = self.nighttimeOnLevel
 
 
 		# if we are going to process brightness and the current brightness does not match the expected brightness
