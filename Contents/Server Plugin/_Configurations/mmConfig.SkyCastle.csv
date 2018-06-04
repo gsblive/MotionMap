@@ -411,7 +411,7 @@ GregsOfficeLight,1,100,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOffice
 GuestBedroomFanLight,30,0,30,flash;bedtime,,GuestMultisensorMotion,2,noDebug
 GuestBathVanityLight,30,100,25,flash,GuestBathMultisensorMotion,,2,noDebug
 GuestBathFan,30,0,0,flash,,GuestBathMultisensorMotion,2,noDebug
-GuestBathFanLight,30,100,25,flash,,GuestBathMultisensorMotion,2,noDebug
+GuestBathFanLight,30,0,25,flash,,GuestBathMultisensorMotion,2,noDebug
 KitchenBathLight,5,100,25,flash,KitchenBathMuiltisensorMotion,,2,noDebug
 KitchenLavLight,30,100,25,flash,,KitchenBathMuiltisensorMotion,2,noDebug
 KitchenLavFan,30,0,0,flash,,KitchenBathMuiltisensorMotion,2,noDebug
