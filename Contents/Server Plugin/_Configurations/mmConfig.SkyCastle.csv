@@ -336,7 +336,7 @@ AcZone1LeftSideHouse,DownstairsLeft;UpstairsLeft;UpstairsLeftBedrooms,0,noDebug
 AcZone2RightSideUpper,UpstairsRight;UpstairsRightBedrooms,0,noDebug
 AcZone3RightSideLower,DownstairsRight,0,noDebug
 # Security
-House,DownstairsRight;DownstairsLeft;UpstairsRight;UpstairsLeft,60,noDebug
+House,DownstairsRight;DownstairsLeft;UpstairsRight;UpstairsLeft,20,noDebug
 #DoorFrontPatioLockTrigger,House;PatioMultisensorMotion,0,noDebug
 #DoorGarageDrivewayPatioLockTrigger,House,0,noDebug
 #DoorFrontLockTrigger,House,0,noDebug
@@ -407,7 +407,7 @@ GregsOfficeBathVanityLight,10,100,0,flash,GregsOfficeBathMultisensorMotion,,2,no
 GregsOfficeBathFanLight,10,0,30,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
 GregsOfficeBathShowerLight,5,100,30,flash,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
 GregsOfficeBathFan,5,0,0,,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
-GregsOfficeLight,1,100,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
+GregsOfficeLight,1,0,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
 GuestBedroomFanLight,30,0,30,flash;bedtime,,GuestMultisensorMotion,2,noDebug
 GuestBathVanityLight,30,100,25,flash,GuestBathMultisensorMotion,,2,noDebug
 GuestBathFan,30,0,0,flash,,GuestBathMultisensorMotion,2,noDebug
