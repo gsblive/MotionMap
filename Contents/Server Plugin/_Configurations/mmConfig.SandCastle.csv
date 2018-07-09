@@ -259,6 +259,7 @@ TopFloorFoyerLightP,5,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
 TopFloorMasterLightsP,60,0,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorMasterUnderBedOutletTop,60,0,100,flash;bedtime,TopFloorMasterMultisensorMotion,TopFloorMasterBathMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorMasterBathLavLight,10,0,14,flash,,TopFloorMasterBathLavMultisensorMotion,2,noDebug
+TopFloorMasterBathLavFan,10,100,100,flash,,TopFloorMasterBathLavMultisensorMotion,2,noDebug
 TopFloorMasterShowerLightP,10,0,100,flash,TopFloorMasterBathShowerMultisensorMotion,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;TopFloorMasterBathLavMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorMasterBathVanityLightP,10,100,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion,2,noDebug
 TopFloorMasterBathLinenP,10,100,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion,2,noDebug
@@ -376,7 +377,9 @@ HVACCompanionBottomFloor,HvacMonitor,HVACMiddleFloor,76,30,66,30,,0,noDebug
 
 -h,Scene
 deviceName,sceneNumber,members
-MasterBathroomAll,9,TopFloorMasterBathToiletFanLightP;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP
+MasterBathroomAll,9,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan
+MasterAll,10,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan
+TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan
 
 ########################################################
 #
