@@ -288,6 +288,7 @@ MiddleFloorKitchenSinkLightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotio
 -h,Companion
 deviceName,loadDeviceName,maxSequentialErrorsAllowed,debugDeviceMode
 BottomFloorRoomLightNearStairs,BottomFloorRoomNearDoorP,2,noDebug
+DogRunAndWaterfallFloodLight 1,DogRunAndWaterfallFloodLight,2,noDebug
 MiddleFloorUpperStairwellLight,TopFloorStairwellLightP,2,noDebug
 MiddleFloorLowerStairsLight,BottomFloorStairsLightP,2,noDebug
 TopFloorMasterBathVanityLight,TopFloorMasterBathVanityLightP,2,noDebug
