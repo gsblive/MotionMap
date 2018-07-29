@@ -103,6 +103,14 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	######################################################################################
 
 	#
+	# deviceMotionStatus - check the motion status of a device
+	#
+	def deviceMotionStatus(self):
+
+		self.devStatus({})
+		return(0)
+
+	#
 	# getOccupancyTimeout - return an int that indicates the number of minutes that must transpire before a non-occupancy state is assumed
 	#
 	def getOccupancyTimeout(self):
@@ -458,11 +466,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		return(0)
 
 	#
-	# reportFullStatus - report debounce Problem for this device, if any
+	# reportFullStatus - report status including debounce Problem for this device, if any
 	#
 	def reportFullStatus(self, sendEmail):
 
-		theBody = "Debounce Report for " + self.deviceName
+		theBody = "Status Report for " + self.deviceName
 
 		if sendEmail:
 			# send an email indicating the problem

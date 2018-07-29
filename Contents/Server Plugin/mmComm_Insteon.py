@@ -332,6 +332,8 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	def deviceMotionStatus(self):
 
 		# Handle this in the overriding objects
+		mmLib_Log.logWarning("deviceMotionStatus called for " + self.deviceName + ". Function not supported. It must be overridden.")
+
 		return(0)
 
 

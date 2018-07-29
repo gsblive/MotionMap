@@ -671,7 +671,7 @@ def displayMotionStatus(theCommandParameters):
 		mmLib_Log.logReportLine("===============================================")
 
 		for mmDev in loadDeque:
-			mmDev.deviceMotionStatus
+			mmDev.deviceMotionStatus()
 
 	elif whichDevice == 'on':
 		mmLib_Log.logReportLine("Display Motion Status for all ON Load Devices.")
@@ -683,7 +683,7 @@ def displayMotionStatus(theCommandParameters):
 		mmLib_Log.logReportLine("Display Motion Status for Device " + whichDevice)
 		mmLib_Log.logReportLine("===============================================")
 		mmDev = MotionMapDeviceDict[whichDevice]
-		mmDev.deviceMotionStatus
+		mmDev.deviceMotionStatus()
 
 	return(0)
 

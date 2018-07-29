@@ -492,6 +492,7 @@ deviceName,loadDeviceName,maxSequentialErrorsAllowed,debugDeviceMode
 BackStairsLights1,BackStairsLights,2,noDebug
 CarPortLights1,CarPortLights,2,noDebug
 DiningRoomCans1,DiningRoomCans,2,noDebug
+DogRunAndWaterfallFloodLight 1,DogRunAndWaterfallFloodLight,2,noDebug
 DownstairsHallRightLights1,DownstairsHallRightLights,2,noDebug
 DownstairsHallLeftLights1,DownstairsHallLeftLights,2,noDebug
 DrivewayPostCarriageLights1,DrivewayPostCarriageLights,2,noDebug
