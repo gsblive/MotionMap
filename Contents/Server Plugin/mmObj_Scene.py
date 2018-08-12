@@ -13,7 +13,11 @@ __author__ = 'gbrewer'
 #import traceback
 #import datetime
 
-import indigo
+try:
+	import indigo
+except:
+	pass
+
 import mmLib_Log
 import mmLib_Low
 import mmLib_Events
