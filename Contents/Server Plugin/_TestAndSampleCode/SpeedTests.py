@@ -177,6 +177,14 @@ cancelDelayedAction(delayQueue, "trixie")
 print(str(delayQueue))
 cancelDelayedAction(delayQueue, "kc")
 print(str(delayQueue))
+
+
+runTests()
+
 #mmRunDelayedProcs(delayQueue)
 
 #print(str(delayQueue))
+
+
+exit()
+
