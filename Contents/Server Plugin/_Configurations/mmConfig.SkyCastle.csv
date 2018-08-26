@@ -234,7 +234,7 @@ FoyerCoatClosetMultisensorTemperature,5,noDebug
 GarageHall1MultisensorTemperature,5,noDebug
 GarageHall2MultisensorTemperature,5,noDebug
 GarageHall3MultisensorTemperature,5,noDebug
-GregsOfficeClosetMultisensorTemperature,5,Debug
+GregsOfficeClosetMultisensorTemperature,5,noDebug
 GregsOfficeBathMultisensorTemperature,5,noDebug
 GregsOfficeBathShowerMultisensorTemperature,5,noDebug
 GregsOfficeDoorMultisensorTemperature,5,noDebug
@@ -375,7 +375,7 @@ BackStairsLights,5,60,25,flash,GarageHall3MultisensorMotion;BackStairsMultisenso
 ButlerKitchenLight,5,80,60,flash,ButlerKitchenMultisensorMotion,,2,noDebug
 CarPortCarriageLights,5,0,30,flash,CarPortMultisensorMotion;CamCarPortMotion,,2,noDebug
 CarPortLights,5,0,100,,CamHouseParkingMotion,,2,noDebug
-DogRunAndWaterfallFloodLight,5,0,100,,CamDogRunMotion,,2,noDebug
+DogRunAndWaterfallFloodLight,5,0,100,,CamDogRunMotion,,2,Debug
 DownstairsHallLeftLights,5,0,30,flash,DownstairsHallLeftLightsAMultisensorMotion;DownstairsHallLeftLightsBMultisensorMotion,,2,noDebug
 DownstairsHallRightLights,5,60,30,flash,DownstairsHallRightAMultisensorMotion;DownstairsHallRightBMultisensorMotion,,2,noDebug
 Dining Chandelier,30,0,30,flash,,DiningRoomMultisensorBMotion;DiningRoomMultisensorAMotion;DownstairsHallRightAMultisensorMotion;DownstairsHallLeftLightsAMultisensorMotion,2,noDebug
@@ -408,6 +408,7 @@ GregsOfficeBathFanLight,10,0,30,flash,GregsOfficeBathMultisensorMotion,,2,noDebu
 GregsOfficeBathShowerLight,5,100,30,flash,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
 GregsOfficeBathFan,5,0,0,,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
 GregsOfficeLight,1,0,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
+GuestBedroomFan,120,100,100,,,GuestMultisensorMotion,2,noDebug
 GuestBedroomFanLight,30,0,30,flash;bedtime,,GuestMultisensorMotion,2,noDebug
 GuestBathVanityLight,30,100,25,flash,GuestBathMultisensorMotion,,2,noDebug
 GuestBathFan,30,0,0,flash,,GuestBathMultisensorMotion,2,noDebug
@@ -423,7 +424,7 @@ Main Stairs Chandelier,60,0,100,flash,,QuadMultisensorAMotion;QuadMultisensorBMo
 Main Stairs Left,60,0,30,flash,,,2,noDebug
 Main Stairs Right,60,0,30,flash,,,2,noDebug
 MasterBarbiesClosetLight,5,100,40,flash,MasterBarbiesClosetMultisensorMotion,,2,noDebug
-MasterBathLavLight,10,100,6,flash,MasterBathLavMultisensorMotion,,2,noDebug
+MasterBathLavLight,5,100,6,flash,MasterBathLavMultisensorMotion,,2,noDebug
 MasterBathLavFan,10,0,0,flash,,MasterBathLavMultisensorMotion,2,noDebug
 MasterBathShowerLight,5,100,50,flash,MasterBathShowerMultisensorMotion,MasterBathMultiSensorMotion,2,noDebug
 MasterBathCenterLight,5,0,20,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
@@ -431,6 +432,7 @@ MasterBathRightVanityLight,15,70,30,flash,,MasterBathMultiSensorMotion;MasterBat
 MasterBathLeftVanityLight,5,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterBathTubLight,5,0,23,flash,MasterBathMultiSensorMotion,MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterCanLights,120,70,30,flash,,,2,noDebug
+MasterFanSwitch,120,100,100,,,House;MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,2,noDebug
 MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,,2,noDebug
 MasterGregsClosetLight,5,100,30,flash,MasterGregsClosetMultisensorMotion,,2,noDebug
 MasterHallLight,5,0,24,flash,MasterHallMultisensorMotion,,2,noDebug
@@ -492,6 +494,7 @@ deviceName,loadDeviceName,maxSequentialErrorsAllowed,debugDeviceMode
 BackStairsLights1,BackStairsLights,2,noDebug
 CarPortLights1,CarPortLights,2,noDebug
 DiningRoomCans1,DiningRoomCans,2,noDebug
+DogRunAndWaterfallFloodLight 1,DogRunAndWaterfallFloodLight,2,noDebug
 DownstairsHallRightLights1,DownstairsHallRightLights,2,noDebug
 DownstairsHallLeftLights1,DownstairsHallLeftLights,2,noDebug
 DrivewayPostCarriageLights1,DrivewayPostCarriageLights,2,noDebug

@@ -137,9 +137,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			
 			# register for update events
 			if self.theIndigoDevice.__class__ == indigo.DimmerDevice:
+				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Is Subscribing to event \'AttributeUpdate\' as dimmer with handlerDefinedData of " + str({'monitoredAttributes':{'onState':0, 'brightness':0}}))
 				mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0, 'brightness':0}} , self.deviceName)
 			else:
-				# mmLib_Log.logForce( self.deviceName + " Is Subscribing to event \'AttributeUpdate\' with handlerDefinedData of " + str({'monitoredAttributes':{'onState':0}}))
+				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Is Subscribing to event \'AttributeUpdate\' as switch with handlerDefinedData of " + str({'monitoredAttributes':{'onState':0}}))
 				mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}} , self.deviceName)
 
 			# register for command events
