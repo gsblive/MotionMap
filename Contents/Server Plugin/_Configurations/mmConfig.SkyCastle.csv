@@ -136,7 +136,8 @@ GuestMultisensorMotion,60,10,noDebug
 KitchenBathMuiltisensorMotion,60,10,noDebug
 LaundryRoomMultisensorMotion,60,10,noDebug
 MasterBarbiesClosetMultisensorMotion,60,5,noDebug
-MasterBedroomMultisensorMotion,360,20,noDebug
+MasterBedroomMultisensorMotion,120,20,noDebug
+MasterBedMultisensorMotion,180,20,noDebug
 MasterGregsClosetMultisensorMotion,60,5,noDebug
 MasterBathMultiSensorMotion,120,10,noDebug
 MasterBathShowerMultisensorMotion,60,5,noDebug
@@ -245,6 +246,7 @@ KitchenBathMuiltisensorTemperature,5,noDebug
 LaundryRoomMultisensorTemperature,5,noDebug
 MasterBarbiesClosetMultisensorTemperature,5,noDebug
 MasterBedroomMultisensorTemperature,5,noDebug
+MasterBedMultisensorTemperature,5,noDebug
 MasterGregsClosetMultisensorTemperature,5,noDebug
 MasterBathMultiSensorTemperature,5,noDebug
 MasterBathShowerMultisensorTemperature,5,noDebug
@@ -432,8 +434,8 @@ MasterBathRightVanityLight,15,70,30,flash,,MasterBathMultiSensorMotion;MasterBat
 MasterBathLeftVanityLight,5,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterBathTubLight,5,0,23,flash,MasterBathMultiSensorMotion,MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterCanLights,120,70,30,flash,,,2,noDebug
-MasterFanSwitch,240,100,100,,,House;MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,2,noDebug
-MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,,2,noDebug
+MasterFanSwitch,240,100,100,,,House;MasterHallMultisensorMotion;MasterBedMultisensorMotion;MasterBedroomMultisensorMotion,2,noDebug
+MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,MasterBedMultisensorMotion,2,noDebug
 MasterGregsClosetLight,5,100,30,flash,MasterGregsClosetMultisensorMotion,,2,noDebug
 MasterHallLight,5,0,24,flash,MasterHallMultisensorMotion,,2,noDebug
 MJBathroom,10,100,10,flash,,,2,noDebug

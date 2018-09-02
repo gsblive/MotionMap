@@ -11,4 +11,5 @@ For those of you trying to remove a node using zensys tool here are the steps re
 5. Select the "remove failed" icon from the tools menu
 Note: If uncertain which icon from the tools menu corresponds to a particular action, hoover your mouse over each to receive a "tool tip" message specifying the corresponding action.
 
-
+Also, in Indigo CLient, to have a motion sensor not Blink on motion
+Set "LED Signaling Mode" to 0"
