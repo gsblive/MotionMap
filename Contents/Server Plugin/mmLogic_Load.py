@@ -557,9 +557,15 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#	We actually put the controller offline because the load device (switch) is the UI for the controller(motion sensor)
 	#	its the only wat to put the motion sensor to sleep for other devices (Water pump and HVAC for example)
 	#
+
 	def setControllersOnOfflineState(self,requestedState):
 
-		for member in self.allControllerGroups:
+		if requestedState == 'bedtime':
+			theist = [self.onControllerName]
+		else:
+			theist = self.allControllerGroups
+
+		for member in theist:
 			if not member: break
 			memberDev = mmLib_Low.MotionMapDeviceDict.get(member,0)
 			if memberDev: memberDev.setOnOffLine(requestedState)
