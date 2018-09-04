@@ -112,6 +112,7 @@
 deviceName,maxMovement,minMovement,debugDeviceMode
 AeonTest1MultisensorMotion,60,2,noDebug
 BackStairsMultisensorMotion,60,5,noDebug
+BarbiesOfficeMultisensorMotion,240,60,noDebug
 ButlerKitchenMultisensorMotion,60,5,noDebug
 CarPortMultisensorMotion,60,5,noDebug
 DiningRoomMultisensorAMotion,360,5,noDebug
@@ -134,10 +135,12 @@ GregsOfficeMultisensorMotion,480,2,noDebug
 GuestBathMultisensorMotion,60,10,noDebug
 GuestMultisensorMotion,60,10,noDebug
 KitchenBathMuiltisensorMotion,60,10,noDebug
+KitchenDiningMultisensorMotion,60,30,noDebug
+KitchenMultisensorMotion,60,30,noDebug
 LaundryRoomMultisensorMotion,60,10,noDebug
 MasterBarbiesClosetMultisensorMotion,60,5,noDebug
 MasterBedroomMultisensorMotion,120,20,noDebug
-MasterBedMultisensorMotion,60,480,noDebug
+AeotecMasterBedMultisensorMotion,60,480,noDebug
 MasterGregsClosetMultisensorMotion,60,5,noDebug
 MasterBathMultiSensorMotion,120,10,noDebug
 MasterBathShowerMultisensorMotion,60,5,noDebug
@@ -221,6 +224,7 @@ AeonTest1MultisensorUltraviolet,noDebug
 deviceName,proirity,debugDeviceMode
 AeonTest1MultisensorTemperature,5,noDebug
 BackStairsMultisensorTemperature,5,noDebug
+BarbiesOfficeMultisensorTemperature,5,noDebug
 ButlerKitchenMultisensorTemperature,10,noDebug
 CarPortMultisensorTemperature,5,noDebug
 DiningRoomMultisensorATemperature,5,noDebug
@@ -243,10 +247,11 @@ GregsOfficeMultisensorTemperature,5,noDebug
 GuestBathMultisensorTemperature,5,noDebug
 GuestMultisensorTemperature,5,noDebug
 KitchenBathMuiltisensorTemperature,5,noDebug
+KitchenDiningMultisensorTemperature,5,noDebug
+KitchenMultisensorTemperature,5,noDebug
 LaundryRoomMultisensorTemperature,5,noDebug
 MasterBarbiesClosetMultisensorTemperature,5,noDebug
 MasterBedroomMultisensorTemperature,5,noDebug
-MasterBedMultisensorTemperature,5,noDebug
 MasterGregsClosetMultisensorTemperature,5,noDebug
 MasterBathMultiSensorTemperature,5,noDebug
 MasterBathShowerMultisensorTemperature,5,noDebug
@@ -374,6 +379,7 @@ GregsOfficeTestGroup,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMoti
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
 BackStairsLights,5,60,25,flash,GarageHall3MultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
+BarbiesOfficeLight,60,0,100,flash,,BarbiesOfficeMultisensorMotion,2,noDebug
 ButlerKitchenLight,5,80,60,flash,ButlerKitchenMultisensorMotion,,2,noDebug
 CarPortCarriageLights,5,0,30,flash,CarPortMultisensorMotion;CamCarPortMotion,,2,noDebug
 CarPortLights,5,0,100,,CamHouseParkingMotion,,2,noDebug
@@ -418,6 +424,8 @@ GuestBathFanLight,30,0,25,flash,,GuestBathMultisensorMotion,2,noDebug
 KitchenBathLight,5,100,25,flash,KitchenBathMuiltisensorMotion,,2,noDebug
 KitchenLavLight,30,100,25,flash,,KitchenBathMuiltisensorMotion,2,noDebug
 KitchenLavFan,30,0,0,flash,,KitchenBathMuiltisensorMotion,2,noDebug
+Kitchen Dining Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+Kitchen Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 LaundryRoomLight,5,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
 LaundryRoomFan,5,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug
 LivingRoomOutletBottom,360,0,0,,,,2,noDebug
@@ -434,8 +442,8 @@ MasterBathRightVanityLight,15,70,30,flash,,MasterBathMultiSensorMotion;MasterBat
 MasterBathLeftVanityLight,5,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterBathTubLight,5,0,23,flash,MasterBathMultiSensorMotion,MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterCanLights,120,70,30,flash,,,2,noDebug
-MasterFanSwitch,120,100,100,,,House;MasterHallMultisensorMotion;MasterBedMultisensorMotion;MasterBedroomMultisensorMotion,2,noDebug
-MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,MasterBedMultisensorMotion,2,noDebug
+MasterFanSwitch,120,100,100,,,House;MasterHallMultisensorMotion;AeotecMasterBedMultisensorMotion;MasterBedroomMultisensorMotion,2,noDebug
+MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,AeotecMasterBedMultisensorMotion,2,noDebug
 MasterGregsClosetLight,5,100,30,flash,MasterGregsClosetMultisensorMotion,,2,noDebug
 MasterHallLight,5,0,24,flash,MasterHallMultisensorMotion,,2,noDebug
 MJBathroom,10,100,10,flash,,,2,noDebug
