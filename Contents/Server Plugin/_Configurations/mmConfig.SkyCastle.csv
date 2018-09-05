@@ -426,6 +426,8 @@ KitchenLavLight,30,100,25,flash,,KitchenBathMuiltisensorMotion,2,noDebug
 KitchenLavFan,30,0,0,flash,,KitchenBathMuiltisensorMotion,2,noDebug
 Kitchen Dining Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 Kitchen Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+Kitchen Cabinets Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+Kitchen Island Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 LaundryRoomLight,5,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
 LaundryRoomFan,5,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug
 LivingRoomOutletBottom,360,0,0,,,,2,noDebug
