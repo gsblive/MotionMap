@@ -390,7 +390,7 @@ Dining Chandelier,30,0,30,flash,,DiningRoomMultisensorBMotion;DiningRoomMultisen
 DiningRoomCans,10,0,30,flash,DownstairsHallRightAMultisensorMotion;DiningRoomMultisensorAMotion;DownstairsHallLeftLightsAMultisensorMotion,DiningRoomMultisensorBMotion,2,noDebug
 FamilyRoomBathVanityLight,20,100,30,flash,FamilyRoomBathMultisensorMotion,,2,noDebug
 DrivewayPostCarriageLights,600,0,0,flash,,,2,noDebug
-FamilyRoomBathFan,20,0,0,flash,,FamilyRoomBathMultisensorMotion,2,noDebug
+FamilyRoomBathFan,20,100,100,flash,,FamilyRoomBathMultisensorMotion,2,noDebug
 FamilyRoomBathFanLight,20,100,30,flash,,FamilyRoomBathMultisensorMotion,2,noDebug
 FamilyRoomCanLights,60,0,40,flash,DownstairsHallRightBMultisensorMotion;FamilyRoomMultisensorMotion,,2,noDebug
 #FamilyRoomOutletTop,360,0,0,,,,2,noDebug
@@ -414,20 +414,20 @@ GregsOfficeOutlet,0,100,100,flash,AeonTest1MultisensorMotion,,2,noDebug
 GregsOfficeBathVanityLight,10,100,0,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
 GregsOfficeBathFanLight,10,0,30,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
 GregsOfficeBathShowerLight,5,100,30,flash,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
-GregsOfficeBathFan,5,0,0,,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
+GregsOfficeBathFan,5,100,100,,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
 GregsOfficeLight,1,0,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
 GuestBedroomFan,120,100,100,,,GuestMultisensorMotion,2,noDebug
 GuestBedroomFanLight,30,0,30,flash;bedtime,,GuestMultisensorMotion,2,noDebug
 GuestBathVanityLight,30,100,25,flash,GuestBathMultisensorMotion,,2,noDebug
-GuestBathFan,30,0,0,flash,,GuestBathMultisensorMotion,2,noDebug
+GuestBathFan,30,100,100,flash,,GuestBathMultisensorMotion,2,noDebug
 GuestBathFanLight,30,0,25,flash,,GuestBathMultisensorMotion,2,noDebug
 KitchenBathLight,5,100,25,flash,KitchenBathMuiltisensorMotion,,2,noDebug
 KitchenLavLight,30,100,25,flash,,KitchenBathMuiltisensorMotion,2,noDebug
-KitchenLavFan,30,0,0,flash,,KitchenBathMuiltisensorMotion,2,noDebug
-Kitchen Dining Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
-Kitchen Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
-Kitchen Cabinets Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
-Kitchen Island Lights,30,0,0,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+KitchenLavFan,30,100,100,flash,,KitchenBathMuiltisensorMotion,2,noDebug
+Kitchen Dining Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+Kitchen Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+Kitchen Cabinets Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+Kitchen Island Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 LaundryRoomLight,5,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
 LaundryRoomFan,5,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug
 LivingRoomOutletBottom,360,0,0,,,,2,noDebug
@@ -456,11 +456,11 @@ MJBedroomAlcoveCanLights,30,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroom
 MJBedroomAlcoveChandelier,30,0,40,flash,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
 MJBedroomFan,300,0,40,,,MJBedroomMainMultisensorMotion;MJBedroomNookMultisensorMotion,2,noDebug
 MJBathroomLavLight,10,100,16,flash,MJBedroomLavMultisensorMotion,,2,noDebug
-MJBathroomLavFan,10,0,0,flash,,MJBedroomLavMultisensorMotion,2,noDebug
+MJBathroomLavFan,10,100,100,flash,,MJBedroomLavMultisensorMotion,2,noDebug
 MJBathroomRightSink,15,70,30,flash,,MJBedroomBathMultisensorMotion;MJBedroomClosetMultisensorMotion;MJBedroomShowerMultisensorMotion;MJBedroomLavMultisensorMotion,2,noDebug
 MJBathroomLeftSink,5,70,30,flash,,MJBedroomBathMultisensorMotion;MJBedroomClosetMultisensorMotion;MJBedroomShowerMultisensorMotion;MJBedroomLavMultisensorMotion,2,noDebug
 MJShowerLight,5,100,50,flash,MJBedroomShowerMultisensorMotion,,2,noDebug
-MJShowerFan,5,100,50,,MJBedroomShowerMultisensorMotion,,2,noDebug
+MJShowerFan,5,100,100,,MJBedroomShowerMultisensorMotion,,2,noDebug
 MJShowerSconce,5,100,50,flash,MJBedroomShowerMultisensorMotion,,2,noDebug
 #OutdoorTempFrontDoor,360,0,0,,,,2,noDebug
 #OutdoorTempDriveway,360,0,0,,,,2,noDebug
@@ -475,7 +475,7 @@ Quad Front,5,0,20,flash,QuadMultisensorAMotion,,2,noDebug
 Quad Back,5,0,20,flash,QuadMasterHallLightMultisensorMotion;UpstairsHallRightAMultisensorMotion;QuadMultisensorBMotion,QuadMultisensorAMotion,2,noDebug
 ServerClosetLight,5,100,50,flash,ServerClosetMultisensorMotion,,2,noDebug
 TheaterBalconyLight,60,0,0,flash,,,2,noDebug
-TheaterBathFan,15,0,0,flash,,TheaterBathMultisensorMotion,2,noDebug
+TheaterBathFan,15,100,100,flash,,TheaterBathMultisensorMotion,2,noDebug
 TheaterBathFanLight,15,0,24,flash,TheaterBathMultisensorMotion,,2,noDebug
 TheaterBackLight,60,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
 TheaterKitchenLight,60,0,24,flash,,TheaterBackMultisensorMotion;TheaterFrontMultisensorMotion,2,noDebug
@@ -518,6 +518,7 @@ FrontPondOutletBottomSwitch,FrontPondOutletBottom,2,noDebug
 GarageDoorLights1,GarageDoorLights,2,noDebug
 GarageHall1,GarageHall,2,noDebug
 GarageHall2,GarageHall,2,noDebug
+Kitchen Lights 1,Kitchen Lights,2,noDebug
 Main Stairs Chandelier 1,Main Stairs Chandelier,2,noDebug
 Main Stairs Chandelier 2,Main Stairs Chandelier,2,noDebug
 Main Stairs Left 1,Main Stairs Left,2,noDebug
