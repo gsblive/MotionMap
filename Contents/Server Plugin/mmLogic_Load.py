@@ -58,10 +58,14 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if not (self.daytimeOnLevel + self.nighttimeOnLevel) or not len(self.combinedControllers): self.manualControl = 1
 			else: self.manualControl = 0
 			self.lastOffCommandTime = 0
+			self.noMax = 0
 			self.allControllerGroups = []
 			self.ourNonvolatileData = mmLib_Low.initializeNVDict(self.deviceName)
 			self.onControllerName = ""
 			self.sustainControllerName = ""
+
+			if 'noMax' in self.specialFeatures:
+				self.noMax = 1	# initialize noMax
 
 			# Initialize bedtime mode
 
@@ -761,7 +765,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		mmLib_Log.logVerbose("Sent Status Update Request for device: " + self.deviceName + ". Will send another in " + str(round(renewalStatusRequestTimeDelta/60.0, 2)) + " minutes.")
 
-		if self.theIndigoDevice.onState == True:
+		if self.theIndigoDevice.onState == True and not self.noMax:
 			if self.maxOnTime:
 				secondsDelta = time.mktime(time.localtime()) - self.lastUpdateTimeSeconds
 				if self.maxOnTime < secondsDelta:
