@@ -381,7 +381,7 @@ GregsOfficeTestGroup,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMoti
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
 BackStairsLights,5,60,25,flash,GarageHall3MultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
-BarbiesOfficeLight,60,0,100,flash,,BarbiesOfficeMultisensorMotion,2,noDebug
+BarbiesOfficeLight,120,0,100,flash,,BarbiesOfficeMultisensorMotion,2,noDebug
 ButlerKitchenLight,5,80,60,flash,ButlerKitchenMultisensorMotion,,2,noDebug
 CarPortCarriageLights,5,0,30,flash,CarPortMultisensorMotion;CamCarPortMotion,,2,noDebug
 CarPortLights,5,0,100,,CamHouseParkingMotion,,2,noDebug
@@ -430,6 +430,7 @@ Kitchen Dining Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMu
 Kitchen Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 Kitchen Cabinets Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 Kitchen Island Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+Kitchen Sink Light,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 LaundryRoomLight,5,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
 LaundryRoomFan,5,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug
 LivingRoomOutletBottom,360,0,0,,,,2,noDebug
@@ -446,7 +447,7 @@ MasterBathRightVanityLight,15,70,30,flash,,MasterBathMultiSensorMotion;MasterBat
 MasterBathLeftVanityLight,5,70,30,flash,,MasterBathMultiSensorMotion;MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterBathTubLight,5,0,23,flash,MasterBathMultiSensorMotion,MasterBathShowerMultisensorMotion;MasterBathLavMultisensorMotion,2,noDebug
 MasterCanLights,120,70,30,flash,,,2,noDebug
-MasterFanSwitch,120,100,100,noMax,,House;MasterHallMultisensorMotion;AeotecMasterBedMultisensorMotion;MasterBedroomMultisensorMotion,2,Debug
+MasterFanSwitch,120,100,100,noMax,,House;MasterHallMultisensorMotion;AeotecMasterBedMultisensorMotion;MasterBedroomMultisensorMotion,2,noDebug
 MasterFanLight,120,0,5,flash;bedtime,MasterHallMultisensorMotion;MasterBedroomMultisensorMotion,AeotecMasterBedMultisensorMotion,2,noDebug
 MasterGregsClosetLight,5,100,30,flash,MasterGregsClosetMultisensorMotion,,2,noDebug
 MasterHallLight,5,0,24,flash,MasterHallMultisensorMotion,,2,noDebug
@@ -625,15 +626,17 @@ UpstairsHallRightC1,UpstairsHallRightC,2,noDebug
 #
 #   deviceName – The English name of the device
 #   sceneNumber -  The number of the PowerLink (scene)
-#	members - the devices that belong to this scene
+#			members - the devices that belong to this scene
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 ########################################################
 
 -h,Scene
-deviceName,sceneNumber,members
-MasterBathAll,10,MasterBarbiesClosetLight;MasterBathCenterLight;MasterLeftVanityLight;MasterRightVanityLight;MasterBathShowerLight;MasterBathTubLight;MasterGregsClosetLight;MasterBathLavLight;MasterBathLavFan
-GregsOfficeBathAll,11,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight
-GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight
+deviceName,sceneNumber,members,debugDeviceMode
+MasterBathAll,10,MasterBarbiesClosetLight;MasterBathCenterLight;MasterLeftVanityLight;MasterRightVanityLight;MasterBathShowerLight;MasterBathTubLight;MasterGregsClosetLight;MasterBathLavLight;MasterBathLavFan,noDebug
+GregsOfficeBathAll,11,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight,noDebug
+GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight,noDebug
+KitchenAll,13,Kitchen Dining Lights;Kitchen Lights;Kitchen Cabinets Lights;Kitchen Island Lights;Kitchen Sink Light,Debug
 
 
 ########################################################

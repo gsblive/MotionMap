@@ -373,16 +373,18 @@ HVACCompanionBottomFloor,HvacMonitor,HVACMiddleFloor,76,30,66,30,,0,noDebug
 #
 # Scene – What devices are associated with a scene,
 #
-#   deviceName – The English name of the device,
-#   aliasedDevice -  The device that this device aliases,
+#   deviceName – The English name of the device
+#   sceneNumber -  The number of the PowerLink (scene)
+#			members - the devices that belong to this scene
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 ########################################################
 
 -h,Scene
-deviceName,sceneNumber,members
-MasterBathroomAll,9,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan
-MasterAll,10,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan
-TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan
+deviceName,sceneNumber,members,debugDeviceMode
+MasterBathroomAll,9,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
+MasterAll,10,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
+TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 
 ########################################################
 #

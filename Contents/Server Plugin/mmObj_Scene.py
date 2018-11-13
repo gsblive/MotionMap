@@ -39,6 +39,8 @@ class mmScene(mmComm_Insteon.mmInsteon):
 
 	def __init__(self, theDeviceParameters):
 		super(mmScene, self).__init__(theDeviceParameters)
+		mmLib_Log.logForce(self.deviceName + " processing initialization 1.")
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " processing initialization.")
 
 		if self.initResult == 0:
 
