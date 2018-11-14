@@ -137,6 +137,10 @@ GuestMultisensorMotion,60,10,noDebug
 KitchenBathMuiltisensorMotion,60,10,noDebug
 KitchenDiningMultisensorMotion,60,30,noDebug
 KitchenMultisensorMotion,60,30,noDebug
+KylesClosetMultisensorMotion,60,5,noDebug
+KylesShowerMultisensorMotion,60,15,noDebug
+KylesBathroomMultisensorMotion,60,10,noDebug
+KylesBedroomMultisensorMotion,180,60,noDebug
 LaundryRoomMultisensorMotion,60,10,noDebug
 MasterBarbiesClosetMultisensorMotion,60,5,noDebug
 MasterBedroomMultisensorMotion,120,20,noDebug
@@ -431,6 +435,13 @@ Kitchen Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisens
 Kitchen Cabinets Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 Kitchen Island Lights,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
 Kitchen Sink Light,30,100,100,flash,,KitchenDiningMultisensorMotion;KitchenMultisensorMotion,2,noDebug
+KylesClosetLight,15,100,30,flash,KylesClosetMultisensorMotion,,2,noDebug
+KylesBathroomShowerLight,15,100,100,,KylesShowerMultisensorMotion,,2,noDebug
+KylesBathroomFan,15,100,100,,KylesShowerMultisensorMotion,,2,noDebug
+KylesBathroomFanLight,15,0,1,flash,KylesBathroomMultisensorMotion,,2,noDebug
+KylesBathroomLight,15,100,0,flash,KylesBathroomMultisensorMotion,,2,noDebug
+KylesBedroomLight,10,100,30,flash,,KylesBedroomMultisensorMotion,2,noDebug
+KylesBedroomFan,10,100,100,,,KylesBedroomMultisensorMotion,2,noDebug
 LaundryRoomLight,5,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
 LaundryRoomFan,5,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug
 LivingRoomOutletBottom,360,0,0,,,,2,noDebug
