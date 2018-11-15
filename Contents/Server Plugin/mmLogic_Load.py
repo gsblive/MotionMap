@@ -383,7 +383,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				if not member: return 0
 				memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
 				if memberDev:
-					if self.debugDevice: mmLib_Log.logForce( self.deviceName + " calling " + member + ".getOccupiedState")
+					occupiedStateResult = memberDev.getOccupiedState()
+					if self.debugDevice: mmLib_Log.logForce( self.deviceName + " called " + member + ".getOccupiedState with a result of " + str(occupiedStateResult))
 					if memberDev.getOccupiedState() != 'UnoccupiedAll': return 0	# at least one member is occupied, so being ON now is fine
 				else:
 					mmLib_Log.logWarning(self.deviceName + " found no mmDevice called " + member + " while trying to access getOccupiedState")
@@ -541,7 +542,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# 	listOccupiedControllers - return a list of controllers that are on
 	#
-	def listOccupiedControllers(self, checkControllers):
+	def listOccupiedControllers(self, checkControllers, full):
 
 		mmLib_Log.logForce(self.deviceName + " running listOccupiedControllers")
 		theList = []
@@ -551,7 +552,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			for devName in checkControllers:
 				theController = mmLib_Low.MotionMapDeviceDict.get(devName, 0)
 				if theController and theController.onlineState == 'on' and theController.occupiedState == True:
-					theList.append(theController.deviceName)
+					if full:
+						theList.append(str(theController.deviceName + " - " + mmLib_Low.getIndigoVariable(theController.occupationIndigoVar, "unknown reason")))
+					else:
+						theList.append(theController.deviceName)
 
 		mmLib_Log.logForce(self.deviceName + " exit listOccupiedControllers")
 		return theList
@@ -559,7 +563,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	# setControllersOnOfflineState - for all of our controllers
 	#	We actually put the controller offline because the load device (switch) is the UI for the controller(motion sensor)
-	#	its the only wat to put the motion sensor to sleep for other devices (Water pump and HVAC for example)
+	#	its the only way to put the motion sensor to sleep for other devices (Water pump and HVAC for example)
 	#
 
 	def setControllersOnOfflineState(self,requestedState):
@@ -641,7 +645,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				theMessage = theMessage + str("\'" + self.deviceName + "\'" + " is scheduled to turn off in " + str(theTimeString) + ".\n")
 			else:
 				theMessage = theMessage + str("WARNING " + "\'" + self.deviceName + "\'" + " is on but not scheduled to turn off.\n" )
-				onGroup = self.listOccupiedControllers(self.allControllerGroups)
+				onGroup = self.listOccupiedControllers(self.allControllerGroups, True)
 				if onGroup: theMessage = theMessage + str("  Related Controllers Reporting Occupied: " + str(onGroup) + "\n")
 		else:
 

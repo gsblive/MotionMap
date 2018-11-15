@@ -485,7 +485,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		theBody = theBody + "\rOnline State is: " + self.onlineState + "\r"
 
 		# report Occupied State
-		theBody = theBody + "It's reporting " + OccupiedStateList[self.occupiedState] + "\r"
+		theBody = theBody + "It's reporting " + str(mmLib_Low.getIndigoVariable(self.occupationIndigoVar, "unknown reason")) + "\r"
 
 		# Report When Occupation will end (if any)
 		if OccupiedStateList[self.occupiedState] == "Occupied":

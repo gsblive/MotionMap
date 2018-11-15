@@ -459,7 +459,7 @@ class Plugin(indigo.PluginBase):
 		doCommand = theCommandParameters.get('theCommand', 0)
 
 		if not doCommand:
-			mmLib_Log.logWarning("No command given in executeMMCommand")
+			mmLib_Log.logForce("No command given in executeMMCommand")
 			return(0)
 
 		# Dispatch the mm control command (not a device command)
@@ -477,11 +477,10 @@ class Plugin(indigo.PluginBase):
 		else:
 			# Not a system Command, load the object and dispatch the command
 
-			theDeviceName = theCommandParameters.get('theDevice', 0)
-			if theDeviceName:
-				try:
-					theDevice = mmLib_Low.MotionMapDeviceDict[theDeviceName]
-				except:
+			theDeviceName = theCommandParameters.get('theDevice', None)
+			if theDeviceName != None:
+				theDevice = mmLib_Low.MotionMapDeviceDict.get(theDeviceName,None)
+				if theDevice == None:
 					mmLib_Log.logForce("Couldnt find device named: " + theDeviceName )
 					#mmLib_Log.logWarning("Couldnt find device named: " + theDeviceName + " \r" + str(mmLib_Low.MotionMapDeviceDict) )
 					return(0)

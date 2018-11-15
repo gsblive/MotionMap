@@ -440,7 +440,7 @@ KylesBathroomShowerLight,15,100,100,,KylesShowerMultisensorMotion,,2,noDebug
 KylesBathroomFan,15,100,100,,KylesShowerMultisensorMotion,,2,noDebug
 KylesBathroomFanLight,15,0,1,flash,KylesBathroomMultisensorMotion,,2,noDebug
 KylesBathroomLight,15,100,0,flash,KylesBathroomMultisensorMotion,,2,noDebug
-KylesBedroomLight,10,100,30,flash,,KylesBedroomMultisensorMotion,2,noDebug
+KylesBedroomLight,10,100,30,flash,,KylesBedroomMultisensorMotion,2,Debug
 KylesBedroomFan,10,100,100,,,KylesBedroomMultisensorMotion,2,noDebug
 LaundryRoomLight,5,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
 LaundryRoomFan,5,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug
@@ -647,7 +647,7 @@ deviceName,sceneNumber,members,debugDeviceMode
 MasterBathAll,10,MasterBarbiesClosetLight;MasterBathCenterLight;MasterLeftVanityLight;MasterRightVanityLight;MasterBathShowerLight;MasterBathTubLight;MasterGregsClosetLight;MasterBathLavLight;MasterBathLavFan,noDebug
 GregsOfficeBathAll,11,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight,noDebug
 GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight,noDebug
-KitchenAll,13,Kitchen Dining Lights;Kitchen Lights;Kitchen Cabinets Lights;Kitchen Island Lights;Kitchen Sink Light,Debug
+KitchenAll,13,Kitchen Dining Lights;Kitchen Lights;Kitchen Cabinets Lights;Kitchen Island Lights;Kitchen Sink Light,noDebug
 
 
 ########################################################

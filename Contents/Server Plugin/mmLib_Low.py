@@ -659,31 +659,41 @@ def processOfflineReport(theCommandParameters):
 ############################################################################################
 def displayMotionStatus(theCommandParameters):
 
-	whichDevice = theCommandParameters['theDevice']
 
-	if indigo.variables['MMDayTime'].value == 'true':
-		mmLib_Log.logReportLine("============== ** DAYTIME ** ==================")
+	# handle general case (systemwide status)
+
+	theDeviceName = theCommandParameters.get('theDevice', 0)
+
+	if theDeviceName:
+		if indigo.variables['MMDayTime'].value == 'true':
+			mmLib_Log.logReportLine("============== ** DAYTIME ** ==================")
+		else:
+			mmLib_Log.logReportLine("============= ** NIGHTTIME ** =================")
+
+		if theDeviceName == 'all':
+			mmLib_Log.logReportLine("Display Motion Status for all Load Devices.")
+			mmLib_Log.logReportLine("===============================================")
+
+			for mmDev in loadDeque:
+				mmDev.deviceMotionStatus()
+
+		elif theDeviceName == 'on':
+			mmLib_Log.logReportLine("Display Motion Status for all ON Load Devices.")
+			mmLib_Log.logReportLine("===============================================")
+
+			for mmDev in loadDeque:
+				if mmDev.theIndigoDevice.onState == True: mmDev.deviceMotionStatus()
+		else:
+			# device specific status
+			theDevice = MotionMapDeviceDict.get(theDeviceName, None)
+			if theDevice == None:
+				mmLib_Log.logError("Couldnt find device named: " + theDeviceName)
+				return (0)
+			mmLib_Log.logReportLine("Display Motion Status for Device " + theDeviceName)
+			mmLib_Log.logReportLine("===============================================")
+			theDevice.deviceMotionStatus()
 	else:
-		mmLib_Log.logReportLine("============= ** NIGHTTIME ** =================")
-
-	if whichDevice == 'all':
-		mmLib_Log.logReportLine("Display Motion Status for all Load Devices.")
-		mmLib_Log.logReportLine("===============================================")
-
-		for mmDev in loadDeque:
-			mmDev.deviceMotionStatus()
-
-	elif whichDevice == 'on':
-		mmLib_Log.logReportLine("Display Motion Status for all ON Load Devices.")
-		mmLib_Log.logReportLine("===============================================")
-
-		for mmDev in loadDeque:
-			if mmDev.theIndigoDevice.onState == True: mmDev.deviceMotionStatus
-	else:
-		mmLib_Log.logReportLine("Display Motion Status for Device " + whichDevice)
-		mmLib_Log.logReportLine("===============================================")
-		mmDev = MotionMapDeviceDict[whichDevice]
-		mmDev.deviceMotionStatus()
+		mmLib_Log.logError("No Device Name given, no operation performed.")
 
 	return(0)
 
