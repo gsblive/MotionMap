@@ -438,10 +438,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		# if are only sustaining, bail out before processing an ON command
 		if eventParameters['publisher'] != self.onControllerName:
-			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " not equal to " + str(self.onControllerName) + ". Processing Sustain Event complete.")
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is not the ON controller. Processing as Sustain. Event complete.")
 			return(0)
 		else:
-			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " equal to " + str(self.onControllerName) + ". Continue processing OccupationEvent.")
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is the ON controller. Continue processing OccupationEvent.")
 
 		if self.theIndigoDevice.onState == False:
 			# the light is off, should we turn it on? Doesnt matter if this is a sustain or ON controller. Just care about bedtime mode.
