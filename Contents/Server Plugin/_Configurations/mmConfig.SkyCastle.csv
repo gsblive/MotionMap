@@ -388,7 +388,7 @@ GregsOfficeTestGroup,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMoti
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
 BackStairsLights,5,60,25,flash,GarageHall3MultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
 BarbiesOfficeLight,120,0,100,flash,,BarbiesOfficeMultisensorMotion,2,noDebug
-BarOutletAboveCabinet Bottom,120,0,100,flash,Downstairs,,2,noDebug
+BarOutletAboveCabinet Bottom,60,0,100,flash,Downstairs,,2,noDebug
 ButlerKitchenLight,5,80,60,flash,ButlerKitchenMultisensorMotion,,2,noDebug
 CarPortCarriageLights,5,0,30,flash,CarPortMultisensorMotion;CamCarPortMotion,,2,noDebug
 CarPortLights,5,0,100,,CamHouseParkingMotion,,2,noDebug
@@ -406,9 +406,9 @@ FamilyRoomCanLights,60,0,40,flash,DownstairsHallRightBMultisensorMotion;FamilyRo
 FamilyRoomOutletBottom,360,0,0,,,,2,noDebug
 FoyerCoatClosetLight,5,100,50,flash,FoyerCoatClosetMultisensorMotion,,2,noDebug
 FoyerFrontRightOutletBottom,360,0,0,,,,2,noDebug
-#FoyerFrontRightOutletTop,360,0,0,,,,2,noDebug
+FoyerFrontRightOutletTop,360,0,0,,,,2,noDebug
 FoyerFrontLeftOutletBottom,360,0,0,,,,2,noDebug
-#FoyerFrontLeftOutletTop,360,60,30,,,,2,noDebug
+FoyerFrontLeftOutletTop,360,60,30,,,,2,noDebug
 FoyerLeftOutletBottom,360,0,0,,,,2,noDebug
 #FoyerLeftOutletTop,360,60,30,,,,2,noDebug
 FrontPondOutletTop,480,0,0,,,,2,noDebug

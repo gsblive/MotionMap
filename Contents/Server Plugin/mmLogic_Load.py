@@ -452,6 +452,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 					theLevel = self.nighttimeOnLevel
 
 				if int(theLevel) > 0:
+					if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " processing set brightness level to " + theLevel)
 					self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': theLevel, 'retry': 2})
 
 		return 0
@@ -636,6 +637,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		theMessage = '\n\n==== DeviceStatus for ' + self.deviceName + '====\n'
 
+		theMessage = theMessage + "\nonControllerName = " + self.onControllerName + "\n sustainControllerName = " + self.sustainControllerName + "\n\n"
+
 		if self.theIndigoDevice.onState == True:
 			scheduledOffTime = mmLib_Low.delayedFunctionKeys.get(self.offDelayCallback,0)
 			if not scheduledOffTime:
@@ -712,10 +715,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			if areaIsOccupied:
 				# special processing... skip if current brightness is already brighter than daytime level
-				if int(currentBrightness) > int(self.daytimeOnLevel):
+				if int(self.daytimeOnLevel) > 0 and int(currentBrightness) > int(self.daytimeOnLevel):
 					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Skipping brightness adjustment because current brightness is already brighter than daytime level")
 				else:
-					newBrightnessVal = self.daytimeOnLevel
+					newBrightnessVal = self.daytimeOnLevel		# If daytime level is 0, this will force the load device off
 
 			# do bedtimeMode reset if needed
 			if processBedtime:
