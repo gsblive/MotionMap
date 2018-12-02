@@ -641,7 +641,7 @@ class mmIndigo(object):
 			return 'unresponsive'
 
 		theValue = theCommandParameters['theValue']
-		mmLib_Log.logDebug("onOff - theCommand Value: " + str(theValue))
+		if self.debugDevice: mmLib_Log.logForce("onOff " + self.deviceName + ". theCommand Value: " + str(theValue))
 
 		try:
 			defeatTimerUpdateParm = theCommandParameters["defeatTimerUpdate"]
@@ -650,7 +650,7 @@ class mmIndigo(object):
 
 		self.defeatTimerUpdate = defeatTimerUpdateParm
 
-		if theValue != 0:
+		if int(theValue) != 0:
 			indigo.device.turnOn(self.devIndigoID)
 		else:
 			indigo.device.turnOff(self.devIndigoID)

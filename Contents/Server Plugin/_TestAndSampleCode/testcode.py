@@ -61,6 +61,18 @@ def makeCmdModifier(level,RampRateSeconds):
 	finalCmd = onLevel + (15-iPoint)
 	return finalCmd
 
+testval = "0"
+try:
+	int(testval)
+	print "Its an Int"
+except ValueError:
+	pass
+
+if testval == 0: print "its 0"
+
+
+quit()
+
 print str(0x2e)
 quit()
 
