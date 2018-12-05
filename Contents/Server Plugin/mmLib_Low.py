@@ -112,6 +112,12 @@ class anIndigoDev:
 		self.onState = theValue
 		self.name = theName
 
+class anIndigoCmd:
+
+	def __init__(self, theAddress, theBytes):
+		self.address = theAddress
+		self.cmdBytes = theBytes
+
 def initializeDictEntry(theDict,theElement,theInitialValue):
 
 	try:

@@ -72,6 +72,7 @@ def mmTestCode(theCommandParameters):
 	return(1)
 
 
+
 ############################################################################################
 #
 # supportedControlCommandsDict - list of functions exposed to outside world through plugin.executeMMCommand
@@ -341,11 +342,14 @@ class Plugin(indigo.PluginBase):
 
 		if pluginInitialized == 0: return()
 
+		if newDev.name == '_TestMotionDimmerMotion': mmLib_Log.logForce("Update event for " + newDev.name + ": " + str(newDev))
 
 		try:
 			mmDev = mmLib_Low.MotionMapDeviceDict[newDev.name]
 		except:
 			return 0
+
+		if mmDev.debugDevice: mmLib_Log.logForce("Update event for " + str(mmDev.deviceName) + ": " + str(newDev))
 
 		# Update the indigo device in case it changed out behind our back (this just copies the reference to the device)
 		#if mmDev.theIndigoDevice != newDev:
@@ -448,13 +452,15 @@ class Plugin(indigo.PluginBase):
 
 		# for some reason, if you just do theCommandParameters = pluginAction.props, you cant set anything in the
 		# dict to an object pointer, so we have to make a copy of the parameters one by one. It must be the way
-		# indigo makes their dict, it cant convert an object... you grt an error like this:
+		# indigo makes their dict, it cant convert an object... you get an error like this:
 		#   Error: No registered converter was able to produce a C + + rvalue of type CCString from this Python object of type mmScene
 
-		for key, value in pluginAction.props.iteritems():
-			theCommandParameters[key] = value
-
-		#mmLib_Log.logForce("executeMMCommand: " + str(theCommandParameters))
+		try:
+			for key, value in pluginAction.props.iteritems():
+				theCommandParameters[key] = value
+		except:
+			mmLib_Log.logForce("executeMMCommand cannot copy commandParameters. Aborting.")
+			return(0)
 
 		doCommand = theCommandParameters.get('theCommand', 0)
 
@@ -486,8 +492,9 @@ class Plugin(indigo.PluginBase):
 					return(0)
 
 				# check to see if it should be queued or executed
-				theMode = "QUEUE"
-				if "theMode" in theCommandParameters: theMode = theCommandParameters['theMode']
+				#theMode = "QUEUE"
+				#if "theMode" in theCommandParameters: theMode = theCommandParameters['theMode']
+				theMode = theCommandParameters.get('theMode', "QUEUE")
 
 				if theMode == "IMMED":
 					return(theDevice.dispatchCommand(theCommandParameters))	# do the command now
@@ -496,3 +503,98 @@ class Plugin(indigo.PluginBase):
 			else:
 				mmLib_Log.logForce("executeMMCommand: No device Name given for " + str(doCommand))
 
+	############################################################################################
+	# mmCommandTrigger
+	#
+	############################################################################################
+	def mmCommandTrigger(self, pluginAction):
+
+		theCommandParameters = {}
+
+
+		# for some reason, if you just do theCommandParameters = pluginAction.props, you cant set anything in the
+		# dict to an object pointer, so we have to make a copy of the parameters one by one. It must be the way
+		# indigo makes their dict, it cant convert an object... you get an error like this:
+		#   Error: No registered converter was able to produce a C + + rvalue of type CCString from this Python object of type mmScene
+
+		try:
+			for key, value in pluginAction.props.iteritems():
+				theCommandParameters[key] = value
+		except:
+			mmLib_Log.logForce("mmCommandTrigger cannot copy commandParameters. Aborting.")
+			return(0)
+
+		mmLib_Log.logForce("Entering mmCommandTrigger")
+		cmdBytes = theCommandParameters.get('cmdBytes', None)
+		if cmdBytes != None:
+			theDeviceName = theCommandParameters.get('theDevice', None)
+			if theDeviceName != None:
+				theDevice = mmLib_Low.MotionMapDeviceDict.get(theDeviceName,None)
+				if theDevice != None:
+					cmd = mmLib_Low.anIndigoCmd(theDevice.devIndigoAddress, cmdBytes)
+					self.insteonCommandReceived(cmd)
+				else:
+					mmLib_Log.logForce("Error: Device " + theDeviceName + " not registered in MM during mmCommandTrigger")
+			else:
+				mmLib_Log.logForce("Error: Unknown Device given for mmCommandTrigger")
+
+		else:
+			mmLib_Log.logForce( "Error: No cmd given for mmCommandTrigger")
+
+		return (1)
+
+
+	############################################################################################
+	# mmUpdateTrigger
+	#
+	############################################################################################
+	def mmUpdateTrigger(self, pluginAction):
+
+		mmLib_Log.logForce("Entering mmUpdateTrigger")
+
+		theCommandParameters = {}
+
+
+		# for some reason, if you just do theCommandParameters = pluginAction.props, you cant set anything in the
+		# dict to an object pointer, so we have to make a copy of the parameters one by one. It must be the way
+		# indigo makes their dict, it cant convert an object... you get an error like this:
+		#   Error: No registered converter was able to produce a C + + rvalue of type CCString from this Python object of type mmScene
+
+		try:
+			for key, value in pluginAction.props.iteritems():
+				theCommandParameters[key] = value
+		except:
+			mmLib_Log.logForce("mmUpdateTrigger cannot copy commandParameters. Aborting.")
+			return(0)
+
+		origDevDict = theCommandParameters.get('origDev', None)
+		newDevDict = theCommandParameters.get('newDev', None)
+		origDev = mmLib_Low.anIndigoDev(0, 0)
+		newDev = mmLib_Low.anIndigoDev(0, 0)
+
+		# use setAttr to make Object for origDev and newDev
+
+		if origDevDict == None:
+			mmLib_Log.logForce("Warning: Calling mmUpdateTrigger with no origDev")
+		else:
+			for key, value in origDevDict.iteritems():
+				setattr(origDev, key, value)
+
+		if newDevDict == None:
+			mmLib_Log.logForce("Warning: Calling mmUpdateTrigger with no newDev")
+		else:
+			for key, value in newDevDict.iteritems():
+				setattr(newDev, key, value)
+
+		if newDev.name != None:
+			theDevice = mmLib_Low.MotionMapDeviceDict.get(newDev.name,None)
+			if theDevice != None:
+				mmLib_Log.logForce("Calling deliverUpdateEvents to " + newDev.name + " with value of " + str(newDev.onState))
+				mmLib_Events.deliverUpdateEvents(origDev, newDev, newDev.name)
+			else:
+				mmLib_Log.logForce("Error: Device " + newDev.name + " not registered in MM during mmUpdateTrigger")
+		else:
+			mmLib_Log.logForce("Error: No \'name\' given in newDev for mmUpdateTrigger")
+
+
+		return (1)

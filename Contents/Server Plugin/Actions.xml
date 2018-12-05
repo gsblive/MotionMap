@@ -6,4 +6,12 @@
 		<Name>Execute MotionMap Command</Name>
 		<CallbackMethod>executeMMCommand</CallbackMethod>
 	</Action>
+	<Action id="mmCommandTrigger" deviceFilter="self">
+		<Name>Execute MotionMap indigo cmd Trigger</Name>
+		<CallbackMethod>mmCommandTrigger</CallbackMethod>
+	</Action>
+	<Action id="mmUpdateTrigger" deviceFilter="self">
+		<Name>Execute MotionMap indigo device update Trigger</Name>
+		<CallbackMethod>mmUpdateTrigger</CallbackMethod>
+	</Action>
 </Actions>

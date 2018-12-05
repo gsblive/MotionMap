@@ -110,6 +110,7 @@
 
 -h,MultisensorMotion
 deviceName,maxMovement,minMovement,debugDeviceMode
+_TestMotionDimmerMotion,60,2,Debug
 AeonTest1MultisensorMotion,60,2,noDebug
 BackStairsMultisensorMotion,60,5,noDebug
 BarbiesOfficeMultisensorMotion,240,60,noDebug
@@ -386,6 +387,7 @@ GregsOfficeTestGroup,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMoti
 
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
+_TestMotionDimmer,5,60,20,flash,,,2,noDebug
 BackStairsLights,5,60,25,flash,GarageHall3MultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
 BarbiesOfficeLight,120,0,100,flash,,BarbiesOfficeMultisensorMotion,2,noDebug
 BarOutletAboveCabinet Bottom,60,0,100,flash,Downstairs,,2,noDebug
@@ -443,7 +445,7 @@ KylesBathroomShowerLight,15,100,100,,KylesShowerMultisensorMotion,,2,noDebug
 KylesBathroomFan,15,100,100,,KylesShowerMultisensorMotion,,2,noDebug
 KylesBathroomFanLight,15,0,1,flash,KylesBathroomMultisensorMotion,,2,noDebug
 KylesBathroomLight,15,100,0,flash,KylesBathroomMultisensorMotion,,2,noDebug
-KylesBedroomLight,10,100,30,flash,,KylesBedroomMultisensorMotion,2,Debug
+KylesBedroomLight,10,100,30,flash,,KylesBedroomMultisensorMotion,2,noDebug
 KylesBedroomFan,10,100,100,,,KylesBedroomMultisensorMotion,2,noDebug
 LaundryRoomLight,5,100,25,flash,LaundryRoomMultisensorMotion,,2,noDebug
 LaundryRoomFan,5,0,0,flash,,LaundryRoomMultisensorMotion,2,noDebug

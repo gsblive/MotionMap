@@ -170,13 +170,14 @@ class mmMultisensorMotion(mmObj_Motion.mmMotion):
 		# take this time to update the battery level
 		try:
 			mmLib_Low.setIndigoVariable(self.batteryLevelVar, str(self.theIndigoDevice.states["batteryLevel"]))
-		except:
-			mmLib_Log.logForce(" ===== Initializing mmMultisensorMotion: " + self.deviceName + " no batteryLevel State")
-
-		mmLib_Low.registerDelayedAction(	{'theFunction': self.OnceADayTimer,
-											 'timeDeltaSeconds': random.randint(60*60*10, 60*60*14),
+			# dont do this repeatedly unless there is a battery level in the device
+			mmLib_Low.registerDelayedAction({'theFunction': self.OnceADayTimer,
+											 'timeDeltaSeconds': random.randint(60 * 60 * 10, 60 * 60 * 14),
 											 'theDevice': self.deviceName,
 											 'timerMessage': "OnceADayTimer"})
+		except:
+			mmLib_Log.logForce(" ===== Initializing mmMultisensorMotion: Warning - " + self.deviceName + " has no batteryLevel State")
+
 
 	######################################################################################
 	#
