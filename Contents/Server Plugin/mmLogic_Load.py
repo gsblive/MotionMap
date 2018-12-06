@@ -753,6 +753,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				mmLib_Log.logReportLine("Day/Night transition for device: " + self.deviceName + " from brightness " + str(currentBrightness) + " to brightness " + str(newBrightnessVal) + " with ramp 360")
 				# use ramp mode 360 to smooth the brightness transition
 				self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'dayNightTransition','ramp':360, 'retry': 2})
+				# while the ramp is happening, we should avoid sending status requests (it stops the ramp)
+
+				# mmLib_Low.delayDelayedAction(self.periodicStatusUpdateRequest, 600)	# delay the delay action 10 minutes ### Note Removed, this is handled in the 'brighten' comand now
+
 				# If we just turned thee off, clear the off timers
 				if newBrightnessVal == "0":
 					# none of the delay callbacks are valid now

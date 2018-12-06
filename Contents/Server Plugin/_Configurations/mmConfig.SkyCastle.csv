@@ -426,7 +426,7 @@ GregsOfficeBathVanityLight,10,100,0,flash,GregsOfficeBathMultisensorMotion,,2,no
 GregsOfficeBathFanLight,10,0,30,flash,GregsOfficeBathMultisensorMotion,,2,noDebug
 GregsOfficeBathShowerLight,5,100,30,flash,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
 GregsOfficeBathFan,5,100,100,,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
-GregsOfficeLight,1,0,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
+GregsOfficeLight,1,0,30,flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,Debug
 GuestBedroomFan,120,100,100,,,GuestMultisensorMotion,2,noDebug
 GuestBedroomFanLight,30,0,30,flash;bedtime,,GuestMultisensorMotion,2,noDebug
 GuestBathVanityLight,30,100,25,flash,GuestBathMultisensorMotion,,2,noDebug

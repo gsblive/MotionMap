@@ -351,6 +351,31 @@ def findDelayedAction(theFunction):
 	return bisectKey
 
 ############################################################################################
+# delayDelayedAction - cancel all occurances of previously registered DelayedAction
+#
+############################################################################################
+def delayDelayedAction(theFunction, offsetInSeconds):
+
+	global delayQueue
+	theParameters = {}
+
+	bisectKey = findDelayedAction(theFunction)	# bisectKey is the localtime in seconds when the proc is scheduled to run
+
+	if bisectKey:
+		newTime = (bisectKey - time.mktime(time.localtime())) + offsetInSeconds		# calculate new time offset
+
+		theIndex = bisect.bisect_left(delayQueue, (bisectKey,))
+		bisectTuple = delayQueue[theIndex]
+
+		theParameters = bisectTuple[1]
+		theParameters['timeDeltaSeconds'] = newTime
+
+		cancelDelayedAction(theFunction)		# delete the old entry
+		return(registerDelayedAction(theParameters))	# and add the new entry
+	else:
+		return(0)
+
+############################################################################################
 # cancelDelayedAction - cancel all occurances of previously registered DelayedAction
 #
 ############################################################################################

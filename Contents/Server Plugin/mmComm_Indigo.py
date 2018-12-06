@@ -276,8 +276,9 @@ class mmIndigo(object):
 				self.sendRawInsteonCommandLow([theCommand,self.makeRampCmdModifier(theValue, theRampRate)], 0, 0)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
 				# update the periodicStatusUpdateRequest to make sure the brightness gets updated in indigo when the brightening concludes.
 				# since this is a dimmer device, we know this function exists
+				# Note: Added +60 to theRampRate below because sometimes periodicStatusUpdateRequest was being called before the ramp was complete (which may stall the ramp)
 				mmLib_Low.registerDelayedAction( {	'theFunction': self.periodicStatusUpdateRequest,
-												  	'timeDeltaSeconds': theRampRate,
+												  	'timeDeltaSeconds': theRampRate + 60,
 					 								'theDevice': self.deviceName,
 													'timerMessage': "periodicStatusUpdateRequest"})
 			else:
