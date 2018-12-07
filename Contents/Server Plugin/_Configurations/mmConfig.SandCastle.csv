@@ -235,6 +235,8 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 #   daytimeOnLevel – The light level to turn this device during the daytime (0 is OFF 1 is ON for switch, 1-100 is percent for dimmer)
 #   nighttimeOnLevel – The light level to turn this device during the daytime (0 is OFF 1 is ON for switch, 1-100 is percent for dimmer)
 #	specialFeatures = A list that can contain any or the following string commands
+#						StatSync: Periodic Status commands are performed synchronously (Needed by some ZWave devices and OutletLinc)
+#						StatAsync: Periodic Status commands are performed asynchronously (Needed by some ZWave devices and OutletLinc)
 #						flash: flash the device 1 minute prior to turning off;
 #						beep: beep the device 1 minute prior to turning off;
 #						bedtime: beep the device 1 minute prior to turning off
@@ -249,32 +251,32 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-BottomFloorStairsLightP,5,100,30,flash,BottomFloorStairsMultisensorMotion,,2,noDebug
-BottomFloorRoomNearDoorP,20,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
-BottomFloorBunkLeftLightP,60,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
-BottomFloorBunkRIghtLightP,60,0,30,flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
-MiddleFloorBathVanityLightP,20,100,60,flash,MiddleFloorBathMultisensorMotion,,2,noDebug
-MiddleFloorBathLavLightP,10,100,15,flash,MiddleFloorBathToiletMultisensorMotion,,2,noDebug
-MiddleFloorBathLavFanP,10,0,0,flash,,MiddleFloorBathToiletMultisensorMotion,2,noDebug
-TopFloorStairwellLightP,5,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
-TopFloorFoyerLightP,5,0,60,flash,TopFloorStairsMultisensorMotion,,2,noDebug
-TopFloorMasterLightsP,60,0,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
-TopFloorMasterUnderBedOutletTop,60,0,100,flash;bedtime,TopFloorMasterMultisensorMotion,TopFloorMasterBathMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
-TopFloorMasterBathLavLight,10,0,3,flash,TopFloorMasterBathLavMultisensorMotion,,2,noDebug
-TopFloorMasterBathLavFan,10,100,100,flash,,TopFloorMasterBathLavMultisensorMotion,2,noDebug
-TopFloorMasterShowerLightP,10,0,100,flash,TopFloorMasterBathShowerMultisensorMotion,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;TopFloorMasterBathLavMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
-TopFloorMasterBathVanityLightP,10,100,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion,2,noDebug
-TopFloorMasterBathLinenP,10,100,60,flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion,2,noDebug
-MiddleFloorBackDeckP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorBathShowerFanLightP,30,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorDiningLightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorFamilyMainLightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorFamilySpotlightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorFamilyTVLightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorKitchenCabinetLeftLightSwitchP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorKitchenCabinetLightSwitchRightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorKitchenMainLightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
-MiddleFloorKitchenSinkLightP,120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+BottomFloorStairsLightP,5,100,30,StatAsync;flash,BottomFloorStairsMultisensorMotion,,2,noDebug
+BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
+BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
+BottomFloorBunkRIghtLightP,60,0,30,StatAsync;flash;bedtime,,BottomFloorMultisensorMotion,2,noDebug
+MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,MiddleFloorBathMultisensorMotion,,2,noDebug
+MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMultisensorMotion,,2,noDebug
+MiddleFloorBathLavFanP,10,0,0,StatAsync,,MiddleFloorBathToiletMultisensorMotion,2,noDebug
+TopFloorStairwellLightP,5,0,60,StatAsync;flash,TopFloorStairsMultisensorMotion,,2,noDebug
+TopFloorFoyerLightP,5,0,60,StatAsync;flash,TopFloorStairsMultisensorMotion,,2,noDebug
+TopFloorMasterLightsP,60,0,60,StatAsync;flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
+TopFloorMasterUnderBedOutletTop,StatSync60,0,100,flash;bedtime,TopFloorMasterMultisensorMotion,TopFloorMasterBathMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
+TopFloorMasterBathLavLight,10,0,3,StatAsync;flash,TopFloorMasterBathLavMultisensorMotion,,2,noDebug
+TopFloorMasterBathLavFan,10,100,100,StatAsync,,TopFloorMasterBathLavMultisensorMotion,2,noDebug
+TopFloorMasterShowerLightP,10,0,100,StatAsync;flash,TopFloorMasterBathShowerMultisensorMotion,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion;TopFloorMasterBathLavMultisensorMotion;GregsDeskMultisensorMotion,2,noDebug
+TopFloorMasterBathVanityLightP,10,100,60,StatAsync;flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion,2,noDebug
+TopFloorMasterBathLinenP,10,100,60,StatAsync;flash,,TopFloorMasterBathMultisensorMotion;TopFloorMasterMultisensorMotion,2,noDebug
+MiddleFloorBackDeckP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorBathShowerFanLightP,30,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorDiningLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorFamilyMainLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorFamilySpotlightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorFamilyTVLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorKitchenCabinetLeftLightSwitchP,StatAsync;120,0,30,flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorKitchenCabinetLightSwitchRightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorKitchenMainLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
+MiddleFloorKitchenSinkLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMultisensorMotion,2,noDebug
 
 ########################################################
 #

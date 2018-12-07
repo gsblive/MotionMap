@@ -64,6 +64,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.onControllerName = ""
 			self.sustainControllerName = ""
 
+
+			if 'StatSync' in self.specialFeatures:
+				self.StatusType = 'Sync'
+			elif 'StatAsync' in self.specialFeatures:
+				self.StatusType = 'Async'
+			# else it defaults to Off
+
 			if 'noMax' in self.specialFeatures:
 				self.noMax = 1	# initialize noMax
 

@@ -49,6 +49,7 @@ class mmIndigo(object):
 		self.mmDeviceType = theDeviceParameters["deviceType"]
 		self.companionDeque = deque()				# make companion Deque for collaborations
 		self.debugDevice = 0
+		self.StatusType = 'Off'
 		try:
 			if theDeviceParameters["debugDeviceMode"] != "noDebug":
 				self.debugDevice = 1
@@ -235,10 +236,11 @@ class mmIndigo(object):
 		finalCmd = onLevel + (15 - iPoint)
 		return finalCmd
 
-	def completeAutonomousDimming(self):
+	def completeAutonomousDimming(self,theCommandParameters):
 
-		self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
-
+		if self.debugDevice: mmLib_Log.logForce( "Completing Ramp down to 0 for " + theCommandParameters['theDevice'])
+		self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
+		return 0
 	#
 	#  Set Brightness
 	#
@@ -274,13 +276,21 @@ class mmIndigo(object):
 
 			if theCommand:
 				self.sendRawInsteonCommandLow([theCommand,self.makeRampCmdModifier(theValue, theRampRate)], 0, 0)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
-				# update the periodicStatusUpdateRequest to make sure the brightness gets updated in indigo when the brightening concludes.
-				# since this is a dimmer device, we know this function exists
-				# Note: Added +60 to theRampRate below because sometimes periodicStatusUpdateRequest was being called before the ramp was complete (which may stall the ramp)
-				mmLib_Low.registerDelayedAction( {	'theFunction': self.periodicStatusUpdateRequest,
-												  	'timeDeltaSeconds': theRampRate + 60,
-					 								'theDevice': self.deviceName,
-													'timerMessage': "periodicStatusUpdateRequest"})
+				if theValue == 0:
+					# Only if we are trying to dim to 0... for some reason, dimming doesnt go down to 0, it goes to 6. Finish up the last dimming step at the end of the ramp cycle
+					# Note this will also fix the other problem below where the device status will not become updated. So you dont need to do both.
+					mmLib_Low.registerDelayedAction({'theFunction': self.completeAutonomousDimming,
+													 'timeDeltaSeconds': theRampRate + 60,
+													 'theDevice': self.deviceName,
+													 'timerMessage': "completeAutonomousDimming"})
+				else:
+					# update the periodicStatusUpdateRequest to make sure the brightness gets updated in indigo when the brightening concludes.
+					# since this is a dimmer device, we know this function exists
+					# Note: Added +60 to theRampRate below because sometimes periodicStatusUpdateRequest was being called before the ramp was complete
+					mmLib_Low.registerDelayedAction( {	'theFunction': self.periodicStatusUpdateRequest,
+														'timeDeltaSeconds': theRampRate + 60,
+														'theDevice': self.deviceName,
+														'timerMessage': "periodicStatusUpdateRequest"})
 			else:
 				# use traditional set command
 				indigo.dimmer.setBrightness(self.devIndigoID, value=theValue)

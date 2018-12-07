@@ -238,6 +238,40 @@ def secondsToMinutesAndSecondsString(theTimeSeconds):
 
 	return theResultString
 
+
+#
+#	Support for SetBrightnessWithRamp (0x2E)
+#
+#	makeRampCmdModifier(level,RampRateSeconds)
+# 		where
+# 			Level = 0-100%
+# 		and
+# 			RampRateSeconds = .1-480 seconds
+#
+# cmd modifier = Bits 4-7 = OnLevel + 0x0F and Bits 0-3 = 2 x RampRate + 1
+#		where
+# 			onLevel is 16 levels of brightness (0-15) : 0 = off and 15 = 100%
+# 		and
+# 			RampRate = 0-15 log indexed into [1,3,20,65,190,230,280,320,380,470,900,1500,2100,2700,3600,4800] seconds,
+# 			then inverted by subtracting it by 15:
+#
+def makeRampCmdModifier(theLevel, RampRateSeconds):
+
+	global tenthValues
+
+	if RampRateSeconds < 0.1:
+		RampRateSeconds = 0.1
+	elif RampRateSeconds > 480:
+		RampRateSeconds = 480
+
+	onLevel = int(theLevel / 6.5) * 0x10
+
+	iPoint = bisect.bisect_left(tenthValues, int(RampRateSeconds * 10))
+	# print str(tenthValues[iPoint]/10.0) + " is closest to requested " + str(RampRateSeconds) + " seconds"
+
+	finalCmd = onLevel + (15 - iPoint)
+	return finalCmd
+
 def	sampleFunction0(parameters):
 	return 0
 def	sampleFunction1(parameters):
@@ -265,6 +299,12 @@ functionList = [sampleFunction0,sampleFunction1,sampleFunction2,sampleFunction3,
 theParameters = {}
 index = 0
 count = 10
+
+tenthValues = [1,3,20,65,190,230,280,320,380,470,900,1500,2100,2700,3600,4800]
+
+print str(makeRampCmdModifier(0, 3))
+
+quit()
 
 while index < count:
 	registerDelayedAction( {'theFunction': functionList[index], 'timeDeltaSeconds': 10 + index, 'theDevice': "device"+ str(index), 'timerMessage': "Sample with index of " + str(index)})

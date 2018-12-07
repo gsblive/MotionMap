@@ -264,14 +264,16 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	#		Does not honor the unresponsive variable
 	#
 	def sendStatusRequest(self, theCommandParameters):
-		mmLib_Log.logVerbose("Requesting Status for " + self.deviceName)
-		#indigo.iodevice.statusRequest(self.theIndigoDevice.id)
-		# OutletLinc (2663) acts funny in Indigo 7... if you request Status, the lower outlet always changes to mirror the top outlet
-		if '2663' not in self.theIndigoDevice.model:
-			indigo.insteon.sendStatusRequest(self.theIndigoDevice.address,waitUntilAck=False)
-		else:
-			mmLib_Log.logVerbose("Status is not supported for " + self.deviceName)
 
+		if self.StatusType == 'Sync':
+			mmLib_Log.logVerbose("Requesting Synchronous Status for " + self.deviceName)
+			indigo.device.statusRequest(self.theIndigoDevice)
+		elif self.StatusType == 'Async':
+			mmLib_Log.logVerbose("Requesting Async Status for " + self.deviceName)
+			indigo.insteon.sendStatusRequest(self.theIndigoDevice.address, waitUntilAck=False)
+		else:
+			# Status is OFF
+			mmLib_Log.logVerbose("Status is not supported for " + self.deviceName)
 		return('Dque')	# We aere done, tell dispatch to qeque
 
 
