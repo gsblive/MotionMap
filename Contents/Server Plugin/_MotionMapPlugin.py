@@ -154,6 +154,8 @@
 import os.path
 import mmLib_Low
 import socket
+import platform
+
 try:
 	import indigo
 except:
@@ -175,6 +177,7 @@ MM_DEFAULT_LOG_FILE = "MotionMap.log.txt"
 fullHost = socket.gethostname()
 defaultHostname = fullHost.split('.', 1)[0]
 indigo.server.log("Default Host Name is: " + defaultHostname)
+indigo.server.log("Python Version: " + platform.python_version())
 MM_Location = mmLib_Low.initIndigoVariable("MMLocation", defaultHostname)  # This is a default value. Set Indigo Variable named <MMLocation>
 MM_DEFAULT_CONFIG_FILE = os.getcwd() + "/_Configurations/mmConfig." + str(MM_Location) + ".csv" 	# this is reset in __Init__
 nvFileName = str("mmNonVolatiles." + MM_Location)

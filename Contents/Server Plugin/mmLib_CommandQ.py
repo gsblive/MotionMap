@@ -64,7 +64,8 @@ def qTimer(theParameters):
 		try:
 			dispatchTime = theCommandParameters['dispatchTime']
 		except:
-			mmLib_Log.logForce(">>>CommandQ command was never dispatched: " + str(theCommandParameters))
+			mmLib_Log.logForce(">>>CommandQ command was never dispatched")
+			#mmLib_Log.logForce(">>>CommandQ command was never dispatched: Device " + str(theCommandParameters.get('theDevice', 'Unknown') + ". Command " + theCommandParameters.get('theCommand', 'Unknown') ))
 			startQ() 		# start the command queue again
 			return(0)		# if a command was dispatched, the timer should have already been reset, so return 0 to not reset it again
 
@@ -197,9 +198,16 @@ def	dispatchQ():
 		else:
 			# not in cancel list, run the proc
 			theCommandParameters['dispatchTime'] = time.time()
-			mmLib_Log.logDebug("dispatchQ: " + theCommandParameters['theDevice'] + " " + theCommandParameters['theCommand'])
 			#run the proc
-			localError = theMMDevice.dispatchCommand(theCommandParameters)
+			try:
+				localError = theMMDevice.dispatchCommand(theCommandParameters)
+			except:
+				mmLib_Log.logError("DispatchCommand Failed.")
+				mmLib_Log.logError("    Commmand Parameters: " + str(theCommandParameters))
+				localError = 'Dque'
+				# Error was noted in log... continue
+				pass
+
 			if localError in ['one', 'two', 'None']:
 				localError = 0  # this is normal, the command is still in process
 
@@ -338,7 +346,7 @@ def dequeQ( dequeueFirst ):
 	global timeTagDict
 	global canceledTimeTags
 	# queue entries are commandParameter dictionaries
-	if dequeueFirst:
+	if dequeueFirst == 1:
 		if pendingCommands:
 			theCommandParameters = pendingCommands[0]
 			timeTag = theCommandParameters['enqueueTime']

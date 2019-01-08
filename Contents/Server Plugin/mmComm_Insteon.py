@@ -129,10 +129,16 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	# completeCommandEvent - we received a commandSent completion message from the server for this device.
 	#
 	def completeCommandEvent(self, eventID, eventParameters):
+		if self.debugDevice:
+			mmLib_Log.logForce(self.deviceName + " Command Complete.")
 
 		theInsteonCommand = eventParameters['cmd']
 		theCommandByte = self.parseInsteonCommandByte(theInsteonCommand )
-		mmLib_Log.logVerbose(self.deviceName + " Command Complete." + str(theCommandByte))
+		if self.debugDevice:
+			mmLib_Log.logForce(self.deviceName + " Command Complete. Byte:" + str(theCommandByte))
+		else:
+			mmLib_Log.logVerbose(self.deviceName + " Command Complete. Byte:" + str(theCommandByte))
+
 		if theCommandByte:
 			return(self.completeCommandByte(theCommandByte))
 		else:
@@ -274,7 +280,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 		else:
 			# Status is OFF
 			mmLib_Log.logVerbose("Status is not supported for " + self.deviceName)
-		return('Dque')	# We aere done, tell dispatch to qeque
+		return('Dque')	# We are done, tell dispatch to deque
 
 
 	############################################################################################

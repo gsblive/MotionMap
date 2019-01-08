@@ -172,8 +172,10 @@ def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedDat
 			eventParameters.update(handlerDefinedData)
 			try:
 				theHandler(theEvent, eventParameters)
-			except Exception as exception:
-				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber + " Error: " + str(exception))
+#			except Exception as exception:
+			except:
+				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber)
+# Printing the exception doesnt work				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber + " Error: " + exception)
 				pass
 
 	return (0)

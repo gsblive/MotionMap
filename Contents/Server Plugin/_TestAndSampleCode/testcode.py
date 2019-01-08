@@ -272,6 +272,11 @@ def makeRampCmdModifier(theLevel, RampRateSeconds):
 	finalCmd = onLevel + (15 - iPoint)
 	return finalCmd
 
+
+if 0 == False: print "False is 0"
+if 0 == 'None': print "None is 0"
+quit()
+
 def	sampleFunction0(parameters):
 	return 0
 def	sampleFunction1(parameters):

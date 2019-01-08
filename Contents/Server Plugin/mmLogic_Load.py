@@ -678,6 +678,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def mmDayNightTransition(self,eventID, eventParameters):
 
+		if self.debugDevice: mmLib_Log.logForce( "Processing " + eventID + " for " + self.deviceName)
+
 		if self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_ON:
 			processBedtime = True
 		else:
@@ -704,11 +706,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		newBrightnessVal = currentBrightness		# assume no change
 
 		if areaIsOccupied:
-			mmLib_Log.logForce(self.deviceName + " is processing mmDayNightTransition of " + str(eventID) + ". BedtimeMode NV Value is " + str(self.ourNonvolatileData["bedtimeMode"]))
+			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " is processing mmDayNightTransition of " + str(eventID) + ". BedtimeMode NV Value is " + str(self.ourNonvolatileData["bedtimeMode"]))
 			if areaIsOccupied:
-				mmLib_Log.logForce("       processBrightness is " + str(processBrightness) + ". area is occupied according to " + str(areaIsOccupied) + ". currentBrightness is " + str(currentBrightness))
+				if self.debugDevice: mmLib_Log.logForce("       processBrightness is " + str(processBrightness) + ". area is occupied according to " + str(areaIsOccupied) + ". currentBrightness is " + str(currentBrightness))
 			else:
-				mmLib_Log.logForce("       processBrightness is " + str(processBrightness) + ". area is not occupied. currentBrightness is " + str(currentBrightness))
+				if self.debugDevice: mmLib_Log.logForce("       processBrightness is " + str(processBrightness) + ". area is not occupied. currentBrightness is " + str(currentBrightness))
 
 		# do day/night processing
 
@@ -730,8 +732,9 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			# do bedtimeMode reset if needed
 			if processBedtime:
 				self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_OFF
-				mmLib_Log.logReportLine("Bedtime Mode OFF for device: " + self.deviceName)
+				if self.debugDevice: mmLib_Log.logForce("Bedtime Mode OFF for device: " + self.deviceName)
 				self.setControllersOnOfflineState('on')  # we are turning badtime mode off, so start commands from our controllers again
+
 
 		else:
 			#
@@ -741,7 +744,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			# put us back into bedtime mode
 
 			if processBedtime:
-				mmLib_Log.logReportLine("Restoring Bedtime Mode ON for device: " + self.deviceName)
+				if self.debugDevice: mmLib_Log.logForce("Restoring Bedtime Mode ON for device: " + self.deviceName)
 				self.setControllersOnOfflineState('bedtime')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
 			else:
 				if areaIsOccupied:
@@ -755,20 +758,20 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# if we are going to process brightness and the current brightness does not match the expected brightness
 		# change it
 
-		if 	processBrightness and \
-			int(currentBrightness) != int(newBrightnessVal):
-				mmLib_Log.logReportLine("Day/Night transition for device: " + self.deviceName + " from brightness " + str(currentBrightness) + " to brightness " + str(newBrightnessVal) + " with ramp 360")
-				# use ramp mode 360 to smooth the brightness transition
-				self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'dayNightTransition','ramp':360, 'retry': 2})
-				# while the ramp is happening, we should avoid sending status requests (it stops the ramp)
+		if 	processBrightness and (int(currentBrightness) != int(newBrightnessVal)):
+			if self.debugDevice: mmLib_Log.logForce("Day/Night transition for device: " + self.deviceName + " from brightness " + str(currentBrightness) + " to brightness " + str(newBrightnessVal) + " with ramp 360")
+			# use ramp mode 360 to smooth the brightness transition
+			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': newBrightnessVal,'defeatTimerUpdate': 'dayNightTransition','ramp':360, 'retry': 2})
+			# while the ramp is happening, we should avoid sending status requests (it stops the ramp)
 
-				# mmLib_Low.delayDelayedAction(self.periodicStatusUpdateRequest, 600)	# delay the delay action 10 minutes ### Note Removed, this is handled in the 'brighten' comand now
+			# mmLib_Low.delayDelayedAction(self.periodicStatusUpdateRequest, 600)	# delay the delay action 10 minutes ### Note Removed, this is handled in the 'brighten' comand now
 
-				# If we just turned thee off, clear the off timers
-				if newBrightnessVal == "0":
-					# none of the delay callbacks are valid now
-					mmLib_Low.cancelDelayedAction(self.offDelayCallback)
-					mmLib_Low.cancelDelayedAction(self.offCallback)
+			# If we just turned thee off, clear the off timers
+			if newBrightnessVal == "0":
+				# none of the delay callbacks are valid now
+				mmLib_Low.cancelDelayedAction(self.offDelayCallback)
+				mmLib_Low.cancelDelayedAction(self.offCallback)
+
 
 		return 0
 

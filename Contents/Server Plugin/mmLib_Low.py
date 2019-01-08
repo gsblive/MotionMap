@@ -529,7 +529,7 @@ def	mmRunDelayedProcs():
 			try:
 				resetDelta = DelayedFunction(theParameters)
 			except Exception as exception:
-				mmLib_Log.logError(" DelayedProc Error: " + str(exception))
+				mmLib_Log.logError(" DelayedProc Error: " + str(exception) + " in function: " + str(DelayedFunction))
 				resetDelta = 0
 
 			if resetDelta:

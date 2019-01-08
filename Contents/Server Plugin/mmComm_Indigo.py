@@ -49,7 +49,7 @@ class mmIndigo(object):
 		self.mmDeviceType = theDeviceParameters["deviceType"]
 		self.companionDeque = deque()				# make companion Deque for collaborations
 		self.debugDevice = 0
-		self.StatusType = 'Off'
+		self.StatusType = 'Off'						# default status type
 		try:
 			if theDeviceParameters["debugDeviceMode"] != "noDebug":
 				self.debugDevice = 1
@@ -256,49 +256,63 @@ class mmIndigo(object):
 			mmLib_Log.logError("brightenDevice - Must specify a value for: " + self.deviceName)
 			return 'brightenDevice: required parameter not present'
 
+
 		if self.theIndigoDevice.__class__ == indigo.DimmerDevice:
 			mmLib_Log.logDebug("brightenDevice - theCommand Value: " + str(theValue))
 
 			self.defeatTimerUpdate = theCommandParameters.get("defeatTimerUpdate",0)
 
+			# if self.theIndigoDevice.protocol == 'Insteon':
 			theRampRate = int(theCommandParameters.get("ramp",0))
-			theCommand = 0
 
 			if theRampRate:
-				if self.theIndigoDevice.version >= 69:
-					# i2cs engine uses command 0x34
-					theCommand = 0x34		# (52  mmComm_Insteon.kInsteonBrightenWithRamp2)
-				elif self.theIndigoDevice.version <= 65:
-					# i2 engine uses command 0x2E
-					theCommand = 0x2E		# (46 mmComm_Insteon.kInsteonBrightenWithRamp)
-				else:
-					mmLib_Log.logWarning("### Unknown insteon version " + + " for device " + self.deviceName + " while attempting BrightenWithRamp. Defaulting to standard Brighten function.")
 
-			if theCommand:
-				self.sendRawInsteonCommandLow([theCommand,self.makeRampCmdModifier(theValue, theRampRate)], 0, 0)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
-				if theValue == 0:
-					# Only if we are trying to dim to 0... for some reason, dimming doesnt go down to 0, it goes to 6. Finish up the last dimming step at the end of the ramp cycle
-					# Note this will also fix the other problem below where the device status will not become updated. So you dont need to do both.
-					mmLib_Low.registerDelayedAction({'theFunction': self.completeAutonomousDimming,
-													 'timeDeltaSeconds': theRampRate + 60,
-													 'theDevice': self.deviceName,
-													 'timerMessage': "completeAutonomousDimming"})
-				else:
-					# update the periodicStatusUpdateRequest to make sure the brightness gets updated in indigo when the brightening concludes.
-					# since this is a dimmer device, we know this function exists
-					# Note: Added +60 to theRampRate below because sometimes periodicStatusUpdateRequest was being called before the ramp was complete
-					mmLib_Low.registerDelayedAction( {	'theFunction': self.periodicStatusUpdateRequest,
-														'timeDeltaSeconds': theRampRate + 60,
-														'theDevice': self.deviceName,
-														'timerMessage': "periodicStatusUpdateRequest"})
-			else:
-				# use traditional set command
-				indigo.dimmer.setBrightness(self.devIndigoID, value=theValue)
+				rampCommand = theCommandParameters.get("rampOverrideCommand",0)
+
+				if rampCommand == 0:
+					if self.theIndigoDevice.version in [0x44, 0x45, 0x48]:
+						# The above firmware tested and work with the following command
+						rampCommand = 0x34		# (52  mmComm_Insteon.kInsteonBrightenWithRamp2)
+					elif self.theIndigoDevice.version in [0x40]:
+						# The above firmware tested and work with the following command
+						rampCommand = 0x2E		# (46 mmComm_Insteon.kInsteonBrightenWithRamp)
+					else:
+						rampCommand = 0  # Ramp is assumed unsupported
+						mmLib_Log.logError("### Unknown insteon version " + str(self.theIndigoDevice.version) + " for device " + self.deviceName + " while attempting BrightenWithRamp. Defaulting to standard Brighten function.")
+
+				if rampCommand:
+					# Use Ramp command
+
+					self.sendRawInsteonCommandLow([rampCommand,self.makeRampCmdModifier(theValue, theRampRate)], False, 0)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
+
+					if theValue == 0:
+						# Only if we are trying to dim to 0... for some reason, dimming doesnt go down to 0, it goes to 6. Finish up the last dimming step at the end of the ramp cycle
+						# Note this will also fix the other problem below where the device status will not become updated. So you dont need to do both.
+						mmLib_Low.registerDelayedAction({'theFunction': self.completeAutonomousDimming,
+														 'timeDeltaSeconds': theRampRate + 60,
+														 'theDevice': self.deviceName,
+														 'timerMessage': "completeAutonomousDimming"})
+					else:
+						# update the periodicStatusUpdateRequest to make sure the brightness gets updated in indigo when the brightening concludes.
+						# since this is a dimmer device, we know this function exists
+						# Note: Added +60 to theRampRate below because sometimes periodicStatusUpdateRequest was being called before the ramp was complete
+						mmLib_Low.registerDelayedAction( {	'theFunction': self.periodicStatusUpdateRequest,
+															'timeDeltaSeconds': theRampRate + 60,
+															'theDevice': self.deviceName,
+															'timerMessage': "periodicStatusUpdateRequest"})
+
+					# We are done with an async ramp command. Bail out
+					return 0
+
+			# Its a dimmer device, but One way or another we didnt do a brightness command - use traditional set brightness command
+			indigo.dimmer.setBrightness(self.devIndigoID, value=theValue)
 
 		else:
-			return self.onOffDevice(theCommandParameters)
+			# not a dimmer device... do an on/off command
+			self.onOffDevice(theCommandParameters)
 
-		return 0
+
+		return 0		# continue as normal (no dequeue)
 
 
 
@@ -461,37 +475,36 @@ class mmIndigo(object):
 	#
 	def queueCommand(self, theCommandParameters):
 
-		theResult = 1
 
 		try:
 			theMMDeviceName = theCommandParameters['theDevice']
 		except:
-			theResult = 0
 			mmLib_Log.logError("No device Name given")
+			return 0
 
 		try:
 			theMMDevice = mmLib_Low.MotionMapDeviceDict[theMMDeviceName]
 		except:
-			theResult = 0
 			mmLib_Log.logError(" No MM Device Named \"" + theMMDeviceName + "\".")
+			return 0
 
 		try:
 			theMMDevice.validateCommand(theCommandParameters['theCommand'])
 			# note: check for valid parameters eventually when the command actually gets dispatched
 		except:
-			theResult = 0
 			mmLib_Log.logForce(theMMDevice.deviceName + " Command \"" + str(theCommandParameters) + "\" could not be queued. NO HANDLER")
+			return 0
 
-		if(theResult):
-			# note: The following can't fail. However if the queue was previously empty, the command will execute which may fail.
-			#    we dont have this in a try statement because we dont want to mask the failures, we want to fix them (as they present themselves as errors)
+		# note: The following can't fail. However if the queue was previously empty, the command will execute which may fail.
+		#    we dont have this in a try statement because we dont want to mask the failures, we want to fix them (as they present themselves as errors)
 
-			if "NoFlush" in theCommandParameters:
-				mmLib_CommandQ.enqueQ(theMMDevice, theCommandParameters, 0)
-			else:
-				mmLib_CommandQ.enqueQ(theMMDevice, theCommandParameters, ['theCommand'])
+		if "NoFlush" in theCommandParameters:
+			mmLib_CommandQ.enqueQ(theMMDevice, theCommandParameters, 0)
+		else:
+			mmLib_CommandQ.enqueQ(theMMDevice, theCommandParameters, ['theCommand'])
 
-		return theResult
+
+		return 1
 
 
 	#
@@ -513,6 +526,7 @@ class mmIndigo(object):
 		if not theHandler:
 			mmLib_Log.logVerbose(self.deviceName + " Has no Handler for command " + theCommandParameters['theCommand'])
 			return resultCode
+
 
 		#mmLib_Log.logForce("Command for " + self.deviceName + " Handler: "+ str(theHandler) + " The Command" + str(theCommandParameters))
 		resultCode = theHandler(theCommandParameters)
@@ -707,6 +721,7 @@ class mmIndigo(object):
 	#
 	def completeCommandByte(self, theCommandByte):
 
+
 		self.ourNonvolatileData["sequentialErrors"] = 0
 		self.ourNonvolatileData["unresponsive"] = 0
 
@@ -729,12 +744,13 @@ class mmIndigo(object):
 						else:
 							mmLib_Log.logVerbose("Command Complete but Value does not match... Device " + self.deviceName + " brightness is now " + str(currentBrightness) + " Update Maseter " + self.loadDeviceName + " to " + str(currentBrightness))
 					except:
-						mmLib_Log.logVerbose("=== Command Complete... No Value Found")
+						mmLib_Log.logVerbose("=== Command Complete... "+ self.deviceName + " No Value Found")
 
 				try:
-					repeatVal = qHead["repeat"]
+					repeatVal = int(qHead["repeat"])
 				except:
 					repeatVal = 0
+
 
 				if repeatVal:
 					qHead["repeat"] = repeatVal - 1
@@ -743,9 +759,11 @@ class mmIndigo(object):
 				else:
 					mmLib_Log.logVerbose("Successful " + theCommand + " command to " + self.deviceName)
 					mmLib_CommandQ.dequeQ(1)  # all is well, pop our old command off and Restart the Queue
+
 			else:
 				# someone else sent a similar command while our commands were waiting, delete all of our commands (defer to other process)
 				mmLib_Log.logVerbose("Flushing commands for " + self.deviceName + ", because the server sent a command that wasnt our command. The command byte: " + str(theCommandByte))
 				mmLib_CommandQ.flushQ(self, qHead, ["theCommand"])
+
 
 		return 0

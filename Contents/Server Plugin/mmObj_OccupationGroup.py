@@ -180,6 +180,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def getOccupiedState(self):
 
+
 		if len(self.occupiedAllDict) == len(self.members):
 			# highest priority... all members are reporting full occupancy
 			newEvent = 'OccupiedAll'
