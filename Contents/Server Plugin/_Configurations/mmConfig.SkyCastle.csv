@@ -110,7 +110,7 @@
 
 -h,MultisensorMotion
 deviceName,maxMovement,minMovement,debugDeviceMode
-_TestMotionDimmerMotion,60,2,Debug
+#_TestMotionDimmerMotion,60,2,Debug
 AeonTest1MultisensorMotion,60,2,noDebug
 BackStairsMultisensorMotion,60,5,noDebug
 BarbiesOfficeMultisensorMotion,240,60,noDebug
@@ -389,7 +389,8 @@ GregsOfficeTestGroup,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMoti
 
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-_TestMotionDimmer,5,60,20,StatSync;flash,,,2,noDebug
+#_TestMotionDimmer,5,60,20,StatSync;flash,,,2,noDebug
+AtticFanInlineSwitch,360,0,0,,,,2,noDebug
 BackStairsLights,5,60,25,StatAsync;flash,GarageHall3MultisensorMotion;BackStairsMultisensorMotion,,2,noDebug
 BarbiesOfficeLight,360,100,100,StatAsync;flash,,BarbiesOfficeMultisensorMotion,2,noDebug
 BarOutletAboveCabinet Bottom,60,0,100,flash,Downstairs,,2,noDebug

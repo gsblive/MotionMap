@@ -342,7 +342,7 @@ class Plugin(indigo.PluginBase):
 
 		if pluginInitialized == 0: return()
 
-		if newDev.name == '_TestMotionDimmerMotion': mmLib_Log.logForce("Update event for " + newDev.name + ": " + str(newDev))
+		# if newDev.name == '_TestMotionDimmerMotion': mmLib_Log.logForce("Update event for " + newDev.name + ": " + str(newDev))
 
 		try:
 			mmDev = mmLib_Low.MotionMapDeviceDict[newDev.name]

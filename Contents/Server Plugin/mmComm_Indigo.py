@@ -262,47 +262,49 @@ class mmIndigo(object):
 
 			self.defeatTimerUpdate = theCommandParameters.get("defeatTimerUpdate",0)
 
-			# if self.theIndigoDevice.protocol == 'Insteon':
 			theRampRate = int(theCommandParameters.get("ramp",0))
 
 			if theRampRate:
+				if self.theIndigoDevice.protocol == "Insteon":
+					# this only works on Insteon Devices
+					rampCommand = theCommandParameters.get("rampOverrideCommand",0)
 
-				rampCommand = theCommandParameters.get("rampOverrideCommand",0)
+					if rampCommand == 0:
+						if self.theIndigoDevice.version in [0x44, 0x45, 0x48]:
+							# The above firmware tested and work with the following command
+							rampCommand = 0x34		# (52  mmComm_Insteon.kInsteonBrightenWithRamp2)
+						elif self.theIndigoDevice.version in [0x38, 0x40, 0x41, 0x43]:
+							# The above firmware tested and work with the following command
+							rampCommand = 0x2E		# (46 mmComm_Insteon.kInsteonBrightenWithRamp)
+						else:
+							rampCommand = 0  # Ramp is untested and assumed unsupported for this firmware version
+							mmLib_Log.logError("### Unknown insteon Firmware version " + str(self.theIndigoDevice.version) + " for device " + self.deviceName + " while attempting BrightenWithRamp. Defaulting to standard Brighten function.")
 
-				if rampCommand == 0:
-					if self.theIndigoDevice.version in [0x44, 0x45, 0x48]:
-						# The above firmware tested and work with the following command
-						rampCommand = 0x34		# (52  mmComm_Insteon.kInsteonBrightenWithRamp2)
-					elif self.theIndigoDevice.version in [0x40]:
-						# The above firmware tested and work with the following command
-						rampCommand = 0x2E		# (46 mmComm_Insteon.kInsteonBrightenWithRamp)
-					else:
-						rampCommand = 0  # Ramp is assumed unsupported
-						mmLib_Log.logError("### Unknown insteon version " + str(self.theIndigoDevice.version) + " for device " + self.deviceName + " while attempting BrightenWithRamp. Defaulting to standard Brighten function.")
+					if rampCommand:
+						# Use Ramp command
 
-				if rampCommand:
-					# Use Ramp command
+						self.sendRawInsteonCommandLow([rampCommand,self.makeRampCmdModifier(theValue, theRampRate)], False, 0)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
 
-					self.sendRawInsteonCommandLow([rampCommand,self.makeRampCmdModifier(theValue, theRampRate)], False, 0)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
+						if theValue == 0:
+							# Only if we are trying to dim to 0... for some reason, dimming doesnt go down to 0, it goes to 6. Finish up the last dimming step at the end of the ramp cycle
+							# Note this will also fix the other problem below where the device status will not become updated. So you dont need to do both.
+							mmLib_Low.registerDelayedAction({'theFunction': self.completeAutonomousDimming,
+															 'timeDeltaSeconds': theRampRate + 60,
+															 'theDevice': self.deviceName,
+															 'timerMessage': "completeAutonomousDimming"})
+						else:
+							# update the periodicStatusUpdateRequest to make sure the brightness gets updated in indigo when the brightening concludes.
+							# since this is a dimmer device, we know this function exists
+							# Note: Added +60 to theRampRate below because sometimes periodicStatusUpdateRequest was being called before the ramp was complete
+							mmLib_Low.registerDelayedAction( {	'theFunction': self.periodicStatusUpdateRequest,
+																'timeDeltaSeconds': theRampRate + 60,
+																'theDevice': self.deviceName,
+																'timerMessage': "periodicStatusUpdateRequest"})
 
-					if theValue == 0:
-						# Only if we are trying to dim to 0... for some reason, dimming doesnt go down to 0, it goes to 6. Finish up the last dimming step at the end of the ramp cycle
-						# Note this will also fix the other problem below where the device status will not become updated. So you dont need to do both.
-						mmLib_Low.registerDelayedAction({'theFunction': self.completeAutonomousDimming,
-														 'timeDeltaSeconds': theRampRate + 60,
-														 'theDevice': self.deviceName,
-														 'timerMessage': "completeAutonomousDimming"})
-					else:
-						# update the periodicStatusUpdateRequest to make sure the brightness gets updated in indigo when the brightening concludes.
-						# since this is a dimmer device, we know this function exists
-						# Note: Added +60 to theRampRate below because sometimes periodicStatusUpdateRequest was being called before the ramp was complete
-						mmLib_Low.registerDelayedAction( {	'theFunction': self.periodicStatusUpdateRequest,
-															'timeDeltaSeconds': theRampRate + 60,
-															'theDevice': self.deviceName,
-															'timerMessage': "periodicStatusUpdateRequest"})
-
-					# We are done with an async ramp command. Bail out
-					return 0
+						# We are done with an async ramp command. Bail out
+						return 0
+				else:
+					mmLib_Log.logWarning("### brightenDevice RampRate only supported on Insteon Dimmers. Reverting to standard Brightness command for device " + self.deviceName)
 
 			# Its a dimmer device, but One way or another we didnt do a brightness command - use traditional set brightness command
 			indigo.dimmer.setBrightness(self.devIndigoID, value=theValue)
