@@ -422,14 +422,14 @@ Front Porch,5,0,100,StatAsync,CamLeftFrontHouseMotion,,2,noDebug
 GarageDoorLights,5,0,100,StatAsync,CamGarageMotion,,2,noDebug
 GarageHall,1,60,30,StatAsync;flash,GarageHall1MultisensorMotion;GarageHall2MultisensorMotion;GarageHall3MultisensorMotion,,2,noDebug
 GregsOfficeClosetDimmer,5,100,20,StatAsync;flash,GregsOfficeClosetMultisensorMotion,,2,noDebug
-GregsOfficeClosetCabinets - Top,5,0,100,StatSync;flash,GregsOfficeClosetMultisensorMotion;GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
-#GregsOfficeShelfLights,5,0,0,StatAsync;flash,AeonTest1MultisensorMotion,,2,noDebug
-GregsOfficeOutlet,0,100,100,StatAsync;flash,AeonTest1MultisensorMotion,,2,noDebug
+GregsOfficeClosetCabinets - Top,5,0,100,StatSync;flash,GregsOfficeClosetMultisensorMotion;GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion,AeonTest1MultisensorMotion,2,noDebug
+GregsOfficeShelfLights,5,0,0,StatAsync;flash,,AeonTest1MultisensorMotion,2,noDebug
+GregsOfficeOutlet,0,100,100,StatAsync;flash,,AeonTest1MultisensorMotion,2,noDebug
 GregsOfficeBathVanityLight,10,100,0,StatAsync;flash,GregsOfficeBathMultisensorMotion,,2,noDebug
 GregsOfficeBathFanLight,10,0,30,StatAsync;flash,GregsOfficeBathMultisensorMotion,,2,noDebug
 GregsOfficeBathShowerLight,5,100,30,StatAsync;flash,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
 GregsOfficeBathFan,5,100,100,StatAsync,GregsOfficeBathShowerMultisensorMotion,,2,noDebug
-GregsOfficeLight,1,0,30,StatAsync;flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion;AeonTest1MultisensorMotion,,2,noDebug
+GregsOfficeLight,1,0,30,StatAsync;flash;bedtime,GregsOfficeMultisensorMotion;GregsOfficeDoorMultisensorMotion,AeonTest1MultisensorMotion,2,noDebug
 GuestBedroomFan,120,100,100,StatAsync,,GuestMultisensorMotion,2,noDebug
 GuestBedroomFanLight,30,0,30,StatAsync;flash;bedtime,,GuestMultisensorMotion,2,noDebug
 GuestBathVanityLight,30,100,25,StatAsync;flash,GuestBathMultisensorMotion,,2,noDebug
