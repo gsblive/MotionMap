@@ -83,6 +83,7 @@ if mmPlugin.isEnabled():
 else:
 	indigo.server.log("MotinMap not Enabled")
 
+
 ###########
 
 Associated Trigger
@@ -116,9 +117,14 @@ _MotionMap PrintDelayQueue
 mmId = indigo.variables["MMListenerName"].value
 mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue'})
-	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'theDevice':'GregsOfficeClosetDimmer'})
-	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'proc': 'offTimerCallback'})
+	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'theDevice':'CommandQueue'})
+	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue'})
+	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'theDevice':'AeonMultisensorTest1'})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'theDevice':'ServerClosetLight'})
+	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'theDevice':'GregsOfficeClosetMultisensor'})
+	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'theDevice':'GarageDoorLights'})
+	#mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'theDevice':'CarPortLights'})
+	##mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printDelayQueue', 'proc': 'offTimerCallback'})
 else:
 	indigo.server.log("MotinMap not Enabled")
 
@@ -142,11 +148,400 @@ for theLink in theControllerList:
 ################
 
 
-   Display ZWave Object
+_Test Display ZWave Object
 
 devnumber = 833678262
 #indigo.server.log(indigo.devices[devnumber].globalProps["com.perceptiveautomation.indigoplugin.zwave"]["zwNodeNeighborsStr"])
-indigo.server.log(unicode(indigo.devices[devnumber]))
+#indigo.server.log(unicode(indigo.devices[devnumber]))
+indigo.server.log(unicode(indigo.devices["BackStairsMultisensor"]))
+
+##################
+
+_Test List Indigo Objects
+
+newDict = {}
+indigo.server.log("====")
+devCount = 0
+for newDev in indigo.devices.iter("indigo.zwave, indigo.sensor"):
+	indigo.server.log( "Adding " + newDev.name + " " + newDev.address + " " + newDev.subModel)
+	try:
+		temp = newDict[newDev.address]
+	except:
+		newDict[newDev.address] = {}
+	newDict[newDev.address][newDev.subModel] = newDev
+	devCount = devCount+1
+indigo.server.log("====")
+indigo.server.log("Devices Found: " + str(devCount))
+indigo.server.log("====")
+theDevice = newDict['17']["Motion Sensor"]
+indigo.server.log(theDevice.name)
+
+##################
+
+_Test Print Indigo Object
+
+newDev = indigo.devices["GarageHall"]
+indigo.server.log(str(newDev))
+#indigo.server.log(str(newDev.address))
+#indigo.server.log(str(newDev.id))
+#indigo.server.log(str(newDev.states["brightnessLevel"]))
+#indigo.insteon.sendStatusRequest(newDev.address,waitUntilAck=False)
+#indigo.device.statusRequest(newDev)
+#indigo.insteon.sendRaw(newDev.address, [0x34,0x0C], waitUntilAck=False)
+
+##################
+
+_Test PrintZWaveAddresses
+
+addressMap = {}
+outText = ""
+for theDevice in indigo.devices:
+	if str(theDevice.protocol) == 'ZWave':
+		try:
+			propDict = theDevice.globalProps
+			zwDict = propDict['com.perceptiveautomation.indigoplugin.zwave']
+			zwaddress = zwDict['address']
+			addressMap[zwaddress] = theDevice.name
+		except:
+			continue
+for ent in sorted(addressMap.iterkeys()):
+	outText = outText + "\r" + str(ent) + " " + str(addressMap[ent])
+indigo.server.log(outText)
+
+
+################
+
+_Test PrintZWaveMap
+
+addressMap = {}
+neighborMap = {}
+outText = ""
+for theDevice in indigo.devices:
+	if str(theDevice.protocol) == 'ZWave':
+		try:
+			propDict = theDevice.globalProps
+			zwDict = propDict['com.perceptiveautomation.indigoplugin.zwave']
+			zwaddress = zwDict['address']
+			addressMap[zwaddress] = theDevice.name
+			neighborMap[zwaddress] = zwDict['zwNodeNeighbors']
+		except:
+			continue
+for ent in sorted(addressMap.iterkeys()):
+	outText = outText + "\r\r" + str(ent) + " " + str(addressMap[ent])
+	for nei in neighborMap[ent]:
+		outText = outText + "\r    " + str(nei) + " " + addressMap[nei]
+indigo.server.log(outText)
+
+##################
+
+_Test PrintZWaveTraceRoute
+
+import time
+TargetAddress = 5
+displayAllRoutes = 0
+optimizeShortestRoutes = 0
+#TargetAddress = 13
+#
+BaseAddress = 3
+addressMap = {}
+neighborMap = {}
+addressStack = []
+addressBook = []
+traceRoutes = []
+traceRoutesMachine = []
+
+def processAddresses(addressToProcess, endingAddress, neighborMap, addressStack, addressBook, addressMap, traceRoutes, traceRoutesMachine):
+
+	theResult = 0
+	theAddressList = neighborMap[addressToProcess]
+
+	#indigo.server.log("      Searching for " + str(endingAddress) + " in " + str(theAddressList))
+
+	if addressToProcess in addressStack:
+		# we are already working on this address... exit to avoid endless loop
+		return 0
+
+	addressStack.append(addressToProcess)
+	addressBook.append(str(addressToProcess) + " " + str(addressMap[addressToProcess]))
+	#indigo.server.log("      Appended " + str(addressToProcess) + " to stack. It is now: " + str(addressStack) )
+	neighbors = neighborMap[addressToProcess]
+
+	if endingAddress in neighbors:
+		#indigo.server.log("    found Target " + str(endingAddress) + " in " + str(neighbors) )
+		# We found our target... Add a hoplist (addressStack) to the results and continue
+
+		#Temporarily put the last address in to make the list look complete
+		addressStack.append(endingAddress)
+		addressBook.append(str(endingAddress) + " " + str(addressMap[endingAddress]))
+		#indigo.server.log("      Found Route " + str(addressStack) )
+		traceRoutesMachine.append(list(addressStack))
+		traceRoutes.append(str(addressBook))
+		addressStack.pop()
+		addressBook.pop()
+		#indigo.server.log("      TraceRoutes are " + str(traceRoutes) )
+		theResult = 1
+	else:
+		# we didnt find our target address... look deeper (look in to all neighbors)
+		# Just call this routine with all the neighbors
+		for newAddress in theAddressList:
+			theResult = processAddresses(newAddress , endingAddress , neighborMap, addressStack, addressBook, addressMap, traceRoutes, traceRoutesMachine)
+
+	addressStack.pop()
+	addressBook.pop()
+	return theResult
+
+#
+# generateRoute
+#
+def generateRoute( TargetAddress, BaseAddress, neighborMap, addressStack, addressBook, addressMap, traceRoutes, traceRoutesMachine):
+
+	# Generate the hop map with the recursive routine processAddresses
+
+	theResult = processAddresses( TargetAddress, BaseAddress, neighborMap, addressStack, addressBook, addressMap, traceRoutes, traceRoutesMachine)
+	numRoutes = len(traceRoutes)
+
+	# Display the Results
+
+	indigo.server.log("    Routes found: " + str(numRoutes))
+	smallestRouteSize = 99
+	smallestRouteIndex = 0
+	for idx,route in enumerate(traceRoutes):
+		routeLength = len(route)
+		if displayAllRoutes > 0:
+			indigo.server.log("    Route: " + str(idx) + " " + str(route) + " Length: " + str(routeLength))
+		if routeLength < smallestRouteSize:
+			smallestRouteIndex = idx
+ 			smallestRouteSize = routeLength
+	#indigo.server.log("    Trace Routes: " + str(traceRoutes) )
+	#indigo.server.log("    Index: " + str( smallestRouteIndex ))
+	shortestRoute = str(traceRoutes[smallestRouteIndex])
+	shortestRouteMachine = list(traceRoutesMachine[smallestRouteIndex])
+	indigo.server.log("    Shortest Route: " + str(smallestRouteIndex) + " with " +  str(shortestRoute.count(',')+1) + " nodes: " + shortestRoute)
+
+	if optimizeShortestRoutes > 0:
+		indigo.server.log("    Optimizing: " + shortestRoute )
+		indigo.server.log("    Optimizing machine: " + str(shortestRouteMachine) )
+		indigo.server.waitUntilIdle()
+		for theAddress in shortestRouteMachine:
+			indigo.server.log("    Optimizing: " + str(theAddress) )
+			indigo.zwave.startNetworkOptimize(theAddress)
+			time.sleep(2)
+	return 0
+
+#
+# Main
+#
+
+# First make a table of devices
+
+for theDevice in indigo.devices.iter("indigo.zwave"):
+	try:
+		propDict = theDevice.globalProps
+		zwDict = propDict['com.perceptiveautomation.indigoplugin.zwave']
+		zwaddress = zwDict['address']
+		addressMap[zwaddress] = theDevice.name
+		neighborMap[zwaddress] = zwDict['zwNodeNeighbors']
+	except:
+		continue
+
+try:
+	indigo.server.log("Tracing Route between " + str(addressMap[TargetAddress]) + " and " + str(addressMap[BaseAddress]))
+except:
+	indigo.server.log("No Such Device " + str(TargetAddress))
+	return 0
+
+generateRoute( TargetAddress, BaseAddress, neighborMap, addressStack, addressBook, addressMap, traceRoutes, traceRoutesMachine)
+indigo.server.log("###Generating return trip ")
+addressStack = []
+addressBook = []
+traceRoutes = []
+generateRoute( BaseAddress, TargetAddress, neighborMap, addressStack, addressBook, addressMap, traceRoutes, traceRoutesMachine)
+
+
+##################
+
+_Test PrintZWaveTraceRouteX
+
+TargetAddress = 50
+AllRoutes = 0
+#TargetAddress = 13
+#
+BaseAddress = 30
+addressMap = {}
+neighborMap = {}
+addressStack = []
+addressBook = []
+traceRoutes = []
+
+def processAddresses(addressToProcess, endingAddress, neighborMap, addressStack, addressBook, addressMap, traceRoutes):
+
+	theResult = 0
+	theAddressList = neighborMap[addressToProcess]
+
+	#indigo.server.log("      Searching for " + str(endingAddress) + " in " + str(theAddressList))
+
+	if addressToProcess in addressStack:
+		# we are already working on this address... exit to avoid endless loop
+		return 0
+
+	addressStack.append(addressToProcess)
+	addressBook.append(str(addressToProcess) + " " + str(addressMap[addressToProcess]))
+	#indigo.server.log("      Appended " + str(addressToProcess) + " to stack. It is now: " + str(addressStack) )
+	neighbors = neighborMap[addressToProcess]
+
+	if endingAddress in neighbors:
+		#indigo.server.log("    found Target " + str(endingAddress) + " in " + str(neighbors) )
+		# We found our target... Add a hoplist (addressStack) to the results and continue
+
+		#Temporarily put the last address in to make the list look complete
+		addressStack.append(endingAddress)
+		addressBook.append(str(endingAddress) + " " + str(addressMap[endingAddress]))
+		#indigo.server.log("      Found Route " + str(addressStack) )
+		#traceRoutes.append(str(addressStack))
+		traceRoutes.append(str(addressBook))
+		addressStack.pop()
+		addressBook.pop()
+		#indigo.server.log("      TraceRoutes are " + str(traceRoutes) )
+		theResult = 1
+	else:
+		# we didnt find our target address... look deeper (look in to all neighbors)
+		# Just call this routine with all the neighbors
+		for newAddress in theAddressList:
+			theResult = processAddresses(newAddress , endingAddress , neighborMap, addressStack, addressBook, addressMap, traceRoutes)
+
+	addressStack.pop()
+	addressBook.pop()
+	return theResult
+
+#
+# Main
+#
+
+# First make a table of devices
+
+for theDevice in indigo.devices:
+	if str(theDevice.protocol) == 'ZWave':
+		try:
+			propDict = theDevice.globalProps
+			zwDict = propDict['com.perceptiveautomation.indigoplugin.zwave']
+			zwaddress = zwDict['address']
+			addressMap[zwaddress] = theDevice.name
+			neighborMap[zwaddress] = zwDict['zwNodeNeighbors']
+		except:
+			continue
+
+try:
+	indigo.server.log("Generating Hop Map for " + str(addressMap[TargetAddress]))
+except:
+	indigo.server.log("No Such Device " + str(TargetAddress))
+	return 0
+
+# Generate the hop map with the recursive routine processAddresses
+
+numMatches = 0
+theResult = processAddresses( TargetAddress, BaseAddress, neighborMap, addressStack, addressBook, addressMap, traceRoutes)
+numRoutes = len(traceRoutes)
+
+# Display the Results
+
+indigo.server.log("    Routes found: " + str(numRoutes))
+smallestRouteSize = 99
+smallestRouteIndex = 0
+for idx,route in enumerate(traceRoutes):
+	routeLength = len(route)
+	if AllRoutes > 0:
+		indigo.server.log("    Route: " + str(idx) + " " + str(route) + " Length: " + str(routeLength))
+	if routeLength < smallestRouteSize:
+		smallestRouteIndex = idx
+ 		smallestRouteSize = routeLength
+shortestRoute = str(traceRoutes[smallestRouteIndex])
+indigo.server.log("    Shortest Route: " + str(smallestRouteIndex) + " with " +  str(shortestRoute.count(',')+1) + " nodes: " + shortestRoute)
+
+##################
+
+_TestMail
+
+theBody = "\r This is a test email. \r"
+theSubject = "Test Email from Indigo"
+theRecipient = "greg@GSBrewer.com"
+indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=theBody)
+
+
+##################
+
+
+setLEDBrightnessAll
+
+#
+# Because this scriipt takes more than 10 seconds to complete, you have to keep running this script sequentially. It keeps its starting place in
+# an indigo veriable called TempStartingDevice. Keep running the script untiol you get the message stating that all "LED settings complete"
+#
+try:
+	tVar = indigo.variables["TempStartingDevice"]
+except:
+	tVar = indigo.variable.create("TempStartingDevice", "")
+
+startingDevice = tVar.value
+indigo.server.log("  Starting Device is " + startingDevice)
+
+processedCount = 0
+acId = "com.perceptiveautomation.indigoplugin.InsteonCommands"
+actionPlugin = indigo.server.getPlugin(acId)
+if actionPlugin.isEnabled():
+	indigo.server.log("    Plugin found - Processing all switches and dimmers starting with " + startingDevice)
+	for dev in indigo.devices.iter("indigo.dimmer, indigo.insteon"):
+		if startingDevice != "" and startingDevice != dev.name: continue
+		try:
+			startingDevice  = ""
+			actionPlugin.executeAction("setLedBrightness", props={'device':dev.id,'brightness':'1', 'brightenMethod':'kpl'})
+			indigo.server.log("  Set " + dev.name + " Model: " + dev.model)
+			if processedCount  >= 4: return
+			processedCount = processedCount + 1
+			indigo.variable.updateValue(tVar, value=unicode(dev.name))
+		except:
+			indigo.server.log("  # Error Setting " + dev.name + " Model: " + dev.model)
+			continue
+	for dev in indigo.devices.iter("indigo.relay, indigo.insteon"):
+		if dev.model != "SwitchLinc Relay": continue
+		if startingDevice != "" and startingDevice != dev.name: continue
+		try:
+			startingDevice  = ""
+			actionPlugin.executeAction("setLedBrightness", props={'device':dev.id,'brightness':'1', 'brightenMethod':'kpl'})
+			indigo.server.log("  Set " + dev.name + " Model: " + dev.model)
+			if processedCount  >= 4: return
+			processedCount = processedCount + 1
+			indigo.variable.updateValue(tVar, value=unicode(dev.name))
+		except:
+			indigo.server.log("  # Error Setting " + dev.name + " Model: " + dev.model)
+			continue
+else:
+	indigo.server.log("### Action Plugin not found")
+
+indigo.server.log("########################")
+indigo.server.log("### All LED settings complete. Resetting TempStartingDevice to null")
+indigo.server.log("########################")
+indigo.variable.delete(tVar)
+
+
+##################
+
+MakeDeviceSubList
+
+
+SubmodelDeviceDict = {}
+for newDev in indigo.devices.iter("indigo.zwave, indigo.sensor"):
+
+	try:
+		subModelDevs = SubmodelDeviceDict[newDev.address]
+	except:
+		SubmodelDeviceDict[newDev.address] = {}
+		subModelDevs = SubmodelDeviceDict[newDev.address]
+
+	subModelDevs[str(newDev.name)] = newDev
+
+indigo.server.log("DeviceDict: " + str(SubmodelDeviceDict))
+
+
 
 ##################
 
@@ -166,7 +561,7 @@ else:
 mmId = indigo.variables["MMListenerName"].value
 mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'batteryReport'})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'batteryReport', 'ReportType':"Full"})
 else:
 	indigo.server.log("MotinMap not Enabled")
 
@@ -190,7 +585,33 @@ import time
 mmId = indigo.variables["MMListenerName"].value
 mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'3rd Floor Stairway Chandelier P','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'AeonMultisensorTest1Vibration','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'AeonMultisensorTest1Humidity','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'AeonMultisensorTest1Temperature','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'AeonMultisensorTest1Luminance','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'AeonMultisensorTest1Ultraviolet','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'AeonMultisensorTest1','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'CamGarageMotion','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'MasterHallMultisensor','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'ButlerKitchenMultisensor','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'GregsOfficeMultisensor','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'GregsOfficeClosetMultisensor','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'OG_GregsOfficeLight','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'House','theValue':0,'theMode':'IMMED'})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'GregsOfficeLight','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'KylesBedroomMultisensorMotion','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'OG_GregsOfficeClosetCabinets - Top','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'SG_MJBathroomLeftSink','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'DoorBackDeckGroup','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'AeonTest1MultisensorMotion','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'DownstairsLeft','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'DownstairsRight','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'UpstairsLeft','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'UpstairsRight','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'House','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'CamCarPortMotion','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'FamilyRoomBathMultisensor','theValue':0,'theMode':'IMMED'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'MasterGregsClosetLight','theValue':0,'theMode':'IMMED'})
 #	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'Master Bath Shower Light P','theValue':0,'theMode':'IMMED'})
 #	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'3rd Floor Stairway Sconce P','theValue':0,'theMode':'IMMED'})
 #	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'OfficeLampP','theValue':0,'theMode':'IMMED'})
@@ -198,7 +619,7 @@ if mmPlugin.isEnabled():
 #	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'GarageHouseDoorLockControl','theValue':0,'theMode':'IMMED'})
 #	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'devStatus','theDevice':'Hallway Thermostat','theValue':0,'theMode':'IMMED'})
 else:
-	indigo.server.log(">>> MotionMap is NOT enabled.”)
+	indigo.server.log("MotinMap not Enabled")
 
 ##################
 
@@ -209,10 +630,12 @@ mmId = indigo.variables["MMListenerName"].value
 mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
 #	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'all','theValue':100})
-#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'OfficeLampP','theValue':0})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'on','theValue':100})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'GregsOfficeClosetDimmer','theValue':0})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'KylesBedroomLight','theValue':0})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'KylesBedroomMultisensorMotion','theValue':0})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionStatus','theDevice':'on','theValue':100})
 else:
-	indigo.server.log(">>> MotionMap is NOT Enabled”)
+	indigo.server.log(">>MotinMap not Enabled")
 
 ##################
 
@@ -254,56 +677,80 @@ else:
 
 ##################
 
+  _MotionMap RunTestCodeCommand
+
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'testCode','theDevice':'none','theValue':0,'theMode':'IMMED'})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+##################
+
+  _MotionMap SetLogSensitivity
+
+mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'SetLogSensitivity', 'TheValue':"terse"})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+##################
+
   _MotionMap Test
 
 mmId = indigo.variables["MMListenerName"].value
 mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
-#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'theMode':'IMMED'})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':0})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'beep','theDevice':'OfficeLampP','theValue':0})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'beep','theDevice':'OfficeLampP','theValue':0,'repeat':1})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':100,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printCommandQueue'})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OutdoorTempFrontDoor','theValue':0,'retry':2})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OutdoorTempFrontDoor','theValue':100,'retry':2})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'GregsOfficeLight','theValue':0,'retry':2})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'GregsOfficeLight','theValue':0,'ramp':360,'retry':2})
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printCommandQueue'})
 else:
 	indigo.server.log("MotinMap not Enabled")
 
 
 ##################
 
-
-  _MotionMap Test copy
-
+  _MotionMap Test DimmerRamp
 
 mmId = indigo.variables["MMListenerName"].value
 mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
-#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'theMode':'IMMED'})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':0})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'beep','theDevice':'OfficeLampP','theValue':0})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'beep','theDevice':'OfficeLampP','theValue':0,'repeat':1})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':0,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'toggle','theDevice':'OfficeLampP','theValue':100,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'OfficeLampP','theValue':100,'retry':2})
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'printCommandQueue'})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'brighten','theDevice':'GarageDoorLights','theValue':0,'ramp':360, 'rampOverrideCommand':0x2E, 'retry':2})
+else:
+	indigo.server.log("MotinMap not Enabled")
+
+
+
+##################
+
+ _MotionMap ReparseConfigFile
+
+ mmId = indigo.variables["MMListenerName"].value
+mmPlugin = indigo.server.getPlugin(mmId)
+if mmPlugin.isEnabled():
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'reparseConfig'})
 else:
 	indigo.server.log("MotinMap not Enabled")
 
 
 ##################
 
+
+
+
+##################
+older code. Still functional if needed
+##################
 
   _MotionMap Test Flash
 
