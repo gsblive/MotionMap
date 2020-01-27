@@ -406,6 +406,7 @@ class Plugin(indigo.PluginBase):
 
 		#		except self.StopThread:
 		except:
+			mmLib_Log.logForce("Exception in RunConcurrentThread")
 			# do any cleanup here
 			pass
 

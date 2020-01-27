@@ -924,7 +924,7 @@ def init():
 	random.seed()
 	# this happens before parsing config file
 	mmLib_Log.logForce("Initializing mmLow")
-	#setIndigoVariable('MMDayTime', indigo.variables['isDaylight'].value)
+	setIndigoVariable('MMDayTime', indigo.variables['isDaylight'].value)
 	setIndigoVariable('MMDefeatMotion', 'false')
 	setIndigoVariable('MMListenerName', _MotionMapPlugin.MM_NAME + '.listener')
 	initIndigoVariable("StatisticsResetTime", time.strftime("%m/%d/%Y %I:%M:%S"))	# in this variable's case, only init it if it doesnt exist.
