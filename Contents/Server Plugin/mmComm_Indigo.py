@@ -246,6 +246,8 @@ class mmIndigo(object):
 	#
 	def brightenDevice(self, theCommandParameters):
 
+		if self.debugDevice: mmLib_Log.logForce( "brightenDevice for " + self.deviceName + " CommandParameters: " + str(theCommandParameters))
+
 		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
 			return 'unresponsive'
@@ -265,7 +267,7 @@ class mmIndigo(object):
 			theRampRate = int(theCommandParameters.get("ramp",0))
 
 			if theRampRate:
-				if self.theIndigoDevice.protocol == "Insteon":
+				if str(self.theIndigoDevice.protocol) == "Insteon":
 					# this only works on Insteon Devices
 					rampCommand = theCommandParameters.get("rampOverrideCommand",0)
 
@@ -279,6 +281,8 @@ class mmIndigo(object):
 						else:
 							rampCommand = 0  # Ramp is untested and assumed unsupported for this firmware version
 							mmLib_Log.logError("### Unknown insteon Firmware version " + str(self.theIndigoDevice.version) + " for device " + self.deviceName + " while attempting BrightenWithRamp. Defaulting to standard Brighten function.")
+
+					mmLib_Log.logForce("### RampCommand " + str(rampCommand) + " for device " + self.deviceName)
 
 					if rampCommand:
 						# Use Ramp command
@@ -304,13 +308,14 @@ class mmIndigo(object):
 						# We are done with an async ramp command. Bail out
 						return 0
 				else:
-					mmLib_Log.logWarning("### brightenDevice RampRate only supported on Insteon Dimmers. Reverting to standard Brightness command for device " + self.deviceName)
+					mmLib_Log.logWarning("### brightenDevice RampRate only supported on Insteon Dimmers. Reverting to standard Brightness command for device. Class " + str(self.theIndigoDevice.__class__) + " not equal to " + str(indigo.DimmerDevice) + " " + self.deviceName)
 
 			# Its a dimmer device, but One way or another we didnt do a brightness command - use traditional set brightness command
 			indigo.dimmer.setBrightness(self.devIndigoID, value=theValue)
 
 		else:
 			# not a dimmer device... do an on/off command
+			if self.debugDevice: mmLib_Log.logForce( "brightenDevice for " + self.deviceName + " not a dimmer device. It is " + str(self.theIndigoDevice.__class__) + ". Defaulting to onOff")
 			self.onOffDevice(theCommandParameters)
 
 
