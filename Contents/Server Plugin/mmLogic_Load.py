@@ -433,9 +433,14 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# if we are currently not processing motion events, bail early
 		if indigo.variables['MMDefeatMotion'].value == 'true': return(0)
 
-		if self.lastOffCommandTime and int(time.mktime(time.localtime())) - self.lastOffCommandTime < kBlackOutTimeSecondsAfterOff:
-				mmLib_Log.logForce( "=== " + self.deviceName + " is ignoring /'" + theEvent + "/' controller event from " + theControllerDev.deviceName + " " + str(int(time.mktime(time.localtime())) - self.lastOffCommandTime) + " seconds after user off command.")
-				return(0)
+		defeatBlackout = int(eventParameters.get('defeatBlackout',0))
+		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " ****** DefeatBlackout is " + str(defeatBlackout))
+		if defeatBlackout:
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Skipping occupation Event because DefeatBlackout is " + str(defeatBlackout))
+		else:
+			if self.lastOffCommandTime and int(time.mktime(time.localtime())) - self.lastOffCommandTime < kBlackOutTimeSecondsAfterOff:
+					mmLib_Log.logForce( "=== " + self.deviceName + " is ignoring /'" + theEvent + "/' controller event from " + theControllerDev.deviceName + " " + str(int(time.mktime(time.localtime())) - self.lastOffCommandTime) + " seconds after user off command.")
+					return(0)
 
 		mmLib_Log.logVerbose(self.deviceName + " is being asked to process \'" + theEvent + "\' event by " + theControllerDev.deviceName)
 

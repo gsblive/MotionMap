@@ -65,6 +65,10 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			self.occupiedAllDict = {}
 			self.unoccupiedAllDict = {}
 			self.occupiedPartialDict = {}
+			if int(self.unoccupiedRelayDelaySeconds):
+				self.defeatBlackout = 0
+			else:
+				self.defeatBlackout = 1		# if the minmovement is set to 0, we dont need a blackout period when distributing occupied events
 
 			# now make a copy of Members into UnoccupiedAll... we have to assume unoccupied to start... later each motion sensor will update us
 			for member in self.members: self.unoccupiedAllDict[member] = time.strftime("%m/%d/%Y %I:%M:%S")
@@ -95,7 +99,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			self.lastReportedOccupationEvent = newEvent
 			if newEvent != skipEvent:
 				if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " Delivering events " + str(newEvent) + " to all subscribers.")
-				mmLib_Events.distributeEvents(self.deviceName, [newEvent], 0, {})
+				mmLib_Events.distributeEvents(self.deviceName, [newEvent], 0, {'defeatBlackout':self.defeatBlackout})
 			else:
 				if self.debugDevice: mmLib_Log.logForce( "Occupation Group " + self.deviceName + " Skipping delivery of event \'" + str(skipEvent) + "\'.")
 
@@ -289,6 +293,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 			# relay the event or set a timer to do so
 			if not self.unoccupiedRelayDelaySeconds:
+				if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " executing unoccupiedTimerProc immediately. unoccupiedRelayDelaySeconds value set to 0")
 				self.unoccupiedTimerProc({})
 			else:
 				if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " registering delayed action \'unoccupiedTimerProc\' for execution in " + str(mmLib_Low.secondsToMinutesAndSecondsString(self.unoccupiedRelayDelaySeconds)))
@@ -324,6 +329,10 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 		for member in self.members:
 			if not member: break
+			# If member is unoccupied, no need to propogate timeout
+			if member in self.unoccupiedAllDict:
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " skipping forceTimeout to \'" + member + "\' because its already unoccupied.")
+				continue
 			memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
 			if memberDev:
 				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " sending forceTimeout to \'" + member + "\'.")

@@ -64,6 +64,10 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.supportedCommandsDict = {}
 			self.controllerMissedCommandCount = 0
 			self.previousMotionOff = 0
+			if int(self.minMovement):
+				self.defeatBlackout = 0
+			else:
+				self.defeatBlackout = 1		# if the minmovement is set to 0, we dont need a blackout period when distributing occupied events
 
 			mmLib_Events.registerPublisher(['on', 'off', 'OccupiedAll', 'UnoccupiedAll'], self.deviceName)
 
@@ -202,7 +206,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.occupiedState = False
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 		skipDistribute = theParameters.get('defeatDistribution', 0)
-		if not skipDistribute: mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {})  # dispatch to everyone who cares
+		if not skipDistribute: mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {'defeatBlackout':self.defeatBlackout})  # dispatch to everyone who cares
 
 		return 0		# Cancel timer
 
@@ -271,7 +275,10 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 				if lastUpdateDeltaSeconds < timeDeltaSeconds:
 					timeDeltaSeconds = timeDeltaSeconds - lastUpdateDeltaSeconds
 				else:
-					timeDeltaSeconds = 30		# the minimum... timeout in 30 seconds. Chances are, the motion sensor will timeout before this and we will get to the code below anyway
+					if int(self.minMovement) == 0:
+						timeDeltaSeconds = 0		# the minimum is irrelevalent if the motion sensor is really a contact switch (indicated by minmovement of 0
+					else:
+						timeDeltaSeconds = 30		# the minimum... timeout in 30 seconds. Chances are, the motion sensor will timeout before this and we will get to the code below anyway
 
 			stringExtension = "Motion Limit at"
 
@@ -287,6 +294,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			# device is NOT indicating motion, so set timeout to the minimum. We will still claim occupied until the timer expires
 
 			timeDeltaSeconds = int(self.minMovement) * 60	# do delayProcForNonOccupancy later
+			if self.debugDevice: mmLib_Log.logForce( "Processing OnState False for " + self.deviceName + " with timeDeltaSeconds of " + str(timeDeltaSeconds))
 
 			if self.occupiedState == 2:  # startup time?
 				# since we are not calling distributeOccupation, we have to set occupiedState
@@ -306,8 +314,12 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 												 'timeDeltaSeconds': timeDeltaSeconds,
 												 'theDevice': self.deviceName,
 												 'timerMessage': "Motion Sensor NonOccupancy Timer"})
+			else:
+				mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
+				if self.debugDevice: mmLib_Log.logForce( "Distribute nonOccupancy events for " + self.deviceName + ". Skipping timer because minMovement is 0")
+				self.delayProcForNonOccupancy({})  # dispatch to everyone who cares
 
-			# We dont distribute unoccupied events here, but we want to update the infigo variable in all cases
+			# We dont distribute unoccupied events here, but we want to update the indigo variable in all cases
 			self.resetIndigoOccupationVariable(timeDeltaSeconds, stringExtension)
 
 
@@ -430,7 +442,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 					# if we are already marked as unoccupied, debounce this event
 
 					if self.occupiedState == False:
-						if self.debugDevice: mmLib_Log.logForce(self.deviceName + " receivced an \'" + str(newOnState) + "\' event, but was already in unoccupied state... Ignoring the event.")
+						if self.debugDevice: mmLib_Log.logForce(self.deviceName + " received an \'" + str(newOnState) + "\' event, but was already in unoccupied state... Ignoring the event.")
 						return 0
 
 					mmLib_Low.cancelDelayedAction(self.delayProcForOnStateTimeout)
