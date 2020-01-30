@@ -93,6 +93,7 @@ MMSysNonvolatileData = {}	# the NVs specifically for MMSys
 
 MMVirtualDeviceTypes = ["Scene","OccupationAction","OccupationGroup","CamMotion"]
 DebugDevices = {}
+unknownAddress = {}
 
 ############################################################################################
 #
@@ -232,6 +233,28 @@ def resetGlobals():
 
 ############################################################################################
 #
+# addressTranslate
+#
+#	if we receive a command to a device that is unregistered in MM, we dont know its name...
+# This routine will translate the address to name and preserve the info for error/warning notifications
+#
+############################################################################################
+def addressTranslate(desiredAddress):
+
+	# Check to see if we have captured the name before.. this is the fast way
+	lookedUp = unknownAddress.get(desiredAddress, "Unknown")
+	if lookedUp != "Unknown": return (lookedUp)
+
+	# not already in list, traverse the indigo device list add a dict entry for it
+
+	for dev in indigo.devices.itervalues():
+		if dev.address == desiredAddress:
+			unknownAddress[dev.address] = dev.name
+			return (dev.name)
+	return ("Undefined")
+
+############################################################################################
+#
 #	initIndigoVariable
 #
 #		Make an insteon Variable (if needed) and set its value to default. If the variable already exists, do nothing.
@@ -314,6 +337,7 @@ def	daytimeTransition(eventID, eventParameters):
 		if  secondsSinceLastReport > 23*60*60:
 			MMSysNonvolatileData["lastReportTime"] = int( time.mktime(time.localtime()))
 			processOfflineReport({'theCommand': 'offlineReport', 'theDevice': 'errorCounter', 'theMode': 'Email'})
+			processUnregistertedReport({'theCommand': 'unregisteredReport', 'theMode': 'Email'})
 			batteryReport({'theCommand': 'batteryReport', "ReportType":"Terse"})
 		else:
 			mmLib_Log.logForce("Skipping Daytime reports due to recent report presentation " + str(datetime.timedelta(seconds=secondsSinceLastReport)) + " ago.")
@@ -601,6 +625,65 @@ def _only_diff(expected, actual):
 			resultString = resultString + testLine + '\n'
 
 	return resultString
+
+############################################################################################
+#
+# processUnregistertedReport
+#	Check for error results for each device we ask status for (all load and companion devices)
+#
+#	in theCommandParameters:
+#
+#############################################################################################
+def processUnregistertedReport(theCommandParameters):
+
+	if statisticsQueue:
+
+		try:
+			sendEmail = theCommandParameters['theMode']
+		except:
+			sendEmail = 0
+
+		theLine = str("==================================================")
+		mmLib_Log.logReportLine(theLine)
+		theEmail = theLine
+		theLine = str("Running processUnregistertedReport.")
+		mmLib_Log.logReportLine(theLine)
+		theEmail = theEmail + '\n' +  theLine
+		theLine = str("The following devices are not registered with MotionMap")
+		mmLib_Log.logReportLine(theLine)
+		theEmail = theEmail + '\n' +  theLine
+		theLine = str("==================================================")
+		mmLib_Log.logReportLine(theLine)
+		theEmail = theEmail + '\n' +  theLine
+
+
+		numberShown = 0
+
+		for devName in unknownAddress.values():
+			numberShown = numberShown + 1
+			theLine = str(devName)
+			mmLib_Log.logReportLine(theLine)
+			theEmail = theEmail + '\n' +  theLine
+
+		if numberShown == 0:
+			theLine = str("  ** Nothing to show ** ")
+			mmLib_Log.logReportLine(theLine)
+			theEmail = theEmail + '\n' +  theLine
+
+		theLine = str("=============== End of Report ====================")
+		mmLib_Log.logReportLine(theLine)
+		theEmail = theEmail + '\n' +  theLine
+
+		if sendEmail:
+			if numberShown == 0:
+				mmLib_Log.logReportLine("===== Not Sending Email (no data to report) ======")
+			else:
+				theSubject = str("MotionMap2 " + str(indigo.variables["MMLocation"].value)+ " UnregisteredReport")
+				theRecipient = "greg@GSBrewer.com"
+				#mmLog.logReportLine( "Sending Email. Recipient: " + theRecipient + " TheSubject: " + theSubject)
+				indigo.server.sendEmailTo(theRecipient, subject=theSubject, body=theEmail)
+				# we sent the email, clear the report
+				resetOfflineStatistics({})
 
 
 

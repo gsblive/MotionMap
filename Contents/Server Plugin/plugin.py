@@ -34,12 +34,12 @@ from collections import deque
 pluginInitialized = 0
 startTime = 0
 
-
 ########################################
 #
 # Command processing support routines
 #
 ########################################
+
 
 
 ############################################################################################
@@ -91,6 +91,7 @@ supportedControlCommandsDict = {'resetOfflineStatistics':mmLib_Low.resetOfflineS
 								'SetLogSensitivity':mmLib_Log.setLogSensitivityMMCommand,
 								'motionStatus': mmLib_Low.displayMotionStatus,
 								'offlineReport': mmLib_Low.processOfflineReport,
+								'unregisteredReport': mmLib_Low.processUnregistertedReport,
 								'verifyLogMode':mmLib_Log.verifyLogMode,
 								'batteryReport':mmLib_Low.batteryReport}
 
@@ -235,10 +236,16 @@ class Plugin(indigo.PluginBase):
 			mmDev = mmLib_Low.MotionMapDeviceDict[str(cmd.address)]
 		except:
 			# Not our device
-			# Note cmd does not have devID, so you have to use address
-			# this is technically broken with no work around. It only effects OutletLinc that shares address between top and bottom outlets
-			# the moral of the story is dont rely on cmd where you can avoid it... rely on deviceUpdated where possible.
-			mmLib_Log.logWarning( "Received a command, but not our device ID: " + str(cmd.address))
+			# Note cmd does not have devID... we only have access to address...
+			# Its a limitation in the insteon/indigo architecture with no easy work around.
+			# The real difficulty is on devices that have several IDs for one Address... For example:
+			# OutletLinc (that share addresses between top and bottom outlets) and Zwave multifunction devices.
+			#
+			# We resolve this by keeping a list (motionMapDict) that contains the device name which we use for all operations.
+			# If processing got here, we captured a command from a device that is not listed in MM conmfig file. We want
+			# to keep a list of these devices so we can emit a warning to the log (so we can add the device to the known device list).
+
+			mmLib_Log.logWarning( "Unknown device. Please edit \'" + "mmConfig." + str(_MotionMapPlugin.MM_Location) + ".csv" + "\' to add " + str(cmd.address) + ": " + mmLib_Low.addressTranslate(str(cmd.address)))
 			return 0
 
 		try:
