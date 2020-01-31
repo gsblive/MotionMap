@@ -64,10 +64,6 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.supportedCommandsDict = {}
 			self.controllerMissedCommandCount = 0
 			self.previousMotionOff = 0
-			if int(self.minMovement):
-				self.defeatBlackout = 0
-			else:
-				self.defeatBlackout = 1		# if the minmovement is set to 0, we dont need a blackout period when distributing occupied events
 
 			mmLib_Events.registerPublisher(['on', 'off', 'OccupiedAll', 'UnoccupiedAll'], self.deviceName)
 
@@ -78,6 +74,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "problemReportTime", 0)
 			s = str(self.deviceName + ".Occupation")
 			self.occupationIndigoVar = s.replace(' ', '.')
+			if self.debugDevice: mmLib_Log.logForce("Initializing " + str(self.occupationIndigoVar) + " for " + self.deviceName + " to occupiedState " + str(self.occupiedState) + ". (" + str(OccupiedStateList[self.occupiedState]) + ")")
 			mmLib_Low.getIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 
 			self.supportedCommandsDict.update({'devStatus': self.devStatus})
@@ -175,7 +172,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		return(OccupiedStateList[self.occupiedState])
 
 	#
-	# setLastUpdateTimeSeconds - note the time when the device changed state
+	# setLastUpdateTimeSeconds - note the time when the device changed state. This is called by base class.
 	#
 
 	def setLastUpdateTimeSeconds(self):
@@ -206,7 +203,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.occupiedState = False
 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, OccupiedStateList[self.occupiedState])
 		skipDistribute = theParameters.get('defeatDistribution', 0)
-		if not skipDistribute: mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {'defeatBlackout':self.defeatBlackout})  # dispatch to everyone who cares
+		if not skipDistribute: mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {})  # dispatch to everyone who cares
 
 		return 0		# Cancel timer
 
@@ -350,6 +347,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			if self.debugDevice: mmLib_Log.logForce( "Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 			mmLib_Events.distributeEvents(self.deviceName, [OccupiedStateList[newOccupiedState]], 0,{})  # dispatch to everyone who cares
 			self.occupiedState = newOccupiedState
+		else:
+			if self.debugDevice: mmLib_Log.logForce("Occupation state change for " + self.deviceName + " NOT DISTRIBUTED. Motion Sensor already in " + str(newOccupiedState) + " state.")
 
 		self.resetIndigoOccupationVariable(timeDeltaSeconds, stringExtension)
 
@@ -406,7 +405,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		# If we are blacked out, dont process the event.
 
 		if self.blackOutTill > int(time.mktime(time.localtime())):
-			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " is not processing event \'" + str(newOnState) + "\' because it was receive during blackout time.")
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " is not processing event \'onState:" + str(newOnState) + "\' because it was receive during blackout time.")
 			return 0
 
 		if self.debugDevice: mmLib_Log.logForce("deviceUpdatedEvent for " + self.deviceName + ". newOnState = " + str(newOnState) + ". onlineState = " + str(self.onlineState))

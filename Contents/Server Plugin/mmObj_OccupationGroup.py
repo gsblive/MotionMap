@@ -51,6 +51,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			#
 			self.members = theDeviceParameters["members"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
 			self.unoccupiedRelayDelaySeconds = int(theDeviceParameters["unoccupiedRelayDelayMinutes"]) * 60
+			self.defeatBlackout = int(theDeviceParameters.get("defeatBlackout", 0))
 			self.scheduledDeactivationTimeSeconds = 0
 			s = str(self.deviceName + ".Group.Occupation")
 			self.occupationIndigoVar = s.replace(' ', '.')
@@ -65,13 +66,12 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			self.occupiedAllDict = {}
 			self.unoccupiedAllDict = {}
 			self.occupiedPartialDict = {}
-			if int(self.unoccupiedRelayDelaySeconds):
-				self.defeatBlackout = 0
-			else:
-				self.defeatBlackout = 1		# if the minmovement is set to 0, we dont need a blackout period when distributing occupied events
 
 			# now make a copy of Members into UnoccupiedAll... we have to assume unoccupied to start... later each motion sensor will update us
-			for member in self.members: self.unoccupiedAllDict[member] = time.strftime("%m/%d/%Y %I:%M:%S")
+			# Update... Consider the state of the existing members' motion sensors
+
+			for member in self.members:
+				self.unoccupiedAllDict[member] = time.strftime("%m/%d/%Y %I:%M:%S")
 
 
 			# Dict of events we support, and which of the above lists get added to and deleted from for each event type
@@ -84,6 +84,12 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			self.supportedCommandsDict.update({'devStatus':self.devStatus})
 
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.completeInit, {}, self.deviceName)
+
+	# resetIndigoVariableToReflectState
+	# At initialization time, the Dictionaries and timers have all been reset.. we have to rebuild internal state with only the current mmembers' state. Then update the indigo variable.
+
+	# def resetIndigoVariableToReflectState(self):
+
 
 	#
 	# updateSubscribers - Send all our subscribers an update message with our current occupation Status
@@ -98,8 +104,9 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		if self.lastReportedOccupationEvent != newEvent:
 			self.lastReportedOccupationEvent = newEvent
 			if newEvent != skipEvent:
-				if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " Delivering events " + str(newEvent) + " to all subscribers.")
+				if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " Delivering events " + str(newEvent) + " to all subscribers. defeatBlackout = "+ str(self.defeatBlackout))
 				mmLib_Events.distributeEvents(self.deviceName, [newEvent], 0, {'defeatBlackout':self.defeatBlackout})
+				# GB Fix me... If the load device skips this event, the occupationGroup and the device are out of sync
 			else:
 				if self.debugDevice: mmLib_Log.logForce( "Occupation Group " + self.deviceName + " Skipping delivery of event \'" + str(skipEvent) + "\'.")
 
@@ -116,6 +123,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def completeInit(self,eventID, eventParameters):
 
+		self.initializeOccupiedState()
 		self.updateSubscribers('UnoccupiedAll')		# skip UnoccupiedAll events because that is the default at startup time
 
 		return 0
@@ -201,6 +209,63 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		return(newEvent)
 
 	#
+	# initializeOccupiedState... Startup time (after a delay) set our initial occupation state
+	#
+	def initializeOccupiedState(self):
+
+		occupancyCount = 0
+		initialOccupancy = 'Unknown'
+
+		for member in self.members:
+			if not member: continue
+			memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
+			if memberDev:
+				theState = memberDev.getOccupiedState()
+				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Obtaining initial occupied state from " + memberDev.deviceName + ". Result: \'" + str(theState) + "\'.")
+				if theState == 'Unknown':
+					mmLib_Log.logWarning(self.deviceName + " detects " + memberDev.deviceName + " with initial occupied state of \'Unknown\' we will have to run this process again.")
+					# put in a process to run this again in a few seconds.
+					mmLib_Low.registerDelayedAction({'theFunction': self.retryInitializeOccupiedState, 'timeDeltaSeconds': 5,'theDevice': self.deviceName, 'timerMessage': "retryInitializeOccupiedState"})
+					return(0)
+
+				# Its not an unknown state... set our analytics dictionaries correctly
+
+				self.updateAnalyticsMatrix(theState, {'publisher':memberDev.deviceName})
+
+				if theState == 'UnoccupiedAll':
+					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " detects " + memberDev.deviceName + " with initial occupied state of \'UnoccupiedAll\'.")
+				else:
+					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " detects " + memberDev.deviceName + " with initial occupied state of \'" + theState + "\'. Counting up to see if we are fully occupied.")
+					# there is some kind of occupancy here... increment the counter
+					occupancyCount = occupancyCount+1
+
+		if occupancyCount:
+			# some level of occupancy, is it full?
+			if len(self.members) == initialOccupancy:
+				initialOccupancy = 'OccupiedAll'
+			else:
+				initialOccupancy = 'OccupiedPartial'
+			self.occupiedState = True
+		else:
+			# no occupancy
+			initialOccupancy = 'UnoccupiedAll'
+			self.occupiedState = False
+
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " determined its initial occupancy of " + memberDev.deviceName + " with initial occupied state of \'" + initialOccupancy + "\'.")
+
+		#GB Fix me... Im not sure if we need to deliver this event to subscribers... or is this handled elsewhere. testing indicates it isnt necessary
+
+		return(0)
+
+
+	def retryInitializeOccupiedState(self, parameters):
+
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " retrying initializeOccupiedState.")
+
+		self.initializeOccupiedState()
+		return(0)
+
+	#
 	# setOnOffLine - we have to pass this command to the members
 	#
 	#	we support the following requestedStates:
@@ -244,11 +309,33 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 		return 0	# do not continue timer
 
 
+	def updateAnalyticsMatrix(self, theEvent, eventParameters):
 
+		if self.debugDevice: mmLib_Log.logForce( "Occupation Group " + self.deviceName + " received \'" + theEvent + "\' event from " + eventParameters['publisher'])
 
+		theTimeString = time.strftime("%m/%d/%Y %I:%M:%S")
+
+		# The occupationdictAnalyticsMatrix contains addition/deletion instructions for all event types in all
+		# occupationDictionaries ( occupiedAllDict, occupiedPartialDict, unoccupiedAllDict }
+		# follow those instructions to track occupation levels of member controllers (motions sensors and other occupation groups)
+
+		dictAnalyticsMatrix = self.occupationdictAnalyticsMatrix[theEvent]
+
+		# Add and delete the publisher to/from the analytics dictionaries
+
+		for delDict in dictAnalyticsMatrix['deleteFrom']:
+			try:
+				del delDict[eventParameters['publisher']]  # no longer fully occupied for sure
+			except:
+				pass
+
+		for addDict in dictAnalyticsMatrix['addTo']:
+			addDict[eventParameters['publisher']] = theTimeString
+
+		return(0)
 
 	#
-	# receiveOccupationEvent - we received an activation event, process it
+	# receiveOccupationEvent - we received an activation (occupied or unoccupied) event, process it
 	#
 	#			The type of occupation event we have been looking for is reported here. Based on the any/all mode factor,
 	# 			determine if we should schedule the activation event to later occur in deviceTime above
@@ -258,29 +345,13 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " received \'" + theEvent + "\' event from " + eventParameters['publisher'])
 
-		theTimeString = time.strftime("%m/%d/%Y %I:%M:%S")
-		
-		dictAnalyticsMatrix = self.occupationdictAnalyticsMatrix[theEvent]
-		
-		# Add and delete the publisher to/from the analytics dictionaries
-		
-		for delDict in dictAnalyticsMatrix['deleteFrom']:
-			try:
-				del delDict[eventParameters['publisher']]  # no longer fully occupied full for sure
-			except:
-				pass
-
-		for addDict in dictAnalyticsMatrix['addTo']:
-			addDict[eventParameters['publisher']] = theTimeString
-
+		self.updateAnalyticsMatrix(theEvent, eventParameters)
 
 		theEvent = self.getOccupiedState()		# the rest is based on our current group event state
 		if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " calculated LocalState as \'" + str(theEvent) + "\'.")
 
 		if theEvent in ['OccupiedAll', 'OccupiedPartial']:
-			# Process the ocupied event... Clearly
-
-			# All unoccupied events pending are no longer valid
+			# Process the ocupied event... Clearly All unoccupied events pending are no longer valid
 			if self.unoccupiedRelayDelaySeconds:							# if unoccupied timer is running, stop it
 				mmLib_Low.cancelDelayedAction(self.unoccupiedTimerProc)		# This handles exception so it will cancel only if it exists
 				self.scheduledDeactivationTimeSeconds = 0
@@ -298,12 +369,14 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			else:
 				if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " registering delayed action \'unoccupiedTimerProc\' for execution in " + str(mmLib_Low.secondsToMinutesAndSecondsString(self.unoccupiedRelayDelaySeconds)))
 				mmLib_Low.registerDelayedAction({'theFunction': self.unoccupiedTimerProc, 'timeDeltaSeconds': self.unoccupiedRelayDelaySeconds, 'theDevice': self.deviceName, 'timerMessage': "unoccupiedTimerProc"})
+				# update the variable to reflect upcoming action
 				self.scheduledDeactivationTimeSeconds = int(time.mktime(time.localtime()) + self.unoccupiedRelayDelaySeconds)
 				ft = datetime.now() + timedelta(seconds=self.unoccupiedRelayDelaySeconds)
 				varString = mmLib_Low.getIndigoVariable(self.occupationIndigoVar, "Unknown")
 				varString = varString.partition(' ')[0] + " ( Non-Motion Timeout at " + '{:%-I:%M %p}'.format(ft) + " )"
 		 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, varString)
 		return 0
+
 
 	#
 	# loadDeviceNotificationOfOn - called from Load Devices... we pass it through to member controllers

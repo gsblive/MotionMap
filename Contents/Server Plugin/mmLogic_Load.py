@@ -399,8 +399,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 				# if we got here all members are showing unoccupied, turn off our device
 
-			if self.debugDevice: mmLib_Log.logForce( "Turning deivce " + self.deviceName + " off as all coltrollers are reporting Unoccupied")
+			if self.debugDevice: mmLib_Log.logForce( "Turning deivce " + self.deviceName + " off as all controllers are reporting Unoccupied")
 			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
+
+	# GB Fix me... If the motions say 'ON' and we are 'OFF' then what?
 
 		except Exception as exception:
 			mmLib_Log.logWarning( self.deviceName + " Error: " + str(exception))
@@ -433,10 +435,14 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# if we are currently not processing motion events, bail early
 		if indigo.variables['MMDefeatMotion'].value == 'true': return(0)
 
+		# Blackout processing. This is when we ignore motion sensing immediately after a light turning off. Tzhe reason is that in most cases, after you
+		# manually turn off a light, you stiull have to move through the room to leave (setting off the motion sensor again). We want to avoid the light
+		# coming on right after turning it off, so we skip this motion detection in a specified blackout period (kBlackOutTimeSecondsAfterOff).
+
 		defeatBlackout = int(eventParameters.get('defeatBlackout',0))
 		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " ****** DefeatBlackout is " + str(defeatBlackout))
 		if defeatBlackout:
-			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Skipping occupation Event because DefeatBlackout is " + str(defeatBlackout))
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Skipping blackout debouncing because DefeatBlackout is " + str(defeatBlackout))
 		else:
 			if self.lastOffCommandTime and int(time.mktime(time.localtime())) - self.lastOffCommandTime < kBlackOutTimeSecondsAfterOff:
 					mmLib_Log.logForce( "=== " + self.deviceName + " is ignoring /'" + theEvent + "/' controller event from " + theControllerDev.deviceName + " " + str(int(time.mktime(time.localtime())) - self.lastOffCommandTime) + " seconds after user off command.")
