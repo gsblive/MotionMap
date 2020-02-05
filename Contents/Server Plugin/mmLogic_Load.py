@@ -21,6 +21,7 @@ import mmLib_Low
 import mmLib_Events
 import mmComm_Insteon
 import mmObj_OccupationGroup
+import mmComm_Indigo
 from collections import deque
 import mmLib_CommandQ
 import time
@@ -231,6 +232,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	def receivedCommandEvent(self, eventID, eventParameters ):
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " received command event from \'" + eventParameters['publisher'] + "\'.")
+
+		mmLib_Low.cancelDelayedAction(self.continueDimming)
 
 		theInsteonCommand = eventParameters['cmd']
 

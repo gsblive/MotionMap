@@ -52,7 +52,7 @@ mapCommandToInsteon = {	'setHVACMode': [kInsteonHVACMode],
 						'setHVACFanMode': [kInsteonHVACMode],
 						'setHVACHeatSetpoint': [kInsteonHVACHeatSetpoint],
 						'setHVACCoolSetpoint': [kInsteonHVACCoolSetpoint],
-						'brighten': [kInsteonOn,kInsteonOff,kInsteonBrightenWithRamp,kInsteonBrightenWithRamp2],
+						'brighten': [kInsteonOn,kInsteonOff,kInsteonBrightenWithRamp,kInsteonBrightenWithRamp2,kInsteonStartBrightDim,kInsteonStopBrightDim,kInsteonIncreaseBrightness,kInsteonDecreaseBrightness],
 						'onOffDevice': [kInsteonOn,kInsteonOff],
 						'sceneOn': [kInsteonOn],
 						'sceneOff': [kInsteonOff],
@@ -60,6 +60,7 @@ mapCommandToInsteon = {	'setHVACMode': [kInsteonHVACMode],
 						'toggle': [kInsteonOff,kInsteonOn],
 						'flash': [kInsteonOff,kInsteonOn],
 						'check': [],
+						'sendRawInsteonCommand': [kInsteonBrightenWithRamp,kInsteonBrightenWithRamp2,kInsteonStartBrightDim,kInsteonStopBrightDim,kInsteonIncreaseBrightness,kInsteonDecreaseBrightness],
 						'sendStatusRequest': [kInsteonStatusRequest] }
 
 mapInsteonToCommand = {kInsteonOn:['brighten','toggle', 'flash', 'onOffDevice','sceneOn'],\

@@ -25,7 +25,9 @@ import mmLib_Log
 import mmLib_Low
 import mmLib_CommandQ
 import time
+import mmComm_Insteon
 from collections import deque
+import random
 
 # For BrightenWithRamp
 tenthValues = [1,3,20,65,190,230,280,320,380,470,900,1500,2100,2700,3600,4800]
@@ -236,17 +238,97 @@ class mmIndigo(object):
 		finalCmd = onLevel + (15 - iPoint)
 		return finalCmd
 
+	#
+	# continueDimming -		Continue stepped dimming in this timer proc
+	#						All timer procs return 0 to dequeue the timer or nSeconds to requeue the timer for specified number of seconds
+	def continueDimming(self,theCommandParameters):
+
+		finalLoop = 0
+
+		if self.debugDevice: mmLib_Log.logForce( "Continue Dimming device " + self.deviceName)
+
+		# If the target expirationTime has been met, set the final brightness, if not continue on to next brightness step
+
+		currentBrightness = int(self.theIndigoDevice.states['brightnessLevel'])
+
+		try:
+			recentBrightness = theCommandParameters['recentBrightness']
+		except:
+			#if self.debugDevice: mmLib_Log.logForce("Command Parameters:" + str(theCommandParameters))
+			#if self.debugDevice: mmLib_Log.logForce("Dimming device " + self.deviceName + " does not have a recent brightness value... initializing it to " + str(currentBrightness))
+			recentBrightness = currentBrightness
+
+
+		try:
+			targetValue = int(theCommandParameters['targetBrightness'])
+		except:
+			mmLib_Log.logWarning("This should not be possible... No target value in command parameters for continueDimming proc for " + self.deviceName + " The command Parameters: " + str(theCommandParameters))
+			return 0	#Exit due to missing parametrer
+
+		#if self.debugDevice: mmLib_Log.logForce( "Dimming device " + self.deviceName + " Current brightness and Target value: " + str(currentBrightness) + ", " + str(targetValue) + ". Recent Brightness: " + str(recentBrightness))
+
+		# mm/indigo brightness commands are processed as a percentage, but the hardware only has 32 steps,
+		# so we determine our target is met when we are within 3.125 percent (4 for short)
+
+		if int(theCommandParameters['UpOrDown']) == mmComm_Insteon.kInsteonIncreaseBrightness:
+			# We are increasing Brightness
+			if recentBrightness > currentBrightness:
+				# Brightness went the wrong direction
+				mmLib_Log.logWarning("Unexpected Brightness. While increasing brightness of device " + self.deviceName + " recent brightness (" + str(recentBrightness) + ") greater than currentBrightness.")
+				return 0	# exit due to brightness meddling
+			if currentBrightness > targetValue and (currentBrightness-targetValue) > 4:
+				# Brightness went too far in the right diection
+				mmLib_Log.logWarning("Unexpected Brightness. While increasing brightness of device " + self.deviceName + " current brightness (" + str(recentBrightness) + ") is greater than targetValue.")
+				return 0 # exit due to brightness meddling
+			if currentBrightness >= targetValue: finalLoop = 1
+		else:
+			# We are Decreasing Brightness
+			if recentBrightness < currentBrightness:
+				# Brightness went the wrong direction
+				mmLib_Log.logWarning("Unexpected Brightness. While decreasing brightness of device " + self.deviceName + " recent brightness (" + str(recentBrightness) + ") less than currentBrightness.")
+				return 0 # exit due to brightness meddling
+			if currentBrightness < targetValue and (targetValue-currentBrightness) > 4:
+				# Brightness went too far in the right diection
+				mmLib_Log.logWarning("Unexpected Brightness. While decreasing brightness of device " + self.deviceName + " current brightness (" + str(recentBrightness) + ") is less than targetValue.")
+				return 0 # exit due to brightness meddling
+			if currentBrightness <= targetValue: finalLoop = 1
+
+
+		if finalLoop:
+			# do the final brightness command to make sure we are at the correct requested level (no ramp)
+			if self.debugDevice: mmLib_Log.logForce("All Brightness steps complete for " + self.deviceName)
+			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': targetValue, 'retry': 2})
+			self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 998, 'retry': 0})
+			return 0
+		else:
+			# continue with the brightness steps
+			if self.debugDevice: mmLib_Log.logForce("Continue Dimming device. Issuing next step for " + self.deviceName)
+			self.queueCommand({'theCommand':'sendRawInsteonCommand', 'theDevice':self.deviceName, 'ackWait':0, 'cmd1':int(theCommandParameters['UpOrDown']), 'cmd2':0, 'retry':0})
+			self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 997, 'retry': 0})
+			continueTimeVariance = int((random.randint(1, 4)) * mmLib_Low.TIMER_QUEUE_GRANULARITY)	# randomize our timing so all devices dont fire on the same cycle when changing brightness.
+			# update recentBrightness for later to determine if the brightness was inadvertantly tampered with while ramping
+			return {'timeDeltaSeconds': continueTimeVariance, 'recentBrightness':currentBrightness}
+
+		return 0
+
+	#
+	# completeAutonomousDimming -	Dimmer ramp (old version) completion proc
+	#								All timer procs return 0 to dequeue the timer or nSeconds to requeue the timer for specified number of seconds
 	def completeAutonomousDimming(self,theCommandParameters):
 
 		if self.debugDevice: mmLib_Log.logForce( "Completing Ramp down to 0 for " + theCommandParameters['theDevice'])
 		self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
 		return 0
 	#
-	#  Set Brightness
+	#  Set Brightness... Old version. 	There is a bug in the insteon dimmers thaet when you use a ramp command, the device is unresponsive
+	#  									until the full timeout on the ramp. This version of the brighten command has been largely retired.
+	#  									It is only used when a custom ramp command is being used. That is only accessed programatically
+	#  									from Action Group test commands.
+	#  									The version below is the one used now, but it calls this routine in the case of a custom ramp command.
 	#
-	def brightenDevice(self, theCommandParameters):
+	def brightenDeviceOld(self, theCommandParameters):
 
-		if self.debugDevice: mmLib_Log.logForce( "brightenDevice for " + self.deviceName + " CommandParameters: " + str(theCommandParameters))
+		if self.debugDevice: mmLib_Log.logForce( "brightenDeviceOld for " + self.deviceName + " CommandParameters: " + str(theCommandParameters))
 
 		if self.ourNonvolatileData["unresponsive"]:
 			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
@@ -321,6 +403,90 @@ class mmIndigo(object):
 
 		return 0		# continue as normal (no dequeue)
 
+	#
+	# SetBrightnewss - Same as above but uses tiers and brightness-step to raise and lower brightness
+	#					This is necessary because once you send a ramp command to a dimmer (and we have been defaulting to a 360 second ramp), it will not
+	#					Respond to any commands until the ful 360 seconds. Using the timers, we sent an instant discreet ramp-up or ramp-down command every 10 seconds
+	#					The dimmer remains fully responsive during this process
+	#
+	#					if 'ramp' command is requested ('ramp' <> 0) in the commandparameters, it will do a ramp-step over time utilizing timer functions
+	#					the timing of each step will be 1 and 4 timerQueue cycles... i.e. int(random.randint(1, 4)) * mmLib_Low.TIMER_QUEUE_GRANULARITY
+	#
+	def brightenDevice(self, theCommandParameters):
+
+
+		rampCommand = theCommandParameters.get("rampOverrideCommand", 0)
+
+		# cancel continueDimming timer if its already running. All brighten commands override the ramp timer
+		mmLib_Low.cancelDelayedAction(self.continueDimming)
+
+		# We dont support RampComand in this proc, if we found one, use the old proc above.
+		if rampCommand: return(self.brightenDeviceOld(theCommandParameters))
+
+		if self.debugDevice: mmLib_Log.logForce( "brightenDevice for " + self.deviceName + " CommandParameters: " + str(theCommandParameters))
+
+		if self.ourNonvolatileData["unresponsive"]:
+			mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. The device is offline: " + self.deviceName)
+			return 'unresponsive'
+
+		try:
+			theValue = int(theCommandParameters['theValue'])
+		except:
+			mmLib_Log.logError("brightenDevice - Must specify a value for: " + self.deviceName)
+			return 'brightenDevice: required parameter not present'
+
+
+		if self.theIndigoDevice.__class__ == indigo.DimmerDevice:
+			mmLib_Log.logDebug("brightenDevice - theCommand Value: " + str(theValue))
+
+			self.defeatTimerUpdate = theCommandParameters.get("defeatTimerUpdate",0)
+
+			theRampRate = int(theCommandParameters.get("ramp",0))
+
+			if theRampRate:
+				if str(self.theIndigoDevice.protocol) == "Insteon":
+					# this only works on Insteon Devices
+					currentBrightness = int(self.theIndigoDevice.states['brightnessLevel'])
+
+					if currentBrightness > theValue:
+						directionOfChange = mmComm_Insteon.kInsteonDecreaseBrightness
+					elif currentBrightness < theValue:
+						directionOfChange = mmComm_Insteon.kInsteonIncreaseBrightness
+					else:
+						# no change needed. Bail
+						if self.debugDevice: mmLib_Log.logForce("brightenDevice for " + self.deviceName + " No brightness change requested. Exiting with \'Dque\'.")
+						return 'Dque'
+
+					#self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 1,'cmd1': int(theCommandParameters['UpOrDown']), 'cmd2': 0, 'retry': 0})
+					# Do the initiel ramp step
+					try:
+						self.sendRawInsteonCommandLow([int(directionOfChange), 0], False, 0)  # step light brightness (either up or down)
+						self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 996,'retry': 0})
+					except:
+						mmLib_Log.logWarning("sendRawInsteonCommandLow command " + str(directionOfChange) + " failed for device " + self.deviceName)
+
+					mmLib_Low.registerDelayedAction({'theFunction': self.continueDimming,
+													 'timeDeltaSeconds': int((random.randint(1, 4)) * mmLib_Low.TIMER_QUEUE_GRANULARITY),
+													 'theDevice': self.deviceName,
+													 'targetBrightness':theValue,
+													 'UpOrDown': directionOfChange,
+													 'timerMessage': "continueDimming"})
+
+					# We are done with an async ramp command. Bail out
+					return 0
+				else:
+					mmLib_Log.logWarning("### brightenDevice RampRate only supported on Insteon Dimmers. Reverting to standard Brightness command for device. Class " + str(self.theIndigoDevice.__class__) + " not equal to " + str(indigo.DimmerDevice) + " " + self.deviceName)
+
+			# Its a dimmer device, but Ramp command was not requested - use traditional set brightness command
+			indigo.dimmer.setBrightness(self.devIndigoID, value=theValue)
+
+		else:
+			# not a dimmer device... do an on/off command
+			if self.debugDevice: mmLib_Log.logForce( "brightenDevice for " + self.deviceName + " not a dimmer device. It is " + str(self.theIndigoDevice.__class__) + ". Defaulting to onOff")
+			self.onOffDevice(theCommandParameters)
+
+
+		return 0		# continue as normal (no dequeue)
 
 
 
@@ -340,7 +506,7 @@ class mmIndigo(object):
 
 		self.companionDeque.append(theCompanionDevice)
 
-		return(0)
+		return 0
 
 	#
 	# getOccupancyTimeout - return an int that indicates the number of minutes that must transpire before a non-occupancy state is assumed

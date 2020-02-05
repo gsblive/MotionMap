@@ -375,13 +375,38 @@ def findDelayedAction(theFunction):
 	return bisectKey
 
 ############################################################################################
+# updateDelayedActionParameters - update the command parameters associated with the delayed
+# action associated with theFunction
+#
+############################################################################################
+def updateDelayedActionParameters(theFunction, newParameters):
+
+	global delayQueue
+
+	mmLib_Log.logForce("updateDelayedActionParameters NewParameters: " + str(newParameters))
+
+	bisectKey = findDelayedAction(theFunction)	# bisectKey is the localtime in seconds when the proc is scheduled to run
+
+	if bisectKey:
+		theIndex = bisect.bisect_left(delayQueue, (bisectKey,))
+		bisectTuple = delayQueue[theIndex]
+
+		theParameters = bisectTuple[1]
+
+		for key in newParameters:
+			theParameters[key] = newParameters[key]
+	else:
+		mmLib_Log.logWarning("*** updateDelayedActionParameters Updated Parameters3: " + str(theFunction) + " not found ***")
+	return(0)
+
+
+############################################################################################
 # delayDelayedAction - cancel all occurances of previously registered DelayedAction
 #
 ############################################################################################
 def delayDelayedAction(theFunction, offsetInSeconds):
 
 	global delayQueue
-	theParameters = {}
 
 	bisectKey = findDelayedAction(theFunction)	# bisectKey is the localtime in seconds when the proc is scheduled to run
 
@@ -532,6 +557,11 @@ def	mmPrintDelayedProcs(theCommandParameters):
 ############################################################################################
 # mmRunDelayedProcs - process timer functions registered for above
 #
+#	The DelayedProcs called can return either of these 2 things:
+#		dict	A dict of command updates (must include 'timeDeltaSeconds' in order to requeue the delayProc
+#		int		The number of seconds in the future that the proc should be executed again
+#					If 0, the proc is dequeued entirely
+#
 ############################################################################################
 def	mmRunDelayedProcs():
 
@@ -551,13 +581,27 @@ def	mmRunDelayedProcs():
 			delayQueue.pop(0)
 			delayedFunctionKeys[DelayedFunction] = 0  # We now mark this function as waiting
 			try:
-				resetDelta = DelayedFunction(theParameters)
+				delayedFunctionResult = DelayedFunction(theParameters)
 			except Exception as exception:
 				mmLib_Log.logError(" DelayedProc Error: " + str(exception) + " in function: " + str(DelayedFunction))
-				resetDelta = 0
+				delayedFunctionResult = 0
 
-			if resetDelta:
-				theParameters['timeDeltaSeconds'] = resetDelta
+			if isinstance(delayedFunctionResult, dict):
+				# one or more command parameters are being change as a result of the function call
+				# one of the command parameters being updated must be 'timeDeltaSeconds', or we wouldnt be able to requeue the timer function
+				# so parse out the 'timeDeltaSeconds' into delayedFunctionResult to be used for the requeue below
+				requeueTime = delayedFunctionResult.get('timeDeltaSeconds',0)
+				if requeueTime:
+					for key in delayedFunctionResult:
+						theParameters[key] = delayedFunctionResult[key]
+
+				else:
+					mmLib_Log.logWarning("*** DelayedProc Warning: Delayed Function Result was Dict but did not contain a nonzero \'timeDeltaSeconds\'. " + str(DelayedFunction) + " will not be requeued.")
+			else:
+				requeueTime = delayedFunctionResult
+
+			if requeueTime:
+				theParameters['timeDeltaSeconds'] = requeueTime
 				# if we got here, there is a reset value... queue it up again. Otherwise, its been deleted above, so ready to continue
 				registerDelayedAction(theParameters)
 		else:
