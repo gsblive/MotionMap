@@ -9,6 +9,7 @@ __author__ = 'gbrewer'
 import mmLib_Log
 import mmLib_Low
 import mmObj_Motion
+import mmObj_IOLink
 import mmObj_Multisensor
 import mmDev_InsteonLoad
 import mmDev_ZWaveLoad
@@ -45,6 +46,7 @@ def parseConfig(theFilePath):
 
 	objectJumpTable = 	{
 						'MotionSensor':mmObj_Motion.mmMotion,
+						'IOLink':mmObj_IOLink.mmIOLink,
 						'MultisensorMotion':mmObj_Multisensor.mmMultisensorMotion,
 						'MultisensorVibration':mmObj_Multisensor.mmMultisensorVibration,
 						'MultisensorLuminance':mmObj_Multisensor.mmMultisensorLuminance,

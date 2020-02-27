@@ -249,6 +249,7 @@ class Plugin(indigo.PluginBase):
 			return 0
 
 		try:
+			if mmDev.debugDevice: mmLib_Log.logForce(mmDev.deviceName + " insteonCommandReceived at Plugin.py with CMD: " + str(cmd))
 			mmLib_Events.distributeEvents('Indigo', ['DevRcvCmd'], mmDev.deviceName, {'cmd': cmd})		# for MM version 4
 		except:
 			mmLib_Log.logWarning( "Failed to deliver a \'DevRcvCmd\' event")
@@ -349,19 +350,22 @@ class Plugin(indigo.PluginBase):
 
 		if pluginInitialized == 0: return()
 
-		# if newDev.name == '_TestMotionDimmerMotion': mmLib_Log.logForce("Update event for " + newDev.name + ": " + str(newDev))
-
 		try:
 			mmDev = mmLib_Low.MotionMapDeviceDict[newDev.name]
 		except:
 			return 0
 
-		#if mmDev.debugDevice: mmLib_Log.logForce("Update event for " + str(mmDev.deviceName) + ": " + str(newDev))
+		if mmDev.debugDevice: mmLib_Log.logForce( mmDev.deviceName + " deviceUpdated at Plugin.py with newDev: " + str(newDev))
 
 		# Update the indigo device in case it changed out behind our back (this just copies the reference to the device)
-		#if mmDev.theIndigoDevice != newDev:
+		# If we want to test to see if this really ever happens, we can uncomment the following block
+
+		# if mmDev.theIndigoDevice != newDev:
 			# Just a test to see if this ever happens... I dont think it does
 		#	mmLib_Log.logForce("theIndigoDevice has changed for " + str(mmDev.deviceName))
+
+		# I dont think device pointers ever change behind our back, but since it is just a pointer update.
+		# It doesnt hurt much to be sure...
 		mmDev.theIndigoDevice = newDev
 
 		mmLib_Events.deliverUpdateEvents(origDev, newDev, newDev.name)

@@ -4,8 +4,8 @@ import CopyToStaging
 #  Main
 ##############
 
-print "*** CopyToStagingSky ***"
-CopyToStaging.copyToStaging(["/Volumes/MotionMapStagingSkyCastle","/Volumes/MotionMapStagingRegency"])
+print "*** CopyToStagingRegency ***"
+CopyToStaging.copyToStaging(["/Volumes/MotionMapStagingRegency"])
 
 quit()
 

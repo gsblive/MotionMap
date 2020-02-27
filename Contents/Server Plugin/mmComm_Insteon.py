@@ -122,6 +122,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	#
 	#
 	def deviceUpdatedEvent(self, eventID, eventParameters):
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " deviceUpdatedEvent.")
 		super(mmInsteon, self).deviceUpdatedEvent(eventID, eventParameters)	# Do universal housekeeping
 
 		return (0)
@@ -150,6 +151,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	#                   A light switch for example may pass us an on or off command. The user clicked it, so that should take priority over anything we are doing
 	#
 	def receivedCommandEvent(self, eventID, eventParameters):
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " receivedCommandEvent.")
 
 		theInsteonCommand = eventParameters['cmd']
 

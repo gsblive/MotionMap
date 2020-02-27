@@ -3,10 +3,14 @@ __author__ = 'gbrewer'
 #
 #	mmLib_Events
 #
-#		Event subscription and distribution functions for MotionMap.
+#		Routines related to Event subscription and distribution functions for MotionMap.
 #
-#		All modules and devices in MotionMap communicate through a series of Events... This
-#		allows for comprehensive debugging, logging, testing, expansion, and code consistency
+#		All modules and devices in MotionMap communicate through a series of Events Including
+#		System Events.
+#		Even some Indigo Sourced Events are delivered through this mechanism through
+#		plugin.py -> deliverUpdateEvents(), below.
+#
+#		This allows for comprehensive debugging, logging, testing, expansion, and code consistency
 # 		between modules.
 #
 # 		The following routines constitute the entire Event processing Library.
@@ -172,10 +176,8 @@ def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedDat
 			eventParameters.update(handlerDefinedData)
 			try:
 				theHandler(theEvent, eventParameters)
-#			except Exception as exception:
 			except:
 				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber)
-# Printing the exception doesnt work				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber + " Error: " + exception)
 				pass
 
 	return (0)
@@ -184,9 +186,25 @@ def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedDat
 #
 #	deliverUpdateEvents
 #
+#		This routine is called by MM's indigo plugin from deviceUpdated(self, origDev, newDev) which is invoked by Indigo itself when an indigo device is updated by any means.
+#
+#		It is used to efficiently deliver Indigo DeviceUpdate events to the appropriate MM device object by utilizing MM's publish/subscribe mechanism This is the process...
+#
+#		At init time, Your MM object will subscribe to AtributeUpdate events published by bublisher 'Indigo'. For example:
+#
+#		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'onState': 0}}, self.deviceName)
+#
+#		This MM object is subscribing to Indigo's updateAttribute events (this is when there is a change to the indigo device object). This change
+#		is reported to MM within Plugin.py by the Plugin.deviceUpdated() function that is invoked by Indigo itself, when an indigo device changes some state(s).
+#		When notified, Plugin.deviceUpdated() quickly looks up the associated MM counterpart (by name), it notifies the MM object
+#		subscibers (usually just the MM object associated with the Indigo Object) through this deliverUpdateEvents function.
+#
+#		In this example
+#
+#
 #		Update events are a special brand of events that are triggered by differences between two similar objects' values.
 #		You must subscribe for event type 'AtributeUpdate', and pass a monitoredAttributes dict in during the subscription process.
-#		This dict will be preserved and utilized whenever an object1/object2 is detected elsewhere resulting in a call to this function.
+#		This dict will be preserved and utilized whenever an object1/object2 difference is detected elsewhere resulting in a call to this function.
 #
 #  		This routine should be called whenever the condition object1 != object2 is detected. DeliverUpdateEvents will use
 #		the monitoredAttributes dict to parse the given objects to determine if the changes are interesting enough to dispatch an event.
@@ -201,7 +219,7 @@ def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedDat
 # 		NOTE Currently we support only one type of object at a time - Meaning you can only get updateEvents for one type of object. This may
 # 		change in the future. This is because different objects may have the same attribute names and have a potential to cause unexpected results.
 #
-#  		Also wen constructing your monitoredAttributes dict, you may specify a wildcard event handler of value 0. This means you
+#  		Also when constructing your monitoredAttributes dict, you may specify a default event handler of value 0. This means you
 #		are choosing to process the event through a masterEventHandler defined in the theHandler parameter sent to subscribeToEvents.
 # 		In practice, if you supply a handler in monitoredAttributes, you will get your update event there with the name of the attributeName
 # 		you requested in the associated entry of the monitoredAttributes dict. Otherwise, it will come to you as a generic 'AtributeUpdate'
@@ -213,11 +231,11 @@ def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedDat
 #		Lastly, You can mix and match the above methodologies, for example If you wanted the bulk of your change events to be
 # 		handled by a master handler, but a single event to be handled by a specialized handler, you could do this:
 #
-#			deliverUpdateEvents(self, object1, object2, {'valueName1': 0,'valueName2': targettedHandler, 'valueName3': 0} masterHandler)
+#			deliverUpdateEvents(self, object1, object2, {'valueName1': 0,'valueName2': targettedHandler, 'valueName3': 0}, masterHandler)
 #				All changes detected in object1/object2.'valueName2' will be dispatched to targettedHandler and all changes
 # 				in 'valueName1' and 'valueName3' will be dispatched to masterHandler (if nonZero)
 #
-#		NOTE: Dont pass a 0 masterHandler and a monitoredAttributes dict will any 0s in the handler fields... you will get no events for
+#		NOTE: Dont pass a 0 masterHandler and a monitoredAttributes dict with any 0s in the handler fields... you will get no events for
 #		every monitoredAttributes dict with 0 handler. However, if you pass a nonzero in both of these locations, only the 
 # 		monitoredAttributes event handler will be called as it has priority.
 #

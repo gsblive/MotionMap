@@ -25,6 +25,48 @@ import pickle
 import collections
 import mmComm_Insteon
 
+############################################################################################
+#
+#	Note This MM Object is designed to be used with Indigo 7.4, Cynical SecuritySpy Plugin 2.4.3 with the following configuration
+#
+#	CamMotion Devices are reliant on the companion SecuritySpy DVR application AND the Cynical SecuritySpy Indigo plugin
+#	Both of these apps must be installed and configured to provide camera events to Indigo... The two or more devices are:
+#		Type: Cynical SecuritySpy
+#		Model: Server
+#		Settings: Host:[blank if running on the same computer as indigo] Port: 8002 [default] UserName and Password as defined in SecuritySpy Web Access
+#
+#		-and-
+#
+#		Type: Cynical SecuritySpy
+#		Model: Camera
+#		Settings: Select the SecuritySpy camera in this popup
+#
+#	To use this MM device, you have to make an Indigo Trigger that responds to:
+#
+#	Trigger:
+#		Type: Cynical SecuritySpy Event [From Popup]
+#		Event: Camera Motion
+#		Settings:
+#				Camera: Select the SecuritySpy Camera Name in this popup
+#				Maximum Rate: 10 by default
+#				Detection: Motion Capture (from popup)
+#				Reason: Anything (from popup)
+#
+#	Condition: As needed
+#
+#	Action:
+#		Type: Server Action/Script and File Actions/Execute Script/(Python code below)
+#
+#indigo.server.log("=== Received Motion Event from CamName ===")
+#mmId = indigo.variables["MMListenerName"].value
+#mmPlugin = indigo.server.getPlugin(mmId)
+#if mmPlugin.isEnabled():
+#	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'motionEvent','theDevice':'CamHouseParkingMotion','theCam':"CamHouseParking",'theMode':'IMMED'})
+#else:
+#	indigo.server.log("MotinMap not Enabled")
+#
+############################################################################################
+
 
 ######################################################
 #

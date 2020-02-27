@@ -43,6 +43,15 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	def __init__(self, theDeviceParameters):
 
+		# We added initLow so it can get called from child classes thereby overriding subscribeToEvents (iOLink device specifically)
+
+		self.initLow(theDeviceParameters)
+
+		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'onState': 0}}, self.deviceName)
+
+
+	def initLow(self, theDeviceParameters):
+
 		random.seed()
 
 		# set things that must be setup before Base Class
@@ -84,10 +93,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.initializationComplete, {}, self.deviceName)
 
 
-			mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
-			#mmLib_Events.subscribeToEvents(['DevRcvCmd'], ['Indigo'], self.receivedCommandEvent, {}, self.deviceName)
-			#mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {}, self.deviceName)
-			#mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {}, self.deviceName)
+			# The following is now handled at init above so it can get overridden by child classas
+			# 	mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -397,7 +404,6 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	# deviceUpdated
 	#
-	# we separated this into two routines because CamMotion needs access to the lower level routine
 	def	deviceUpdatedEvent(self, eventID, eventParameters):
 
 		newOnState = eventParameters.get('onState', 'na')

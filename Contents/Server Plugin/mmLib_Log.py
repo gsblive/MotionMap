@@ -141,7 +141,7 @@ def writeToLogFile(logType, logMessage, writeTimeStamp, writeTraceLog):
 
 # displayMessage	Format and display the lof message
 #
-def displayMessage(logType, logMessage, diplayProc):
+def displayMessage(logType, logMessage, displayProc):
 
 	global indentList
 
@@ -161,10 +161,19 @@ def displayMessage(logType, logMessage, diplayProc):
 	#logMessage = '{0:<22} {1}'.format(str('|' * NestingDepth), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
 	logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22-NestingDepth)), str(callingTime + " " + ': ' + logMessage + " " + callingPackage))
 
-	if diplayProc == indigo.server.log:
-		diplayProc(logMessage, _MotionMapPlugin.MM_NAME + " " + logType)
+	if displayProc == indigo.server.log:
+		try:
+			displayProc(logMessage, _MotionMapPlugin.MM_NAME + " " + logType)
+		except:
+			# retry with our own error message that is simple and shouldnt fail
+			logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)),str(callingTime + " " + ': ' + "XXX Error Displaying Log String from:" + callingPackage))
+			displayProc(logMessage, _MotionMapPlugin.MM_NAME + " " + MM_LOG_ERROR)		#overriding logType to Error so the color will be hilighted as an error
 	else:
-		diplayProc(logMessage)
+		try:
+			displayProc(logMessage)
+		except:
+			# retry with our own error message that is simple and shouldnt fail
+			displayProc("XXX Cannot display message... likely a formatting or type error")
 
 	return
 
