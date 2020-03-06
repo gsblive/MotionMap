@@ -93,6 +93,8 @@ deviceName,maxMovement,minMovement,debugDeviceMode,,,,,,,
 CoatClosetMotion,30,5,noDebug,,,,,,,
 MasterClosetMotion,60,5,noDebug,,,,,,,
 MasterClosetMotionB,60,5,noDebug,,,,,,,
+GarageManDoorMotion,480,15,noDebug,,,,,,,
+GarageWorkbenchMotion,480,15,noDebug,,,,,,,
 GregsOfficeMotion,480,15,noDebug,,,,,,,
 GregsDeskMotion,480,15,noDebug,,,,,,,
 #The following are contact sensors, not motion sensors... But they work the same way
@@ -100,17 +102,30 @@ FamilyCabinetDoor1,20,0,noDebug,,,,,,,
 FamilyCabinetDoor2,20,0,noDebug,,,,,,,
 FamilyCabinetDoor3,20,0,noDebug,,,,,,,
 FamilyCabinetDoor4,20,0,noDebug,,,,,,,
+DogDoorSensor,20,0,noDebug,,,,,,,
 
 ########################################################
+#
+# Motion Sensors – Used as Contact/Occupancy sensors,,,,,,,,,,
 #
 # The following are I/O Garage Door controllers, not motion sensors... But they work the same way (for the on/off state aspect)
 #	Its a simple override on top of motion sensor object to cover the ioLink Lack of On-State (it uses binaryInput1 instead)
 #
+#   deviceName – The English name of the device,,,,,,,,,,
+#   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off,,,,,,,,,,
+#   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed,,,,,,,,,,
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent; anything else for verbose),,,,,,,,,,
+#
+#   IMPORTANT – Like Motion sensors, keep IOLink above all other devices because the other devices will register with the motion sensors during initialization (one pass),,,,,,,,,,
+#
+# Note: Like Motion sensors, IOLinks also maintains an indigo variable 'NameOfMotionsensor.Occupation' that contains the current occupation state,,,,,,,,,,
+#   ('OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Bedtime #'),,,,,,,,,,
+#
 ########################################################
 -h,IOLink,,,,,,,,,
 deviceName,maxMovement,minMovement,debugDeviceMode,,,,,,,
-GarageControllerGreg,20,0,noDebug,,,,,,,
-GarageControllerBarbie,20,0,noDebug,,,,,,,
+GarageControllerGreg,480,0,noDebug,,,,,,,
+GarageControllerBarbie,480,0,noDebug,,,,,,,
 
 ########################################################
 #
@@ -213,9 +228,6 @@ GarageControllerBarbie,20,0,noDebug,,,,,,,
 deviceName,maxMovement,minMovement,influentialLights,influentialTimeout,exclusionLights,debugDeviceMode,,,,
 CamGarageMotion,60,5,GarageLights,30,,noDebug,,,,
 CamGarage2Motion,60,5,GarageLights,30,,noDebug,,,,
-# The following two are not cameras, they are contact sensors (but they work the same way)
-#Garage2OpenSensor,60,5,GarageLights,30,,noDebug,,,,
-#GarageOpenSensor,60,5,GarageLights,30,,noDebug,,,,
 
 ########################################################
 #
@@ -290,14 +302,15 @@ deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onC
 #_TestMotionDimmer,5,60,20,StatSync;flash,,,2,noDebug,,
 FamilyCabinetRopeLight,0,100,100,StatAsync,FamilyRoomCabinet,,2,noDebug,,
 FamilyRoomFireplaceWallOutletSwitch,1,100,100,StatAsync,,,2,noDebug,,
-GarageLights,1,100,100,StatAsync;flash,GarageControllerGreg;GarageControllerBarbie;CamGarageMotion;CamGarage2Motion,,2,noDebug,,
+GarageLights,1,100,100,StatAsync;flash,GarageManDoorMotion;GarageWorkbenchMotion;GarageControllerGreg;GarageControllerBarbie,CamGarageMotion;CamGarage2Motion,2,noDebug,,
 GregsOfficeCanLights,1,100,37,StatAsync;flash,GregsOfficeMotion;GregsDeskMotion,,2,noDebug,,
+GregsOfficeFanLight,1,100,37,StatAsync;flash,,GregsOfficeMotion;GregsDeskMotion,2,noDebug,,
 KitchenCabinetLights,1,100,100,StatAsync,,,2,noDebug,,
 KitchenLights,1,100,100,StatAsync,,,2,noDebug,,
 MasterBathMainLight,1,100,100,StatAsync,,,2,noDebug,,
 MasterBathVanityLight,1,100,100,StatAsync,,,2,noDebug,,
 MasterClosetLights,1,100,42,StatAsync;flash,MasterClosetMotion;MasterClosetMotionB,,2,noDebug,,
-MasterFanLightSwitch,1,100,100,StatAsync,,,2,noDebug,,
+MasterFanLight,1,100,100,StatAsync,,,2,noDebug,,
 MasterFireplaceSwitch,1,100,100,StatAsync,,,2,noDebug,,
 UpstairsHallLight,1,100,100,StatAsync,,,2,noDebug,,
 UpstairsBedroomQuad,1,100,100,StatAsync,,,2,noDebug,,
@@ -317,10 +330,12 @@ UpstairsBedroomQuad,1,100,100,StatAsync,,,2,noDebug,,
 ,,,,,,,,,,
 -h,Companion,,,,,,,,,
 deviceName,loadDeviceName,maxSequentialErrorsAllowed,debugDeviceMode,,,,,,,
+GregsOfficeFanLightSwitch,GregsOfficeFanLight,2,noDebug,,,,,,,
 KitchenLightsB,KitchenLights,2,noDebug,,,,,,,
 KitchenCabinetsLightB,KitchenCabinetLights,2,noDebug,,,,,,,
 MasterClosetLightsB,MasterClosetLights,2,noDebug,,,,,,,
 MasterBathVanityLightB,MasterBathVanityLight,2,noDebug,,,,,,,
+MasterFanLightSwitch,MasterFanLight,2,noDebug,,,,,,,
 UpstairsBedroomQuadB,UpstairsBedroomQuad,2,noDebug,,,,,,,
 UpstairsHallLightB,UpstairsHallLight,2,noDebug,,,,,,,
 ,,,,,,,,,,

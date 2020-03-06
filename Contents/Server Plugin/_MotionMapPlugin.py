@@ -174,9 +174,10 @@ except:
 MM_NAME = "MotionMap3"
 MM_VERSION = "0.9.0"
 MM_DEFAULT_LOG_FILE = "MotionMap.log.txt"
-#Note: If the wrong hostname appears below, just change it in the terminal:
-#sudo scutil --set HostName `newHostname`
-# the name will be corrected after DNS flushes within 24 hours
+#Note: If the wrong hostname appears below, just change it in the terminal with these 3 commands:
+#	sudo scutil --set ComputerName "newname"
+#	sudo scutil --set LocalHostName "newname"
+#	sudo scutil --set HostName "newname"
 fullHost = socket.gethostname()
 defaultHostname = fullHost.split('.', 1)[0]
 indigo.server.log("Default Host Name is: " + defaultHostname)

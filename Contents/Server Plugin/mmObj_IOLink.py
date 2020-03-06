@@ -41,7 +41,7 @@ class mmIOLink(mmObj_Motion.mmMotion):
 
 		self.initLow(theDeviceParameters)
 		if self.debugDevice: mmLib_Log.logForce( " =***= Initializing (Completed BaseClass mmMotion) " + self.deviceName)
-		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'states': 0}}, self.deviceName)
+		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'states': 0}}, self.deviceName)
 
 	#
 	# deviceUpdated

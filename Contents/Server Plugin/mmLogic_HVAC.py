@@ -80,7 +80,7 @@ class mmHVAC(mmComm_HVACCommands.mmHVACCommands):
 
 			# register for indigo events
 
-			mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'hvacMode':0, 'fanMode':0, 'coolSetpoint':0, 'coolIsOn':0, 'heatSetpoint':0,'heatIsOn':0, 'displayStateImageSel':0,'displayStateValRaw':0}} , self.deviceName)
+			mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'hvacMode':0, 'fanMode':0, 'coolSetpoint':0, 'coolIsOn':0, 'heatSetpoint':0,'heatIsOn':0, 'displayStateImageSel':0,'displayStateValRaw':0}} , self.deviceName)
 			mmLib_Events.subscribeToEvents(['DevRcvCmd'], ['Indigo'], self.receivedCommandEvent, {} , self.deviceName)
 			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {} , self.deviceName)
 			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {} , self.deviceName)

@@ -337,12 +337,12 @@ class Plugin(indigo.PluginBase):
 	#	in startup
 	#
 	#	This function handles all device change notices from indigo (i.e. when a motion sensor changes state, that notification comes here)
-	#	It converts the notification to an mmEvent of type 'AtributeUpdate' and dispatches it through mmLib_Events.distributeEvents()
+	#	It converts the notification to an mmEvent of type 'AttributeUpdate' and dispatches it through mmLib_Events.distributeEvents()
 	#
 	#	For an mmObject to receive these events the object must call the following function at initialization time:
-	#  		def subscribeToEvents(['AtributeUpdate'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):
+	#  		def subscribeToEvents(['AttributeUpdate'], ['Indigo'], theHandler, { handlerDefinedData - whatever static data you want delivered at time of event }, mmDevName):
 	#	The event will be delivered as:
-	#		theHandler('DevRcvCmd', {'AtributeUpdate', 'Indigo', Time of Event (seconds), Plus "handlerDefinedData", cmd (from Indigo)  })
+	#		theHandler('DevRcvCmd', {'AttributeUpdate', 'Indigo', Time of Event (seconds), Plus "handlerDefinedData", cmd (from Indigo)  })
 	#
 	#########################################
 	def deviceUpdated(self, origDev, newDev):
@@ -368,7 +368,7 @@ class Plugin(indigo.PluginBase):
 		# It doesnt hurt much to be sure...
 		mmDev.theIndigoDevice = newDev
 
-		mmLib_Events.deliverUpdateEvents(origDev, newDev, newDev.name)
+		mmLib_Events.deliverFilteredEvents(origDev, newDev, newDev.name)
 
 		# be sure and call parent function
 		indigo.PluginBase.deviceUpdated(self, origDev, newDev)
@@ -601,8 +601,8 @@ class Plugin(indigo.PluginBase):
 		if newDev.name != None:
 			theDevice = mmLib_Low.MotionMapDeviceDict.get(newDev.name,None)
 			if theDevice != None:
-				mmLib_Log.logForce("Calling deliverUpdateEvents to " + newDev.name + " with value of " + str(newDev.onState))
-				mmLib_Events.deliverUpdateEvents(origDev, newDev, newDev.name)
+				mmLib_Log.logForce("Calling deliverFilteredEvents to " + newDev.name + " with value of " + str(newDev.onState))
+				mmLib_Events.deliverFilteredEvents(origDev, newDev, newDev.name)
 			else:
 				mmLib_Log.logForce("Error: Device " + newDev.name + " not registered in MM during mmUpdateTrigger")
 		else:

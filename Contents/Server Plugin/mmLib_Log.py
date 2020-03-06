@@ -188,6 +188,12 @@ def displayMessage(logType, logMessage, displayProc):
 ############################################################################################
 ############################################################################################
 
+# We can gret rid of these jump tables (which take a fair amount of system overhead), by
+# Requiring an additional parameter (MM_LOG_DEBUG_NOTE, MM_LOG_VERBOSE_NOTE, etc) that will look up
+# parameters and settings in a dictionary indexed by the log type.
+#
+# The problem with this is that wwe will have to always put in another parameter when calling the
+# displayMessage procedure
 
 # mmDebugNote - only show the message provided if mmLogSensitivity is set to MM_SHOW_EVERYTHING
 #

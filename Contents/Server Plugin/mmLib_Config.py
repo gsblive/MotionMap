@@ -134,9 +134,12 @@ def parseConfig(theFilePath):
 			mmLib_Log.logVerbose(" >>>Initializing " + str(initParameters["deviceName"]) )
 
 			# Create and initialize the object
-#			dispatchTime = time.time()
-			newObject = dispatchInit(initParameters)
-#			inObjectTime = inObjectTime + round(time.time() - dispatchTime, 4)
+			#dispatchTime = time.time()
+			try:
+				newObject = dispatchInit(initParameters)
+			except:
+				mmLib_Log.logError(" >>>Error initializing " + str(initParameters["deviceName"]))
+			#			inObjectTime = inObjectTime + round(time.time() - dispatchTime, 4)
 
 			if newObject.initResult != 0:
 				mmLib_Log.logTerse("######  " + newObject.deviceName + " failed to initialize due to " + str(newObject.initResult) + ". Add new virtual device types to mmLib_Low.MMVirtualDeviceTypes ######")

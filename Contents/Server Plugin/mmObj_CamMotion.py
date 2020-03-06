@@ -100,7 +100,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 		# this is a virtual device, so it wont really get events... We have some action groups or triggers that call us through executeCommand function
 		# we convert those messages to update events and distribute them as if we were indigo, so register for the update events here
-		#mmLib_Events.subscribeToEvents('AtributeUpdate', 'Indigo', self.deviceUpdatedEvent, {}, self.deviceName)	# already done by mmMotion
+		#mmLib_Events.subscribeToEvents('AttributeUpdate', 'Indigo', self.deviceUpdatedEvent, {}, self.deviceName)	# already done by mmMotion
 
 	######################################################################################
 	#
@@ -178,7 +178,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		# convert it to an event and distribute it to continue processing with the mmMotion object
 
 		# distribute it on behalf of indigo o it goes to the mmMotion object in the right format
-		mmLib_Events.distributeEvents('Indigo', ['AtributeUpdate'], self.deviceName, {'onState':True})
+		mmLib_Events.distributeEvents('Indigo', ['AttributeUpdate'], self.deviceName, {'onState':True})
 
 		mmLib_Low.registerDelayedAction(
 			{'theFunction': self.camMotionTimeout, 'timeDeltaSeconds': 30, 'theDevice': self.deviceName,
@@ -239,7 +239,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		self.currentOnState = False
 
 		#	publish this event on behalf of indigo so it goes to the mmMotion object in the right format
-		mmLib_Events.distributeEvents('Indigo', ['AtributeUpdate'], self.deviceName, {'onState':False})
+		mmLib_Events.distributeEvents('Indigo', ['AttributeUpdate'], self.deviceName, {'onState':False})
 
 
 		return(0)

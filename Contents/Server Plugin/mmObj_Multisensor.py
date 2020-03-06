@@ -274,7 +274,7 @@ class mmMultisensorVibration(mmComm_Indigo.mmIndigo):
 		super(mmMultisensorVibration, self).__init__(theDeviceParameters)  # Initialize Base Class
 
 		if self.theIndigoDevice.onState == True: indigo.device.turnOff(self.devIndigoID)
-		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
+		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -350,7 +350,7 @@ class mmMultisensorLuminance(mmComm_Indigo.mmIndigo):
 
 		# take this time to update the Lux level
 		mmLib_Low.setIndigoVariable(self.luxLevelVar, str(self.theIndigoDevice.sensorValue))
-		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
+		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -413,7 +413,7 @@ class mmMultisensorHumidity(mmComm_Indigo.mmIndigo):
 
 		# take this time to update the Humidity level
 		mmLib_Low.setIndigoVariable(self.humidityLevelVar, str(self.theIndigoDevice.sensorValue))
-		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
+		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -475,7 +475,7 @@ class mmMultisensorUltraviolet(mmComm_Indigo.mmIndigo):
 
 		# take this time to update the UV level
 		mmLib_Low.setIndigoVariable(self.uvLevelVar, str(self.theIndigoDevice.sensorValue))
-		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
+		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
 
 
 	######################################################################################
@@ -542,7 +542,7 @@ class mmMultisensorTemperature(mmComm_Indigo.mmIndigo):
 		self.tempFLevelVar = s.replace(' ', '.')
 
 		self.setTemperature()
-		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
+		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'sensorValue':0}}, self.deviceName)
 
 	######################################################################################
 	#

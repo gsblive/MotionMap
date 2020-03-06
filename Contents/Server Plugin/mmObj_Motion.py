@@ -47,7 +47,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		self.initLow(theDeviceParameters)
 
-		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'onState': 0}}, self.deviceName)
+		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'onState': 0}}, self.deviceName)
 
 
 	def initLow(self, theDeviceParameters):
@@ -94,7 +94,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 
 			# The following is now handled at init above so it can get overridden by child classas
-			# 	mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
+			# 	mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
 
 
 	######################################################################################

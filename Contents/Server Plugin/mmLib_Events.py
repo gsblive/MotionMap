@@ -8,7 +8,7 @@ __author__ = 'gbrewer'
 #		All modules and devices in MotionMap communicate through a series of Events Including
 #		System Events.
 #		Even some Indigo Sourced Events are delivered through this mechanism through
-#		plugin.py -> deliverUpdateEvents(), below.
+#		plugin.py -> deliverFilteredEvents(), below.
 #
 #		This allows for comprehensive debugging, logging, testing, expansion, and code consistency
 # 		between modules.
@@ -59,9 +59,10 @@ def initializeEvents():
 	global	eventPublishers
 	global	targettedEvents
 
+	# Initialize system event publishers... Indigo for Indigo events and MMSys for MM system events
 
 	eventPublishers =	{	'Indigo': 	{
-											'AtributeUpdate':deque([]),
+											'AttributeUpdate':deque([]),
 											'DevRcvCmd':deque([]),
 											'DevCmdComplete':deque([]),
 											'DevCmdErr':deque([])
@@ -124,204 +125,6 @@ def registerPublisher(theEvents, thePublisher):
 
 	return (0)
 
-#
-# distributeEvents - When a publisher has an event to publish... this is how its done
-#
-#	Calls the event handler registered in subscribeToEvents above for the event 'theEvent' given below
-#
-# The format of the event handler is
-#
-#		theHandler(eventID, eventParameters)
-#
-#	where eventParameters is a dict containing:
-#
-# thePublisher				The name of the Registered publisher (see above) who is sending the event
-# theEvent					The text name of the event to be sent (see subscribeToEvents below)
-# theSubscriber				The Text Name of the Subscriber to receive the event
-# publisherDefinedData		Any data the publisher chooses to include with the event (for example, if it
-# 								is an indigo command event, we might include the whole indigo command record here)
-# timestamp					The time (in seconds) the event is being published/distributed
-#
-def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedData):
-
-	global eventPublishers
-
-	#mmLib_Log.logForce("Publisher " + str(thePublisher) + "\'s event list: " + str(theEvents))
-
-	for theEvent in theEvents:
-		#mmLib_Log.logForce("    Distributing Event: " + str(theEvent))
-		if theSubscriber:
-			# load a deque with a single entry (no searching necessary) just go to deque the single handlerInfo entry
-			theQueue = targettedEvents.get(thePublisher + "." + theEvent + "." + theSubscriber, 0)
-		else:
-			try:
-				theQueue = eventPublishers[thePublisher][theEvent]
-			except:
-				theQueue = 0
-
-		if not theQueue or len(theQueue) == 0:
-			#mmLib_Log.logWarning("      No registrations for event \'" + theEvent + "\'.")
-			continue
-
-		publisherDefinedData['theEvent'] = theEvent
-		publisherDefinedData['publisher'] = thePublisher
-		publisherDefinedData['timestamp'] = time.mktime(time.localtime())
-
-		for aSubscriber, theHandler, handlerDefinedData in theQueue:
-			#mmLib_Log.logForce("         Distributing Event: " + str(theEvent) + " to " + str(aSubscriber))
-			# note that if a single subscriber was specified to be delivered to, the queue only has entries relevant to that subscriber (hopefully a single entry, for performance)
-			# if (theSubscriber == 0) or (theSubscriber == aSubscriber): # Removed this because its unnecessary as per the note above
-			# Add event, timestamp, and publisher
-			eventParameters = publisherDefinedData
-			eventParameters.update(handlerDefinedData)
-			try:
-				theHandler(theEvent, eventParameters)
-			except:
-				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber)
-				pass
-
-	return (0)
-
-#
-#
-#	deliverUpdateEvents
-#
-#		This routine is called by MM's indigo plugin from deviceUpdated(self, origDev, newDev) which is invoked by Indigo itself when an indigo device is updated by any means.
-#
-#		It is used to efficiently deliver Indigo DeviceUpdate events to the appropriate MM device object by utilizing MM's publish/subscribe mechanism This is the process...
-#
-#		At init time, Your MM object will subscribe to AtributeUpdate events published by bublisher 'Indigo'. For example:
-#
-#		mmLib_Events.subscribeToEvents(['AtributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'onState': 0}}, self.deviceName)
-#
-#		This MM object is subscribing to Indigo's updateAttribute events (this is when there is a change to the indigo device object). This change
-#		is reported to MM within Plugin.py by the Plugin.deviceUpdated() function that is invoked by Indigo itself, when an indigo device changes some state(s).
-#		When notified, Plugin.deviceUpdated() quickly looks up the associated MM counterpart (by name), it notifies the MM object
-#		subscibers (usually just the MM object associated with the Indigo Object) through this deliverUpdateEvents function.
-#
-#		In this example
-#
-#
-#		Update events are a special brand of events that are triggered by differences between two similar objects' values.
-#		You must subscribe for event type 'AtributeUpdate', and pass a monitoredAttributes dict in during the subscription process.
-#		This dict will be preserved and utilized whenever an object1/object2 difference is detected elsewhere resulting in a call to this function.
-#
-#  		This routine should be called whenever the condition object1 != object2 is detected. DeliverUpdateEvents will use
-#		the monitoredAttributes dict to parse the given objects to determine if the changes are interesting enough to dispatch an event.
-#		If the object change matches an event of interest, an event represented by the name of the the attribute that has changed will
-# 		be dispatched as directed by monitoredAttributes dict.
-#
-# 		When you subscribe to update events with subscribeToEvents, your monitoredAttributes is a dict that must be passed in through as an entry
-# 		in handlerDefinedData (i.e. , handlerDefinedData = {'monitoredAttributes': {}, 'otherStuff':"whatever"}). When you construct your
-# 		monitoredAttributes dict, you must have an entry for every single object attribute you are interested in (for the object type you are
-# 		planning on supporting).
-#
-# 		NOTE Currently we support only one type of object at a time - Meaning you can only get updateEvents for one type of object. This may
-# 		change in the future. This is because different objects may have the same attribute names and have a potential to cause unexpected results.
-#
-#  		Also when constructing your monitoredAttributes dict, you may specify a default event handler of value 0. This means you
-#		are choosing to process the event through a masterEventHandler defined in the theHandler parameter sent to subscribeToEvents.
-# 		In practice, if you supply a handler in monitoredAttributes, you will get your update event there with the name of the attributeName
-# 		you requested in the associated entry of the monitoredAttributes dict. Otherwise, it will come to you as a generic 'AtributeUpdate'
-#		event to the masterEventHandler along with all other change events.
-#
-#		Similarly, yiou can choose to not have a masterEventHandler and process every event individually based on the handlers in
-# 		your monitoredAttributes dict.
-#
-#		Lastly, You can mix and match the above methodologies, for example If you wanted the bulk of your change events to be
-# 		handled by a master handler, but a single event to be handled by a specialized handler, you could do this:
-#
-#			deliverUpdateEvents(self, object1, object2, {'valueName1': 0,'valueName2': targettedHandler, 'valueName3': 0}, masterHandler)
-#				All changes detected in object1/object2.'valueName2' will be dispatched to targettedHandler and all changes
-# 				in 'valueName1' and 'valueName3' will be dispatched to masterHandler (if nonZero)
-#
-#		NOTE: Dont pass a 0 masterHandler and a monitoredAttributes dict with any 0s in the handler fields... you will get no events for
-#		every monitoredAttributes dict with 0 handler. However, if you pass a nonzero in both of these locations, only the 
-# 		monitoredAttributes event handler will be called as it has priority.
-#
-#	Parameter Description
-#
-#		object1				The object that changed (in its previous state) (This code exclusively uses IndigoObjects here)
-#		object2				The object that changed (in its new state) (This code exclusively uses IndigoObjects here)
-#		monitoredAttributes 	contains a dict where keyNames is an attribute name from above object that indexes to event
-# 							handlers (proc pointers) in the associated value field
-#							This is passed in to subscribeToEvents as described above
-#		masterHandler		Wildcard handler for all events listed in monitoredAttributes with Null (0) handlers
-#
-def deliverUpdateEvents(object1, object2, theSubscriber):
-
-	theQueue = targettedEvents.get("Indigo.AtributeUpdate." + theSubscriber, 0)
-
-	if not theQueue or len(theQueue) == 0:
-		# mmLib_Log.logWarning("Publisher \'Indigo\' is trying to deliver a \'AtributeUpdate\' event to unregistered subscriber " + theSubscriber + ".")
-		return (0)
-
-	aSubscriber, masterHandler, handlerDefinedData = theQueue[0]
-	monitoredAttributes = handlerDefinedData.get('monitoredAttributes', {})
-	if monitoredAttributes == {}:
-		mmLib_Log.logWarning("No monitoredAttributes Sub events declared for " + theSubscriber + ".  Queue Entry: " + str(theQueue[0]))
-		return (0)
-
-	#		monitoredAttributes 	contains a dict where keyNames is an attribute name from above object that indexes to event
-	# 							handlers (proc pointers) in the associated value field
-	#							This is passed in to subscribeToEvents as described above
-	#		masterHandler		Wildcard handler for all events listed in monitoredAttributes with Null (0) handlers
-
-	masterEventDict = {}
-	deliveredEventsDict = {}
-	publisherDefinedData = {'publisher':'Indigo','timestamp':time.mktime(time.localtime()) }
-
-	for whichVal in monitoredAttributes:
-		try:
-			val1 = getattr(object1, whichVal)
-			val2 = getattr(object2, whichVal)
-		except:
-			pass
-			continue
-
-		if val1 != val2:
-			# does this event have a special handler?
-			if monitoredAttributes[whichVal]:
-				try:
-					eventParameters = publisherDefinedData
-					eventParameters['theEvent'] = whichVal
-					eventParameters['whichVal'] = val2
-					monitoredAttributes[whichVal](whichVal, eventParameters)
-					# and mark the events delivered
-					deliveredEventsDict[whichVal] = val2
-				except:
-					pass
-					# message about undeliverable event
-					mmLib_Log.logWarning("Event Delivery Failure. Event Type \'" + whichVal + "\' failed to be delivered to " + theSubscriber + ".")
-			else:
-				# theHandler was 0, commemorate the undelivered event for the masterHandler
-				masterEventDict[whichVal] = val2
-
-	# Deliver the master events as necessary
-	
-	if masterEventDict != {}:
-		if masterHandler:
-			try:
-				eventParameters = publisherDefinedData
-				eventParameters['theEvent'] = 'AtributeUpdate'
-				eventParameters.update(masterEventDict)
-				masterHandler('AtributeUpdate', eventParameters)
-				# and mark the events delivered
-				deliveredEventsDict.update(masterEventDict)
-			except Exception as exception:
-				mmLib_Log.logWarning( "Event Delivery Failure. Event Type \'AtributeUpdate\' failed to be delivered to " + theSubscriber + ". Exception: " + str(exception))
-				pass
-		else:
-			# message that we have events targetted for master, but no master handler
-			pass
-			mmLib_Log.logWarning( "Event Delivery Failure. Event Type \'AtributeUpdate\' failed to be delivered to " + theSubscriber + ". No MasterEventHandler")
-
-	#if len(deliveredEventsDict) != 0:
-	#	mmLib_Log.logForce( "Event delivery was attempted: " + theSubscriber + ": " + str(deliveredEventsDict))
-	#else:
-	#	mmLib_Log.logForce( "NO Event delivery was attempted: " + theSubscriber + ": " + str(deliveredEventsDict))
-
-	return deliveredEventsDict
 
 
 #
@@ -363,7 +166,7 @@ def deliverUpdateEvents(object1, object2, theSubscriber):
 #																										this would be used to deliver indigo command events from a lightswitch to its mmDevice (the other indigo
 #																										event subscribers dont have to be processed for those events - it is not their event)
 #
-# NOTE: If you are subscribing to event type 'AtributeUpdate', you must pass a monitoredAttributes Dict in handlerDefinedData
+# NOTE: If you are subscribing to event type 'AttributeUpdate', you must pass a monitoredAttributes Dict in handlerDefinedData
 #
 def subscribeToEvents(theEvents, thePublishers, theHandler, handlerDefinedData, subscriberName):
 
@@ -451,4 +254,175 @@ def unsubscribeFromEvents(theEvents, thePublisher, requestedHandler, subscriberN
 				theQueue.rotate(-1)		# index to the next publisher.event entry
 
 	return (0)
+
+
+
+
+#
+# distributeEvents - When a publisher has an event to publish... this is how its done
+#
+#	Calls the event handler registered in subscribeToEvents above for the event 'theEvent' given below
+#
+# The format of the event handler is
+#
+#		theHandler(eventID, eventParameters)
+#
+#	where eventParameters is a dict containing:
+#
+# thePublisher				The name of the Registered publisher (see above) who is sending the event
+# theEvent					The text name of the event to be sent (see subscribeToEvents below)
+# theSubscriber				The Text Name of the Subscriber to receive the event
+# publisherDefinedData		Any data the publisher chooses to include with the event (for example, if it
+# 								is an indigo command event, we might include the whole indigo command record here)
+# timestamp					The time (in seconds) the event is being published/distributed
+#
+def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedData):
+
+	global eventPublishers
+
+	#mmLib_Log.logForce("Publisher " + str(thePublisher) + "\'s event list: " + str(theEvents))
+
+	for theEvent in theEvents:
+		#mmLib_Log.logForce("    Distributing Event: " + str(theEvent))
+		if theSubscriber:
+			# load a deque with a single entry (no searching necessary) just go to deque the single handlerInfo entry
+			theQueue = targettedEvents.get(thePublisher + "." + theEvent + "." + theSubscriber, 0)
+		else:
+			try:
+				theQueue = eventPublishers[thePublisher][theEvent]
+			except:
+				theQueue = 0
+
+		if not theQueue or len(theQueue) == 0:
+			#mmLib_Log.logWarning("      No registrations for event \'" + theEvent + "\'.")
+			continue
+
+		publisherDefinedData['theEvent'] = theEvent
+		publisherDefinedData['publisher'] = thePublisher
+		publisherDefinedData['timestamp'] = time.mktime(time.localtime())
+
+		for aSubscriber, theHandler, handlerDefinedData in theQueue:
+			#mmLib_Log.logForce("         Distributing Event: " + str(theEvent) + " to " + str(aSubscriber))
+			# note that if a single subscriber was specified to be delivered to, the queue only has entries relevant to that subscriber (hopefully a single entry, for performance)
+			# if (theSubscriber == 0) or (theSubscriber == aSubscriber): # Removed this because its unnecessary as per the note above
+			# Add event, timestamp, and publisher
+			eventParameters = publisherDefinedData
+			eventParameters.update(handlerDefinedData)
+			try:
+				theHandler(theEvent, eventParameters)
+			except:
+				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber)
+				pass
+
+	return (0)
+
+#
+#
+#	deliverFilteredEvents
+#
+#		This routine augments the Event delivery mechanism (publish/subscribe) at mmLib_Events.py. Clients that want to receive Indigo device update events
+#		will subscribe to events of type 'AttributeUpdate' by publisher 'Indigo' similar to the line below:
+#
+#			mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'onState': 0}}, self.deviceName)
+#
+#		The purpose of this routine is to give the client more granular evaluatioin of update events from Indigo by comparing the before and after values of
+#		the indigo device. Only events that have differences in the indigo device variables notated in the 'monitoredAttributes' field will be delivered
+#		to the mmdevice handler. In the above example, 	the mmDevice subscriber will have its self.deviceUpdatedEvent called each time the associated indigo object
+#		experiences a change in its onState value. Notice the {'onState': 0} section of the command above... the 0 indicates that the default event handler
+#		self.deviceUpdatedEvent will be used for the delivery, however, you have the option of putting any handler you wish in this area in case you have a special
+#		need for a specific variable change event that overrides the default handler self.deviceUpdatedEvent.
+#		For example if you specify {'batteryLevel': self.BatteryLevelChanged}, your self.BatteryLevelChanged function will be called each time the battery
+#		level changes in your device.
+#
+#		Note this routine is a service provided by the mm System and this routine is called by plugin.deviceUpdated. You should not need to call this function.
+#
+#
+#	Parameter Description
+#
+#		object1					The object that changed (in its previous state). Usually an Indigo Device Object for the purposes of MM.
+#		object2					The object that changed (in its new state). Usually an Indigo Device Object for the purposes of MM.
+#		theSubscriber			The name of the mm device subscriber to this event
+#
+#	Other parameters set up at subscription time (accessed internally via subscription queue))
+#
+#		monitoredAttributes 	contains a dict that contains the names of the object values that are being monitored and
+# 								proc pointers to be called when those values have indeed changed.
+#								This is passed in to subscribeToEvents as described above
+#		defaultAttributeUpdateHandler		A default handler for any monitoredAttributes with Null (0) handlers
+#
+def deliverFilteredEvents(object1, object2, theSubscriber):
+
+	theQueue = targettedEvents.get("Indigo.AttributeUpdate." + theSubscriber, 0)
+
+	if not theQueue or len(theQueue) == 0:
+		# mmLib_Log.logWarning("Publisher \'Indigo\' is trying to deliver a \'AttributeUpdate\' event to unregistered subscriber " + theSubscriber + ".")
+		return (0)
+
+	aSubscriber, defaultAttributeUpdateHandler, handlerDefinedData = theQueue[0]
+	monitoredAttributes = handlerDefinedData.get('monitoredAttributes', {})
+	if monitoredAttributes == {}:
+		mmLib_Log.logWarning("No monitoredAttributes Sub events declared for " + theSubscriber + ".  Queue Entry: " + str(theQueue[0]))
+		return (0)
+
+	#		monitoredAttributes 			contains a dict where keyNames is an attribute name from above object that indexes to event
+	# 										handlers (proc pointers) in the associated value field
+	#										This is passed in to subscribeToEvents as described above
+	#		defaultAttributeUpdateHandler	Default handler for all requested events listed in monitoredAttributes with Null (0) handlers
+
+	defaultAttributeUpdateHandlerDict = {}
+	deliveredEventsDict = {}
+	publisherDefinedData = {'publisher':'Indigo','timestamp':time.mktime(time.localtime()) }
+
+	for whichVal in monitoredAttributes:
+		try:
+			val1 = getattr(object1, whichVal)
+			val2 = getattr(object2, whichVal)
+		except:
+			pass
+			continue
+
+		if val1 != val2:
+			# does this event have a special handler?
+			if monitoredAttributes[whichVal]:
+				# A special handler for this particular event was requested at subscribeToEvents() time. 
+				# Pass the name of the changed field and its new value to the requested handler
+				# we will deliver all these "special" events one at a time inside the evaluation loop
+				try:
+					# Populate the changed value in teh event record
+					eventParameters = publisherDefinedData
+					eventParameters['theEvent'] = whichVal	# theEvent is the changed variable name
+					eventParameters['whichVal'] = val2		# whichVal is the new value for that variable
+					monitoredAttributes[whichVal](whichVal, eventParameters)	# Call the specialized handler
+					# and mark the events delivered
+					deliveredEventsDict[whichVal] = val2
+				except:
+					pass
+					# message about undeliverable event
+					mmLib_Log.logWarning("Event Delivery Failure. Event Type \'" + whichVal + "\' failed to be delivered to " + theSubscriber + ".")
+			else:
+				# No special handler for this particular event was requested at subscribeToEvents time. Use the default event handler Declared in 
+				defaultAttributeUpdateHandlerDict[whichVal] = val2		# commemorate the variable difference for delivery below (after the loop)
+
+	# now on to the remaining changes that need to be delivered (that were not processed by special handlers above)
+	# Deliver events to defaultAttributeUpdateHandler as necessary. This is outside the for loop so all object1/object2 variable
+	# changes will get delivered in one call to the defaultAttributeUpdateHandler and will include the defaultAttributeUpdateHandlerDict that was built above
+	
+	if defaultAttributeUpdateHandlerDict != {}:
+		if defaultAttributeUpdateHandler:
+			try:
+				eventParameters = publisherDefinedData
+				eventParameters['theEvent'] = 'AttributeUpdate'
+				eventParameters.update(defaultAttributeUpdateHandlerDict)
+				defaultAttributeUpdateHandler('AttributeUpdate', eventParameters)
+				# and mark the events delivered
+				deliveredEventsDict.update(defaultAttributeUpdateHandlerDict)	# All changed attributes get populated here
+			except Exception as exception:
+				mmLib_Log.logWarning( "Event Delivery Failure. Event Type \'AttributeUpdate\' failed to be delivered to " + theSubscriber + ". Exception: " + str(exception))
+				pass
+		else:
+			# message that we have events targetted for master, but no master handler
+			pass
+			mmLib_Log.logWarning( "Event Delivery Failure. Event Type \'AttributeUpdate\' failed to be delivered to " + theSubscriber + ". No MasterEventHandler")
+
+	return deliveredEventsDict
 
