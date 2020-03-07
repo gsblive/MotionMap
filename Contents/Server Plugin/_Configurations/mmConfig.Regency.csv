@@ -103,6 +103,8 @@ FamilyCabinetDoor2,20,0,noDebug,,,,,,,
 FamilyCabinetDoor3,20,0,noDebug,,,,,,,
 FamilyCabinetDoor4,20,0,noDebug,,,,,,,
 DogDoorSensor,20,0,noDebug,,,,,,,
+SecretShelfSensor,20,0,noDebug,,,,,,,
+#The following are Remotes, not motion sensors... But they work the same way... just send on/off messages (from various buttons)
 
 ########################################################
 #

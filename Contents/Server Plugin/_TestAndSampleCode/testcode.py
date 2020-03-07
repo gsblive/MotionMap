@@ -82,8 +82,16 @@ def invalidLoggindDirective():
 
 def nullProc(): pass
 
-print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-exit()
+#print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+
+
+#
+#
+# test performance in acces to variables from dict
+# For the purposes of experimenting with consolidated log dispatch in MM
+#
+
+
 
 indi = {"Error.0":doMath, "Debug.0":doMath, "Log.0":doMath, "Force.0":doMath, "Warn.0":doMath,"Error.1":nullProc, "Debug.1":0, "Log.1":0, "Force.1":0, "Warn.1":0}
 indi2 = {"Error.0":doMath, "Debug.0":doMath, "Log.0":doMath, "Force.0":doMath, "Warn.0":doMath,"Error.1":nullProc, "Debug.1":nullProc, "Log.1":nullProc, "Force.1":nullProc, "Warn.1":nullProc}

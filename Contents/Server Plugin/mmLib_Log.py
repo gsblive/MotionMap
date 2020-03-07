@@ -29,9 +29,9 @@ MM_LOG_VERBOSE_NOTE = "mmVrbse"
 MM_LOG_TERSE_NOTE = "mmTerse"
 MM_LOG_WARNING = "mmWARNG"
 MM_LOG_ERROR = "mmERROR"
-MM_LOG_FORCE_NOTE = "mmForce "
+MM_LOG_FORCE_NOTE = "mmForce"
 MM_LOG_TIMESTAMP = "mmTStmp"
-MM_LOG_REPORT = " "
+MM_LOG_REPORT = "MMReprt"
 
 # Log Filtering - for mmLogSensitivity
 MM_SHOW_EVERYTHING = 'all'
@@ -141,6 +141,16 @@ def writeToLogFile(logType, logMessage, writeTimeStamp, writeTraceLog):
 
 # displayMessage	Format and display the lof message
 #
+#	logType:			MM_LOG_DEBUG_NOTE 		Log the debugging note to SQL function logger.debug
+#						MM_LOG_VERBOSE_NOTE 	Print the verbose message to the standard indigo.server.log
+#						MM_LOG_TERSE_NOTE		Log the debugging note to SQL function logger.info
+#						MM_LOG_WARNING 			Log the debugging note to SQL function logger.warn
+#						MM_LOG_ERROR 			Log the debugging note to SQL function logger.error
+#						MM_LOG_FORCE_NOTE 		Print the verbose message to the standard indigo.server.log
+#						MM_LOG_TIMESTAMP		Log the debugging note to SQL function logger.info
+#						MM_LOG_REPORT			Print the verbose message to the standard indigo.server.log
+
+#
 def displayMessage(logType, logMessage, displayProc):
 
 	global indentList
@@ -199,7 +209,6 @@ def displayMessage(logType, logMessage, displayProc):
 #
 def mmDebugNote(logMessage):
 	displayMessage(MM_LOG_DEBUG_NOTE, logMessage, loggerDispatchTable[MM_LOG_DEBUG_NOTE])
-	#writeToLogFile(MM_LOG_TERSE_NOTE, logMessage, 1, 1)
 	return
 
 
@@ -392,6 +401,8 @@ def verifyLogMode(theCommandParameters):
 
 #
 #	initLoggerDispatchTable	Must be called from init before any log calls
+#
+#	Note .logger refers to an SQL logging system included in Indigo
 #
 def	initLoggerDispatchTable():
 	global	loggerDispatchTable
