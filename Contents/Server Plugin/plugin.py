@@ -205,7 +205,7 @@ class Plugin(indigo.PluginBase):
 	def shutdown(self):
 		global pluginInitialized
 
-		mmLib_Log.logDebug("### Shutdown called -- Shutting Down MotionMap")
+		mmLib_Log.mmLog(mmLib_Log.MM_LOG_DEBUG_NOTE,"--- " + _MotionMapPlugin.MM_NAME + "Shutdown requested. Shutting Down MotionMap.")
 		pluginInitialized = 0	# Stop all processing
 		mmLib_Low.cacheNVDict()	# cache the nonvolatiles
 
@@ -416,9 +416,13 @@ class Plugin(indigo.PluginBase):
 						mmLib_Events.distributeEvents('MMSys', [theEvent], 0, {})
 
 		#		except self.StopThread:
-		except:
-			mmLib_Log.logForce("Exception in RunConcurrentThread")
+		except self.StopThread:
 			# do any cleanup here
+			#self.shutdown()
+			pass
+
+		except:
+			mmLib_Log.mmDebugError("Exception in RunConcurrent Thread. Exiting MM")
 			pass
 
 ########################################
