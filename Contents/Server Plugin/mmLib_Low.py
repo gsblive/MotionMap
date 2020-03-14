@@ -843,7 +843,7 @@ def displayMotionStatus(theCommandParameters):
 				if mmDev.theIndigoDevice.onState == True: mmDev.deviceMotionStatus()
 		else:
 			# device specific status
-			theDevice = MotionMapDeviceDict.get(theDeviceName, None)
+			theDevice = MotionMapDeviceDict.get(theDeviceName, "None")
 			if theDevice == None:
 				mmLib_Log.logError("Couldnt find device named: " + theDeviceName)
 				return (0)

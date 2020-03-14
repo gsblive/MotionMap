@@ -29,6 +29,8 @@ import mmLib_CommandQ
 import mmLib_Config
 from timeit import default_timer as timer
 import time
+import logging
+
 from collections import deque
 
 pluginInitialized = 0
@@ -195,6 +197,24 @@ class Plugin(indigo.PluginBase):
 
 		mmLib_Log.mmDebugNote("--- " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
 
+		# New Logging Test
+
+		#try:
+			#self.logger.info("Info Log Entry")
+			#self.logger.debug("Debug Log Entry")
+			#self.logger.warn("Warning Log Entry")
+			#self.logger.error("Error Log Entry")
+			#pfmt = logging.Formatter(fmt='%(asctime)s.%(msecs)03d\t%(levelname)s\t%(name)s.%(funcName)s:\t%(msg)s', datefmt='%Y-%m-%d %H:%M:%S')
+			#pfmt = self.logger.info.Formatter(fmt=None, datefmt=None)
+			#logging.basicConfig('%(asctime)s.%(msecs)03d\t%(levelname)s\t%(name)s.%(funcName)s:\t%(msg)s')
+			#pfmt = logging.Formatter(fmt='%(asctime)s.%(msecs)03d\t\t%(levelname)s\t%(name)s.%(funcName)s:\t%(msg)s', datefmt='%Y-%m-%d %H:%M:%S')
+			#self.logger.debug("Debug Log Entry2")
+			#self.logger.info("Info Log Entry2")
+			#self.logger.warn("Warning Log Entry2")
+			#self.logger.error("Error Log Entry2")
+		#except Exception as exception:
+		#	self.logger.error("Error in Log settings: " + str(exception))
+
 		return
 
 	########################################
@@ -205,7 +225,7 @@ class Plugin(indigo.PluginBase):
 	def shutdown(self):
 		global pluginInitialized
 
-		mmLib_Log.mmLog(mmLib_Log.MM_LOG_DEBUG_NOTE,"--- " + _MotionMapPlugin.MM_NAME + "Shutdown requested. Shutting Down MotionMap.")
+		mmLib_Log.mmDebugNote("--- " + _MotionMapPlugin.MM_NAME + "Shutdown requested. Shutting Down MotionMap.")
 		pluginInitialized = 0	# Stop all processing
 		mmLib_Low.cacheNVDict()	# cache the nonvolatiles
 
@@ -473,7 +493,11 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			for key, value in pluginAction.props.iteritems():
-				theCommandParameters[key] = value
+				# GB Fix me We have to do a unicode test here because right now, we only support regular Str. When we go to Python 3 we will not need this code
+				if isinstance(value, unicode):
+					theCommandParameters[key] = str(value)
+				else:
+					theCommandParameters[key] = value
 		except:
 			mmLib_Log.logForce("executeMMCommand cannot copy commandParameters. Aborting.")
 			return(0)

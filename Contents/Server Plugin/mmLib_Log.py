@@ -250,7 +250,7 @@ def writeToLogFile(logType, logMessage, writeTimeStamp, writeTraceLog):
 #						MM_LOG_VERBOSE_NOTE 	Print the verbose message to the standard indigo.server.log
 #						MM_LOG_TERSE_NOTE		Log the debugging note to SQL function logger.info
 #						MM_LOG_WARNING 			Log the debugging note to SQL function logger.warn
-#						MM_LOG_ERROR 			Log the debugging note to SQL function logger.error
+#						MM_LOG_ERROR 			Log the debugging note to SQL function logger.error This will report the exception in addition to the message
 #						MM_LOG_FORCE_NOTE 		Print the verbose message to the standard indigo.server.log
 #						MM_LOG_TIMESTAMP		Log the debugging note to SQL function logger.info
 #						MM_LOG_REPORT			Print the verbose message to the standard indigo.server.log
@@ -261,22 +261,41 @@ def writeToLogFile(logType, logMessage, writeTimeStamp, writeTraceLog):
 #
 def displayMessage(logType, logMessage, displayProc):
 
+	exception = ""
+	stringCheck = 0
+
 	try:
 		stringCheck = isinstance(logMessage, str)
-	except:
-		stringCheck = 0
+	except Exception as exception:
+		# this new exception will take priority over any previous exception. Here, we were handed a bad string,
+		# so our original message would have thrown another exception anyway
+		# Though I dont think it ever gets here.
+		pass
 
-	if not stringCheck: logMessage = "XXX displayMessage Error: Cannot display message... likely a formatting or type error"
+	if not stringCheck:
+			# The value passed in wasnt a string. Put up a custom message
+			logMessage = "XXX displayMessage Error: Message was not a well-formed String."
+			logType = MM_LOG_ERROR
+			displayProc = loggerDispatchTable[logType]
 
 	if logType == MM_LOG_REPORT:
 		indigo.server.log(logMessage, " ")
 	else:
-		theTrace = traceback.extract_stack()
-		NestingDepth = max(0, min(len(theTrace) - 3, 21))
+		if logType == MM_LOG_ERROR:
+			# Capture the exception if there is one
+			excType, excValue, excTraceback = sys.exc_info()
+			exception = str(excValue)
+			theTrace = traceback.extract_tb(excTraceback, 1)
+			NestingDepth = 0
+			callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]	# unpack the trace record
+		else:
+			theTrace = traceback.extract_stack()
+			NestingDepth = max(0, min(len(theTrace) - 3, 21))
+			callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]	# unpack the trace record for the call to mmLib_Log
 
-		callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]	# unpack the trace record
 		callingPackage = str("(" + os.path.basename(callingFile) + "." + str(callingProc) + ":" + str(callingLine) + ")")	# Construct a MM callingPackage (we skip the jump table)
-		logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)), str( datetime.datetime.now().strftime("%I:%M:%S %p") + " [" + logType + "] " + logMessage + " " + callingPackage))
+		if exception != "": exception = "[" + exception + "]"
+		logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)), str( datetime.datetime.now().strftime("%I:%M:%S %p") + " [" + logType + "] " + logMessage + exception + callingPackage))
 
 		displayProc(logMessage)
 

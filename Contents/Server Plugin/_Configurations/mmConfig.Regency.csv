@@ -94,7 +94,7 @@ CoatClosetMotion,30,5,noDebug,,,,,,,
 MasterClosetMotion,60,5,noDebug,,,,,,,
 MasterClosetMotionB,60,5,noDebug,,,,,,,
 GarageManDoorMotion,480,15,noDebug,,,,,,,
-GarageWorkbenchMotion,480,15,noDebug,,,,,,,
+GarageWorkbenchMotion,480,30,noDebug,,,,,,,
 GregsOfficeMotion,480,15,noDebug,,,,,,,
 GregsDeskMotion,480,15,noDebug,,,,,,,
 #The following are contact sensors, not motion sensors... But they work the same way

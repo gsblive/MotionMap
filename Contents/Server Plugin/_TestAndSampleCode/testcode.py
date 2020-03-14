@@ -102,8 +102,81 @@ indi = {"Error.0":doMath, "Debug.0":doMath, "Log.0":doMath, "Force.0":doMath, "W
 theSelecedParameters = {"Error.0":1, "Debug.0":1, "Log.0":1, "Force.0":1, "Warn.0":1,"Error.1":1, "Debug.1":0, "Log.1":0, "Force.1":0, "Warn.1":0}
 indi2 = {"Error.0":doMath, "Debug.0":doMath, "Log.0":doMath, "Force.0":doMath, "Warn.0":doMath,"Error.1":nullProc, "Debug.1":nullProc, "Log.1":nullProc, "Force.1":nullProc, "Warn.1":nullProc}
 
+def makeError():
+	x = 0
+	try:
+		logMessage = ("This is a test string. " + x)
+	except Exception as exc:
+		#print exc
+		pass
+
+def printSomethignElse():
+	print "Something Else"
+
+def	printMyError(theError):
+	print theError
+	excType, excValue, excTraceback = sys.exc_info()
+	print "TraceBack: " + str(traceback.extract_tb(excTraceback, 1))
+	theTrace = traceback.extract_stack()
+	print ("The StackDepth = " + str(len(theTrace)))
+
+def	printGregsError(theError):
+	x = 0
+	try:
+		logMessage = ("This is a test string. " + x)
+	except Exception as exc:
+		pass
+
+	printSomethignElse()
+	printMyError(theError + " Step2 ")
 
 print "Test"
+print ("Python Version: " + platform.python_version())
+
+string1 = "MyString"
+string2 = u"MyString"
+
+print isinstance(string2, unicode)
+
+myDict = {"MyString":str(string1)}
+
+print "My String is: " + myDict[string1]
+print "My Second String is: " + myDict[u'MyString']
+
+if string1 == string2:
+	print "Strings are Equal"
+else:
+	print "Strings not Equal"
+
+print string1
+print string2
+
+#printGregsError("BaseCode")
+
+exit()
+
+
+try:
+	stringCheck = isinstance(logMessage, str)
+	exc = ""
+except Exception as exc:
+	# this new exception will take priority over any previous exception. Here, we were handed a bad string,
+	# so our original message would have thrown another exception anyway
+	exception = str(exc)
+	stringCheck = 0
+
+if not stringCheck:
+	print ("Not a string " + str(exc))
+else:
+	print ("String is " + str(logMessage))
+
+exit()
+
+#print str(sys.exc_info())
+type, value, traceback = sys.exc_info()
+exception = str(str(type) + "\n" + str(value) + "\n" + str(traceback))
+print str(exception)
+
 
 LogDirectiveNOP = "1"
 LogDirective = "doMath()"
