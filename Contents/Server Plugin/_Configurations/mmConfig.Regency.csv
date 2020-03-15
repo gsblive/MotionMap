@@ -108,7 +108,7 @@ SecretShelfSensor,20,0,noDebug,,,,,,,
 
 ########################################################
 #
-# Motion Sensors – Used as Contact/Occupancy sensors,,,,,,,,,,
+# IOLink Sensors – Used as motion/ovvupancy sensors,,,,,,,,,,
 #
 # The following are I/O Garage Door controllers, not motion sensors... But they work the same way (for the on/off state aspect)
 #	Its a simple override on top of motion sensor object to cover the ioLink Lack of On-State (it uses binaryInput1 instead)
@@ -219,7 +219,8 @@ GarageControllerBarbie,480,0,noDebug,,,,,,,
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off,,,,,,,,,,
 #   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed,,,,,,,,,,
 #   influentialLights – list of lights that may create false motion events for this camera at night,,,,,,,,,,
-#   exclusionLights - Dont provide motion events if these lights are already on,,,,,,,,,,
+#   influentialTimeout – list of lights that may create false motion events for this camera at night,,,,,,,,,,
+#   exclusionLights - How long (in seconds) that the influential light influences this camera
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent; anything else for verbose),,,,,,,,,,
 #
 #   IMPORTANT – Keep Multi sensors Before all other devices because the other devices will register with the motion sensors during initialization (one pass),,,,,,,,,,

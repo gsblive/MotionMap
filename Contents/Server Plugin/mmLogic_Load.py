@@ -505,7 +505,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		if self.theIndigoDevice.onState == True:
 
-			# the Device is on, turn it off
+			# the Device is on, turn it off, but ponly if both ON and sustain groups are unoccupied
+			if len(self.listOccupiedControllers(self.allControllerGroups, True)):
+				if self.debugDevice: mmLib_Log.logForce( "    There are one or more occupied controllers remaining. No Action Taken.")
+				return 0
 
 			if self.unoccupationDelay:
 				# do it after the suitable delay

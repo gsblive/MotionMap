@@ -128,6 +128,14 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 
 		return 0
 
+	#
+	# deviceMotionStatus - check the motion status of a device
+	#
+	def deviceMotionStatus(self):
+
+		self.devStatus({})
+		return(0)
+
 	######################################################################################
 	#
 	# Externally Addessable Routines, must have a single parameter - theCommandParameters

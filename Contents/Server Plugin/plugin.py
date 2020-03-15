@@ -375,7 +375,7 @@ class Plugin(indigo.PluginBase):
 		except:
 			return 0
 
-		if mmDev.debugDevice: mmLib_Log.logForce( mmDev.deviceName + " deviceUpdated at Plugin.py with newDev: " + str(newDev))
+		#if mmDev.debugDevice: mmLib_Log.logForce( mmDev.deviceName + " deviceUpdated at Plugin.py with newDev: " + str(newDev))
 
 		# Update the indigo device in case it changed out behind our back (this just copies the reference to the device)
 		# If we want to test to see if this really ever happens, we can uncomment the following block
