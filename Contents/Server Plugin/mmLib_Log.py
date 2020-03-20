@@ -16,6 +16,7 @@ except:
 	pass
 import mmLib_Low
 import _MotionMapPlugin
+import logging
 
 ##################################
 # Constants
@@ -36,6 +37,16 @@ MM_LOG_FORCE_NOTE = "mmForce"
 MM_LOG_TIMESTAMP = "mmTStmp"
 MM_LOG_REPORT = "MMReprt"
 
+LOG_DEBUG_NOTE = 11
+LOG_VERBOSE_NOTE = 12
+LOG_TERSE_NOTE = 15
+LOG_WARNING = 35
+LOG_ERROR = 45
+LOG_FORCE_NOTE = 47
+LOG_TIMESTAMP = 48
+LOG_REPORT = 49
+
+
 # Log Filtering - for mmLogSensitivity
 MM_SHOW_EVERYTHING = 'all'
 MM_SHOW_VERBOSE_NOTES = 'verbose'
@@ -54,6 +65,9 @@ mmLogFileName = "undefined"
 mmDefaultLogSensitivity = MM_SHOW_TERSE_NOTES
 mmLogSensitivity = "undefined"	# Force actual setting in first call to SetSensitivity
 
+def prRed(skk): return ("\033[91m {}\033[00m" .format(skk))
+def prGreen(skk): return ("\033[92m {}\033[00m" .format(skk))
+def prCyan(skk): return ("\033[96m {}\033[00m" .format(skk))
 
 ############################################################################################
 ############################################################################################
@@ -459,6 +473,7 @@ def	initLoggerDispatchTable():
 						MM_LOG_REPORT: mmOurPlugin.logger.info
 						}
 
+
 ############################################################################################
 #
 #
@@ -477,6 +492,8 @@ def init(logFileName, ourPlugin):
 	initLoggerDispatchTable()
 	setLogSensitivity(mmDefaultLogSensitivity)
 	logForce( "--- Initializing mmLog")
+
+
 
 def start():
 

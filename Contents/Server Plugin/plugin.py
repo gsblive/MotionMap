@@ -22,6 +22,7 @@ except:
 	pass
 
 import mmLib_Log
+import mmLib_Log2
 import mmLib_Low
 import mmLib_Events
 
@@ -35,6 +36,7 @@ from collections import deque
 
 pluginInitialized = 0
 startTime = 0
+
 
 ########################################
 #
@@ -108,6 +110,7 @@ supportedControlCommandsDict = {'resetOfflineStatistics':mmLib_Low.resetOfflineS
 
 class Plugin(indigo.PluginBase):
 
+	IndigoLogHandler = 0
 
 	# Note the "indigo" module is automatically imported and made available inside
 	# our global name space by the host process.
@@ -133,6 +136,12 @@ class Plugin(indigo.PluginBase):
 
 		self.debug = True
 
+		try:
+			mmLib_Log2.init("MotionMap.log.txt", self)
+		except:
+			pass
+
+
 		mmLib_Log.init("MotionMap.log.txt", self)
 		mmLib_Log.logForce(_MotionMapPlugin.MM_NAME + " Plugin version " + _MotionMapPlugin.MM_VERSION + ". Initialization complete. Waiting for Startup Command.")
 
@@ -145,7 +154,6 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def __del__(self):
 		indigo.PluginBase.__del__(self)
-
 
 
 	########################################
@@ -197,24 +205,6 @@ class Plugin(indigo.PluginBase):
 
 		mmLib_Log.mmDebugNote("--- " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
 
-		# New Logging Test
-
-		#try:
-			#self.logger.info("Info Log Entry")
-			#self.logger.debug("Debug Log Entry")
-			#self.logger.warn("Warning Log Entry")
-			#self.logger.error("Error Log Entry")
-			#pfmt = logging.Formatter(fmt='%(asctime)s.%(msecs)03d\t%(levelname)s\t%(name)s.%(funcName)s:\t%(msg)s', datefmt='%Y-%m-%d %H:%M:%S')
-			#pfmt = self.logger.info.Formatter(fmt=None, datefmt=None)
-			#logging.basicConfig('%(asctime)s.%(msecs)03d\t%(levelname)s\t%(name)s.%(funcName)s:\t%(msg)s')
-			#pfmt = logging.Formatter(fmt='%(asctime)s.%(msecs)03d\t\t%(levelname)s\t%(name)s.%(funcName)s:\t%(msg)s', datefmt='%Y-%m-%d %H:%M:%S')
-			#self.logger.debug("Debug Log Entry2")
-			#self.logger.info("Info Log Entry2")
-			#self.logger.warn("Warning Log Entry2")
-			#self.logger.error("Error Log Entry2")
-		#except Exception as exception:
-		#	self.logger.error("Error in Log settings: " + str(exception))
-
 		return
 
 	########################################
@@ -265,11 +255,11 @@ class Plugin(indigo.PluginBase):
 			# If processing got here, we captured a command from a device that is not listed in MM conmfig file. We want
 			# to keep a list of these devices so we can emit a warning to the log (so we can add the device to the known device list).
 
-			mmLib_Log.logWarning( "Unknown device. Please edit \'" + "mmConfig." + str(_MotionMapPlugin.MM_Location) + ".csv" + "\' to add " + str(cmd.address) + ": " + mmLib_Low.addressTranslate(str(cmd.address)))
+			mmLib_Log.logWarning( "Unknown device. Please edit \'" + "mmConfig." + str(_MotionMapPlugin.MM_Location) + ".csv" + "\' to add " + str(cmd.address) + ": " + mmLib_Low.addressTranslate(str(cmd.address) + " "))
 			return 0
 
 		try:
-			if mmDev.debugDevice: mmLib_Log.logForce(mmDev.deviceName + " insteonCommandReceived at Plugin.py with CMD: " + str(cmd))
+			#if mmDev.debugDevice: mmLib_Log.logForce(mmDev.deviceName + " insteonCommandReceived at Plugin.py with CMD: " + str(cmd))
 			mmLib_Events.distributeEvents('Indigo', ['DevRcvCmd'], mmDev.deviceName, {'cmd': cmd})		# for MM version 4
 		except:
 			mmLib_Log.logWarning( "Failed to deliver a \'DevRcvCmd\' event")
@@ -638,3 +628,6 @@ class Plugin(indigo.PluginBase):
 
 
 		return (1)
+
+
+

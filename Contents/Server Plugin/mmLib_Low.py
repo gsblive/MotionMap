@@ -249,8 +249,8 @@ def addressTranslate(desiredAddress):
 
 	for dev in indigo.devices.itervalues():
 		if dev.address == desiredAddress:
-			unknownAddress[dev.address] = dev.name
-			return (dev.name)
+			unknownAddress[dev.address] = str(dev.name)
+			return (str(dev.name))
 	return ("Undefined")
 
 ############################################################################################

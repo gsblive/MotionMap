@@ -569,7 +569,6 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def listOccupiedControllers(self, checkControllers, full):
 
-		mmLib_Log.logForce(self.deviceName + " running listOccupiedControllers")
 		theList = []
 
 		if checkControllers:
@@ -582,7 +581,6 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 					else:
 						theList.append(theController.deviceName)
 
-		mmLib_Log.logForce(self.deviceName + " exit listOccupiedControllers")
 		return theList
 
 	#

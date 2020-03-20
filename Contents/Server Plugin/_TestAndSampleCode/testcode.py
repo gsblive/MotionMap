@@ -24,402 +24,311 @@ import datetime
 import subprocess
 
 import random
+import logging
 
 #====================================
 #============  Main  ================
 #====================================
 
-x = 0
+print "%I:%M:%S %p"
+exit()
 
-class Object1():
-	Value1 = 0
-	Value2 = 0
-	Value3 = 0
-
-	def __init__(self, a, b, c):
-		self.Value1 = a
-		self.Value2 = b
-		self.Value3 = c
-
-
-	def	__repr__(self):
-		resultString = str("Value1" + str(Object1.Value1))
-		return resultString
+LOG_NOTSET = 0
+LOG_CLASSIC_DEBUG = 10
+LOG_DEBUG_NOTE = 12
+LOG_TIMESTAMP = 13
+LOG_VERBOSE_NOTE = 14
+LOG_TERSE_NOTE = 16
+LOG_REPORT = 19
+LOG_FORCE_NOTE = 25
+LOG_WARNING = 35
+LOG_ERROR = 45
 
 
-	def __str__(self):
-		resultString = ""
-		myDict = vars(self)
-		for keys, values in myDict.items():
-			resultString = resultString + "Object1." + str(keys) + ':' + str(values) + "\n"
-		return resultString
-
-	def doSomething(self):
-		print str(self.__class__.__name__)
-		myDict = vars(self)
-		for keys, values in myDict.items():
-			print(str(keys) + ':' + str(values))
-
-		return 0
+MM_LOG_NOTSET = "mmNotSet"
+MM_LOG_CLASSIC_DEBUG = "mmClasD"
+MM_LOG_DEBUG_NOTE = "mmDebug"
+MM_LOG_TIMESTAMP = "mmTStmp"
+MM_LOG_VERBOSE_NOTE = "mmVrbse"
+MM_LOG_TERSE_NOTE = "mmTerse"
+MM_LOG_REPORT = "MMReprt"
+MM_LOG_FORCE_NOTE = "mmForce"
+MM_LOG_WARNING = "mmWARNG"
+MM_LOG_ERROR = "mmERROR"
 
 
 
-#myObj = Object1(1,20,300)
-#myObj.doSomething()
-
-#print myObj
-
-def doMath():
-	global x
-	x = x+1
-	return(0)
-
-def doMath2(var1, var2):
-	global x
-	x = x+1
-
-def throughProc():
-	doMath2(1,0)
-
-def invalidLoggindDirective():
-	print("Invalid Logging Directive")
-
-def nullProc(): pass
-
-#print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-
-# print(sys.version)
-
-#
-#
-# test performance in acces to variables from dict
-# For the purposes of experimenting with consolidated log dispatch in MM
-#
+logLevelNameDict = {
+	LOG_NOTSET: MM_LOG_NOTSET,
+	LOG_CLASSIC_DEBUG: MM_LOG_CLASSIC_DEBUG,
+	LOG_DEBUG_NOTE: MM_LOG_DEBUG_NOTE,
+	LOG_TIMESTAMP: MM_LOG_TIMESTAMP,
+	LOG_VERBOSE_NOTE: MM_LOG_VERBOSE_NOTE,
+	LOG_TERSE_NOTE: MM_LOG_TERSE_NOTE,
+	LOG_REPORT: MM_LOG_REPORT,
+	LOG_FORCE_NOTE: MM_LOG_FORCE_NOTE,
+	LOG_WARNING: MM_LOG_WARNING,
+	LOG_ERROR: MM_LOG_ERROR
+}
 
 
 
-indi = {"Error.0":doMath, "Debug.0":doMath, "Log.0":doMath, "Force.0":doMath, "Warn.0":doMath,"Error.1":nullProc, "Debug.1":0, "Log.1":0, "Force.1":0, "Warn.1":0}
-theSelecedParameters = {"Error.0":1, "Debug.0":1, "Log.0":1, "Force.0":1, "Warn.0":1,"Error.1":1, "Debug.1":0, "Log.1":0, "Force.1":0, "Warn.1":0}
-indi2 = {"Error.0":doMath, "Debug.0":doMath, "Log.0":doMath, "Force.0":doMath, "Warn.0":doMath,"Error.1":nullProc, "Debug.1":nullProc, "Log.1":nullProc, "Force.1":nullProc, "Warn.1":nullProc}
+# print(message="Welcome to MotionMap", type="Warning", isError=0)
 
-def makeError():
-	x = 0
-	try:
-		logMessage = ("This is a test string. " + x)
-	except Exception as exc:
-		#print exc
-		pass
 
-def printSomethignElse():
-	print "Something Else"
+class myLogHandler(logging.Handler, object):
 
-def	printMyError(theError):
-	print theError
-	excType, excValue, excTraceback = sys.exc_info()
-	print "TraceBack: " + str(traceback.extract_tb(excTraceback, 1))
-	theTrace = traceback.extract_stack()
-	print ("The StackDepth = " + str(len(theTrace)))
+	def __init__(self, displayName, level=logging.NOTSET):
+		super(myLogHandler, self).__init__(level)
+		self.displayName = displayName
 
-def	printGregsError(theError):
-	x = 0
-	try:
-		logMessage = ("This is a test string. " + x)
-	except Exception as exc:
-		pass
+	def emit(self, record):
+		theTrace = traceback.extract_stack()
+		#NestingDepth = max(0, min(len(theTrace) - 3, 21))
+		NestingDepth = max(0, min(len(theTrace) - 7, 21))	# for TestCode.c
+		#NestingDepth = 1
+		callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]  # unpack the trace record for the call to mmLib_Log
 
-	printSomethignElse()
-	printMyError(theError + " Step2 ")
+		record.filename = os.path.basename(callingFile)
+		record.funcName = callingProc
+		record.lineno = callingLine
+		record.stackDepth = '[{0:<22}]'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)))
+		print("MotionMap3 " + self.format(record))
 
-print "Test"
-print ("Python Version: " + platform.python_version())
+class myLogger(logging.Logger):
 
-string1 = "MyString"
-string2 = u"MyString"
+	def __init__(self, name, level=logging.NOTSET):
+		super(myLogger, self).__init__(name)
 
-print isinstance(string2, unicode)
+	# log dispatch area
 
-myDict = {"MyString":str(string1)}
+	def mmNotSet(self, msg, *args, **kwargs):
+		# Show everything
+		self._log(LOG_NOTSET, msg, args, **kwargs)
 
-print "My String is: " + myDict[string1]
-print "My Second String is: " + myDict[u'MyString']
+	def mmClasD(self, msg, *args, **kwargs):
+		if self.isEnabledFor(MM_LOG_CLASSIC_DEBUG):
+			self._log(LOG_CLASSIC_DEBUG, msg, args, **kwargs)
 
-if string1 == string2:
-	print "Strings are Equal"
-else:
-	print "Strings not Equal"
+	def mmDebug(self, msg, *args, **kwargs):
+		if self.isEnabledFor(LOG_DEBUG_NOTE):
+			self._log(LOG_DEBUG_NOTE, msg, args, **kwargs)
 
-print string1
-print string2
+	def mmTStmp(self, msg, *args, **kwargs):
+		if self.isEnabledFor(LOG_TIMESTAMP):
+			self._log(LOG_TIMESTAMP, msg, args, **kwargs)
 
-#printGregsError("BaseCode")
+	def mmVrbse(self, msg, *args, **kwargs):
+		if self.isEnabledFor(LOG_VERBOSE_NOTE):
+			self._log(LOG_TERSE_NOTE, msg, args, **kwargs)
+
+	def mmTerse(self, msg, *args, **kwargs):
+		if self.isEnabledFor(LOG_TERSE_NOTE):
+			self._log(LOG_TERSE_NOTE, msg, args, **kwargs)
+
+	# You probably dont want to set levels beyond this line. We should always accept report, force, warnings and errors.
+
+	def MMReprt(self, msg, *args, **kwargs):
+		if self.isEnabledFor(LOG_REPORT):
+			self._log(LOG_REPORT, msg, args, **kwargs)
+
+	def mmForce(self, msg, *args, **kwargs):
+		if self.isEnabledFor(LOG_FORCE_NOTE):
+			self._log(LOG_FORCE_NOTE, msg, args, **kwargs)
+
+	def mmWARNG(self, msg, *args, **kwargs):
+		if self.isEnabledFor(LOG_WARNING):
+			self._log(LOG_WARNING, msg, args, **kwargs)
+
+	def mmERROR(self, msg, *args, **kwargs):
+		if self.isEnabledFor(LOG_ERROR):
+			self._log(LOG_ERROR, msg, args, **kwargs)
+
+
+
+mmLogger = myLogger("MotionMapLogger")
+for level,levelName in logLevelNameDict.items():
+	logging.addLevelName(level, levelName)
+	#print('adding level %(levelS)s with levelName of %(levelName)s' % {"levelS":str(level),"levelName":levelName})
+
+mmLogHandler = myLogHandler("MotionMap3")
+
+#mmLogHandler.setFormatter(logging.Formatter('%(stackDepth)s %(asctime)s %(levelname)s: %(message)s (%(funcName)s,%(lineno)d)'))
+mmLogHandler.setFormatter(logging.Formatter(fmt='%(stackDepth)s %(asctime)s [%(levelname)s] %(message)s (%(filename)s.%(funcName)s:%(lineno)d) ',datefmt="%I:%M:%S %p"))
+mmLogger.addHandler(mmLogHandler)
+
+
+# Test code
+
+def testLevel(theLevel):
+	mmLogger.setLevel(theLevel)
+
+	print '\n===================='
+	print '== New Level: '+ logLevelNameDict[theLevel] + ' =='
+	print '====================\n'
+
+	mmLogger.mmForce("Inside Testlevel.")
+
+	for level,levelName in logLevelNameDict.items():
+		s = 'mmLogger.%(levelName)s(\"This is an %(levelName)s note\")' % {"levelName": levelName}
+		eval(s)
+
+def OneDeep(theStr):
+	mmLogger.mmForce(theStr)
+
+def TwoDeep(theStr):
+	OneDeep(theStr)
+
+testLevel(LOG_NOTSET)
+testLevel(LOG_CLASSIC_DEBUG)
+testLevel(LOG_DEBUG_NOTE)
+testLevel(LOG_TIMESTAMP)
+testLevel(LOG_VERBOSE_NOTE)
+testLevel(LOG_TERSE_NOTE)
+testLevel(LOG_REPORT)
+testLevel(LOG_FORCE_NOTE)
+testLevel(LOG_WARNING)
+testLevel(LOG_ERROR)
+
+print '\n===================='
+print '== Stack Crawl test =='
+print '====================\n'
+
+mmLogger.setLevel(LOG_NOTSET)
+mmLogger.mmForce("Testing from Main.")
+OneDeep("Testing from onedeep")
+TwoDeep("Testing from TwoDeep")
 
 exit()
 
 
-try:
-	stringCheck = isinstance(logMessage, str)
-	exc = ""
-except Exception as exc:
-	# this new exception will take priority over any previous exception. Here, we were handed a bad string,
-	# so our original message would have thrown another exception anyway
-	exception = str(exc)
-	stringCheck = 0
+	mmOurPlugin.logger.info("\n\nTesting Info method\n")
+
+	if 0:
+		try:
+			logTerse = IndigoLogHandlerTerse(_MotionMapPlugin.MM_NAME)
+			logTerse.setLevel(logging.LOG_TERSE_NOTE)
+			logTerse.setFormatter('%(asctime)s %(levelname)s %(message)s')
+			ourPlugin.logger.addHandler(logTerse)
+			logging.addLevelName(LOG_TERSE_NOTE, MM_LOG_TERSE_NOTE)
+
+			logVerbose = IndigoLogHandlerVerbose(_MotionMapPlugin.MM_NAME)
+			logVerbose.setLevel(logging.LOG_VERBOSE_NOTE)
+			logVerbose.setFormatter('%(asctime)s %(levelname)s %(message)s')
+			ourPlugin.logger.addHandler(logVerbose)
+			logging.addLevelName(LOG_VERBOSE_NOTE, MM_LOG_VERBOSE_NOTE)
+		except:
+			indigo.server.log("###Error getting indigo_log_handler")
 
-if not stringCheck:
-	print ("Not a string " + str(exc))
-else:
-	print ("String is " + str(logMessage))
-
-exit()
+		logTerse._log(LOG_TERSE_NOTE, "This is a terse note")
+		logVerbose._log(LOG_VERBOSE_NOTE, "This is a verbose note")
 
-#print str(sys.exc_info())
-type, value, traceback = sys.exc_info()
-exception = str(str(type) + "\n" + str(value) + "\n" + str(traceback))
-print str(exception)
+# indigo.server.log(message="Welcome to MotionMap", type="Warning", isError=0)
 
-
-LogDirectiveNOP = "1"
-LogDirective = "doMath()"
+class IndigoLogHandler(logging.Handler, object):
 
-
-
-def theProc():
-	return "in theProc"
-
-ourLevel = 2
-
-shortcut = lambda x : doMath() if x < 2 else 0
-
-def displayMessage(logType, logMessage, displayProc):
-
-	try:
-		stringCheck = isinstance(logMessage, str)
-	except:
-		stringCheck = 0
-
-	if not stringCheck: logMessage = "XXX displayMessage Error: Cannot display message... likely a formatting or type error"
-
-	theTrace = traceback.extract_stack()
-	NestingDepth = max(0, min(len(theTrace) - 3, 21))
-
-	callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]	# unpack the trace record
-	callingPackage = str("(" + os.path.basename(callingFile) + "." + str(callingProc) + ":" + str(callingLine) + ")")	# Construct a MM callingPackage (we skip the jump table)
-	logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)), str( datetime.datetime.now().strftime("%I:%M:%S %p") + " " + ': ' + logMessage + " " + callingPackage))
-
-	print(logMessage)
-	return
-
-displayMessage(1,"TestMessage",0)
-displayMessage(1,1000,0)
-
-exit()
-
-print "\n"
-print("==============================================")
-print(" if Method")
-print(" PRO: Fast, no indirection")
-print(" CON:More complicated to call function")
-print("==============================================")
-
-ourLevel = 0
-start = time.time()
-for reps in range(1,1000000):
-	if ourLevel: doMath()
-end = time.time()
-print("If METHOD... (MISS) Call in seconds:" + str(end - start))
-
-ourLevel = 1
-start = time.time()
-for reps in range(1,1000000):
-	if ourLevel: doMath()
-end = time.time()
-print("If METHOD... (HIT) Call in seconds:" + str(end - start))
-
-
-print "\n"
-print("==============================================")
-print(" Lambda Method")
-print(" PRO: No Selector Needed")
-print(" CON:0 to 1 indirection")
-print("==============================================")
-
-start = time.time()
-for reps in range(1,1000000):
-	shortcut(2)
-end = time.time()
-print("Lambda METHOD... Jump Table (MISS) Call in seconds:" + str(end - start))
-
-start = time.time()
-for reps in range(1,1000000):
-	shortcut(1)
-end = time.time()
-print("Lambda METHOD... Jump Table (HIT) Call in seconds:" + str(end - start))
-
-
-print "\n"
-print("==============================================")
-print(" Current Method")
-print(" PRO: No Selector Needed")
-print(" CON: 1 or 2 Layers of indirection")
-print("==============================================")
-
-aProc = nullProc
-start = time.time()
-for reps in range(1,1000000):
-	aProc()
-end = time.time()
-print("CURRENT METHOD... Jump Table (MISS) Call in seconds:" + str(end - start))
-
-aProc = throughProc
-
-start = time.time()
-for reps in range(1,1000000):
-	aProc()
-end = time.time()
-print("CURRENT METHOD... Jumo Table (HIT) Call in seconds:" + str(end - start))
-
-print "\n"
-print("==============================================")
-print(" Durect Call, selctor defines parameters")
-print(" PRO: 0 to 1 layer indirection")
-print(" CON: Needs Selector")
-print("==============================================")
-
-def testProc(theVersion):
-	global x
-	theVariables = indi.get("theVersion","NA")		#Use our selector to get the parameters
-	if not theVariables:
-		pass
-	else:
-		# do the work here, no jumping
-		x = x+1
-
-start = time.time()
-for reps in range(1,1000000):
-	testProc("Debug.1")
-end = time.time()
-print("Flatter (MISS) Call in seconds:" + str(end - start))
-
-start = time.time()
-for reps in range(1,1000000):
-	testProc("Error.0")
-end = time.time()
-print("Direct Call (HIT) in seconds:" + str(end - start))
-
-
-print "\n"
-print("==============================================")
-print(" Durect Call, numeric selctor defines parameters")
-print(" PRO: 0 to 1 layer indirection. no lookup in miss case")
-print(" CON: Needs Selector")
-print("==============================================")
-
-theLimit = 1
-
-def testProc2(theVersion):
-	global x
-	if theVersion < theLimit: return		#Use our selector to determine if we should continue
-	# do the work here, no jumping
-	x = x+1
-
-start = time.time()
-for reps in range(1,1000000):
-	testProc2(0)
-end = time.time()
-print("Flatter (MISS) Call in seconds:" + str(end - start))
-
-start = time.time()
-for reps in range(1,1000000):
-	testProc2(1)
-end = time.time()
-print("Direct Call (HIT) in seconds:" + str(end - start))
-
-
-print "\n"
-print("==============================================")
-print(" Durect Call, numeric selctor reviewed by caller")
-print(" PRO: no junp in miss case")
-print(" CON: Needs Selector. Needs IF at caller")
-print("==============================================")
-
-theLimit = 1
-theVersion = 0
-
-start = time.time()
-for reps in range(1,1000000):
-	if theVersion < theLimit: continue
-end = time.time()
-print("Flatter (MISS) Call in seconds:" + str(end - start))
-
-theVersion = 2
-
-start = time.time()
-for reps in range(1,1000000):
-	if theVersion > theLimit: doMath()
-
-end = time.time()
-print("Direct Call (HIT) in seconds:" + str(end - start))
-
-
-print "\n"
-print("==============================================")
-print("==============================================")
-
-start = time.time()
-for reps in range(1,1000000):
-	doMath()
-end = time.time()
-print("Direct Call in seconds:" + str(end - start))
-
-
-start = time.time()
-for reps in range(1,1000000):
-	doMath()
-end = time.time()
-print("Direct Call in seconds:" + str(end - start))
-
-
-start = time.time()
-for reps in range(1,1000000):
-	theProc = indi["Error.1"]
-	if theProc:
-		theProc()
-	else:
-		pass
-end = time.time()
-print("Indirect (Null) Call in seconds:" + str(end - start))
-
-
-
-start = time.time()
-for reps in range(1, 1000000):
-	indi.get("Error.1", invalidLoggindDirective)()
-end = time.time()
-print("Indirect Two (Null) Call in seconds:" + str(end - start))
-
-
-
-start = time.time()
-for reps in range(1,1000000):
-	theProc = indi["Error.0"]
-	if theProc:
-		theProc()
-	else:
-		pass
-end = time.time()
-print("Indirect Call in seconds:" + str(end - start))
-
-
-
-start = time.time()
-for reps in range(1,1000000):
-	try:
-		indi["Debug.1"]()
-	except:
-		pass
-end = time.time()
-print("FailMode in seconds:" + str(end - start))
-
-
-
-indi.get("Error.2", invalidLoggindDirective)()
+	logLevelNameDict = {
+		logging.DEBUG:MM_LOG_DEBUG_NOTE,
+		LOG_DEBUG_NOTE:MM_LOG_DEBUG_NOTE,
+		LOG_VERBOSE_NOTE:MM_LOG_VERBOSE_NOTE,
+		LOG_TERSE_NOTE:MM_LOG_TERSE_NOTE,
+		LOG_WARNING:MM_LOG_WARNING,
+		LOG_ERROR:MM_LOG_ERROR,
+		LOG_FORCE_NOTE:MM_LOG_FORCE_NOTE,
+		LOG_TIMESTAMP:MM_LOG_TIMESTAMP,
+		LOG_REPORT:MM_LOG_REPORT
+	}
+
+	def __init__(self, displayName, level=logging.NOTSET):
+		super(IndigoLogHandler, self).__init__(level)
+		self.displayName = displayName
+		#indigo.server.log("   Init IndigoLogHandler with displayName of: " + str(displayName))
+		#< LogRecord: MotionMap3, 20, plugin.py, 141, "Initializing python %s, version=%s" >\
+
+		#for level,levelName in self.logLevelNameDict.items():
+		#	logging.addLevelName(level, levelName)
+
+		indigo.server.log("IndigoLogHandler Initialized")
+
+	def emit(self, record):
+		# First, determine if it needs to be an Indigo error
+		is_error = True if record.levelno == LOG_ERROR else False
+
+		# Capture the level name from our dict. If its not in our dict, just use its STR equivalent
+		levelName = self.logLevelNameDict.get(record.levelno,str(record.levelno))
+
+		# Setup Stack visualization
+
+		theTrace = traceback.extract_stack()
+		NestingDepth = max(0, min(len(theTrace) - 3, 21))
+		callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]	# unpack the trace record for the call to mmLib_Log
+
+		#callingPackage = str("(" + os.path.basename(callingFile) + "." + str(callingProc) + ":" + str(callingLine) + ")")	# Construct a MM callingPackage (we skip the jump table)
+		#if exception != "": exception = "[" + exception + "]"
+		#logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)), str( datetime.datetime.now().strftime("%I:%M:%S %p") + " [" + logType + "] " + logMessage + exception + callingPackage))
+
+		logMessage = ""
+
+		if levelName == MM_LOG_REPORT:
+			stackLevel = ""
+			logMessage += "\n"
+		else:
+			stackLevel = '[{0:<22}]'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)))
+
+		if levelName == MM_LOG_TIMESTAMP:
+			timeStamp = " " + str(datetime.datetime.now().strftime("%I:%M:%S %p"))
+		else:
+			timeStamp = ""
+
+		if levelName == MM_LOG_DEBUG_NOTE:
+			type_string = self.displayName + " " + stackLevel + ' mmDebug'
+			logMessage = ":  " + self.format(record)
+		else:
+			type_string = self.displayName + " " + stackLevel
+			logMessage += levelName + " : " + timeStamp + " " + self.format(record)
+
+		if levelName == MM_LOG_ERROR:
+			type_string = self.displayName + " " + stackLevel + ' M'
+			logMessage = ":  " + self.format(record)
+
+		indigo.server.log(message=logMessage, type=type_string, isError=is_error)
+
+	def set_debug(self, debugOn):
+		if debugOn:
+			mmOurPlugin.__logger.setLevel(logging.DEBUG)
+		else:
+			mmOurPlugin.__logger.setLevel(logging.INFO)
+		mmOurPlugin.__logger.info("set_debug to '%s'", debugOn)
+
+
+
+class IndigoLogHandlerTerse(logging.Handler, object):
+
+
+	def __init__(self, displayName, level=logging.NOTSET):
+		indigo.server.log("Entering IndigoLogHandlerTerse")
+		super(IndigoLogHandlerTerse, self).__init__(displayName, level)
+		indigo.server.log("IndigoLogHandlerTerse Initialized")
+
+	def mmTerse(self, msg, *args, **kwargs):
+		indigo.server.log(message="Terse Message", type="MotionMap3" + "mmTerse", isError=False)
+
+	def emit(self, record):
+
+		indigo.server.log(message="In Terse Handler: " + self.format(record), type="mmTerse", isError=False)
+
+
+class IndigoLogHandlerVerbose(logging.Handler, object):
+
+	def __init__(self, displayName, level=logging.NOTSET):
+		indigo.server.log("Entering IndigoLogHandlerVerbose")
+		super(IndigoLogHandlerVerbose, self).__init__(displayName, level)
+		indigo.server.log("IndigoLogHandlerVerbose Initialized")
+
+	def mmVrbse(self, msg, *args, **kwargs):
+		indigo.server.log(message="Verbose Message", type="MotionMap3" + "mmVrbse", isError=False)
+
+	def emit(self, record):
+
+		indigo.server.log(message="In Verbose Handler: " + self.format(record), type="mmVerbose", isError=False)
+
