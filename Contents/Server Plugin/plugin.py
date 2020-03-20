@@ -136,13 +136,12 @@ class Plugin(indigo.PluginBase):
 
 		self.debug = True
 
-		try:
-			mmLib_Log2.init("MotionMap.log.txt", self)
-		except:
-			pass
-
 
 		mmLib_Log.init("MotionMap.log.txt", self)
+
+		mmLib_Log2.init("MotionMap.log.txt", self)
+
+
 		mmLib_Log.logForce(_MotionMapPlugin.MM_NAME + " Plugin version " + _MotionMapPlugin.MM_VERSION + ". Initialization complete. Waiting for Startup Command.")
 
 

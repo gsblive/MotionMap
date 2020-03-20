@@ -21,6 +21,8 @@ except:
 import mmLib_Low
 import _MotionMapPlugin
 import logging
+import time
+import mmLib_Log
 
 ##################################
 # Constants
@@ -30,10 +32,10 @@ import logging
 LOG_NOTSET = 0
 LOG_CLASSIC_DEBUG = 10
 LOG_DEBUG_NOTE = 12
-LOG_TIMESTAMP = 13
-LOG_VERBOSE_NOTE = 14
-LOG_TERSE_NOTE = 16
-LOG_REPORT = 19
+LOG_VERBOSE_NOTE = 13
+LOG_TERSE_NOTE = 15
+LOG_REPORT = 17
+LOG_TIMESTAMP = 19
 LOG_FORCE_NOTE = 25
 LOG_WARNING = 35
 LOG_ERROR = 45
@@ -66,16 +68,16 @@ logLevelNameDict = {
 }
 
 logMsgFormatDict = {
-	MM_LOG_NOTSET: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
-	MM_LOG_CLASSIC_DEBUG: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
-	MM_LOG_DEBUG_NOTE: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
-	MM_LOG_TIMESTAMP: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
-	MM_LOG_VERBOSE_NOTE: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
-	MM_LOG_TERSE_NOTE: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
+	MM_LOG_NOTSET: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_CLASSIC_DEBUG: '%(callingTime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
+	MM_LOG_DEBUG_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_TIMESTAMP: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_VERBOSE_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_TERSE_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
 	MM_LOG_REPORT: '%(msg)s',
-	MM_LOG_FORCE_NOTE: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
-	MM_LOG_WARNING: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)',
-	MM_LOG_ERROR: '%(asctime)s [%(levelname)s] %(msg)s (%(filename)s.%(funcName)s:%(lineno)d)'
+	MM_LOG_FORCE_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_WARNING: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_ERROR: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.'
 }
 
 logTypeFormatDict = {
@@ -112,13 +114,19 @@ class myLogHandler(logging.Handler, object):
 		self.displayName = displayName
 
 	def emit(self, record):
+
+		newString = checkString(record.msg)
+		if newString:
+			record.msg = newString
+			record.levelname = MM_LOG_ERROR
+
 		theTrace = traceback.extract_stack()
 		NestingDepth = max(0, min(len(theTrace) - 7, 21))
 		callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]  # unpack the trace record to get calling routine etc.
 		callingTime = str( datetime.datetime.now().strftime("%I:%M:%S %p"))
 
 		valDict = { "ourLoggerName": ourLoggerName,
-					"asctime":callingTime,
+					"callingTime":callingTime,
 					"levelname":record.levelname,
 					"msg":record.msg,
 					"filename":os.path.basename(callingFile),
@@ -129,7 +137,7 @@ class myLogHandler(logging.Handler, object):
 		logMessage = logMsgFormatDict[record.levelname] % valDict
 		logType = logTypeFormatDict[record.levelname] % valDict
 
-		indigo.server.log(message=logMessage, type=logType, isError=0)
+		indigo.server.log(message=logMessage, type=logType, isError=record.levelname == MM_LOG_ERROR)
 
 class myLogger(logging.Logger):
 
@@ -152,6 +160,11 @@ class myLogger(logging.Logger):
 
 	def mmTStmp(self, msg, *args, **kwargs):
 		if self.isEnabledFor(LOG_TIMESTAMP):
+			ct = time.time()
+			lt = time.localtime(ct)
+			t = time.strftime("%Y-%m-%d %H:%M:%S", lt)
+			timestampTime = "%s.%03d" % (t, (ct - long(ct)) * 1000)
+			msg = timestampTime + " " + msg
 			self._log(LOG_TIMESTAMP, msg, args, **kwargs)
 
 	def mmVrbse(self, msg, *args, **kwargs):
@@ -170,6 +183,9 @@ class myLogger(logging.Logger):
 
 	def mmForce(self, msg, *args, **kwargs):
 		if self.isEnabledFor(LOG_FORCE_NOTE):
+			#newString = self.checkString(msg)
+			#if newString:
+			#	msg = newString
 			self._log(LOG_FORCE_NOTE, msg, args, **kwargs)
 
 	def mmWARNG(self, msg, *args, **kwargs):
@@ -178,8 +194,41 @@ class myLogger(logging.Logger):
 
 	def mmERROR(self, msg, *args, **kwargs):
 		if self.isEnabledFor(LOG_ERROR):
-			self._log(LOG_ERROR, msg, args, **kwargs)
+			# Append Exception to msg if necessary
+			excType, excValue, excTraceback = sys.exc_info()
+			if excType == None:
+				postScript = "No exception found"
+			else:
+				theTrace = traceback.extract_tb(excTraceback, 1)
+				callingFile, callingLine, callingProc, sourceCode = theTrace[0]  # unpack the trace record
+				postScript = str(str(excValue) + ". Exception @ " + str(os.path.basename(callingFile)) + "." + str(callingProc) + ":" + str(callingLine))
 
+			# return and Indent postscript to align with Error Message
+			msg = msg +"\n" + ' ' * 45 + postScript
+
+			self._log(LOG_ERROR, msg, args, kwargs)
+
+	def mmNullMessage(self, msg, *args, **kwargs):
+		return
+
+
+		return(0)
+
+
+def checkString(msg):
+	# Returns 0 if the string is OK, otherwise returns a replacement string
+	try:
+		stringCheck = isinstance(msg, str)
+	except Exception as exception:
+		# this new exception will take priority over any previous exception. Here, we were handed a bad string,
+		# so our original message would have thrown another exception anyway
+		# Though I dont think it ever gets here.
+		return ('##### String Exception #####')
+
+	if not stringCheck:
+		return ('##### String Type Error #####')
+
+	return(0)
 
 
 ############################################################################################
@@ -206,24 +255,62 @@ def init(logFileName, ourPlugin):
 
 
 	mmLogHandler = myLogHandler("mm3LogHandler")
-	#mmLogHandler.setFormatter(logging.Formatter(fmt='%(stackGraph)s %(asctime)s [%(levelname)s] %(message)s (%(filename)s.%(funcName)s:%(lineno)d) ',datefmt="%I:%M:%S %p"))
 	# Setup the default formatter. Note: fmt is usually overridden in emit()
-	mmLogHandler.setFormatter(logging.Formatter(fmt='%(asctime)s [%(levelname)s] %(message)s (%(filename)s.%(funcName)s:%(lineno)d) ',datefmt="%I:%M:%S %p"))
+	# mmLogHandler.setFormatter(logging.Formatter(fmt='%(asctime)s [%(levelname)s] %(message)s (%(filename)s.%(funcName)s:%(lineno)d) ',datefmt="%I:%M:%S %p"))
 	mmLogger.addHandler(mmLogHandler)
 
-	#Test Code
+	#testSuite()
+
+	mmLogger.setLevel(LOG_TERSE_NOTE)	# default to Terse
+
+	############################################################################################
+	# Test code
+	############################################################################################
+
+def testSuite():
+
 	mmLogger.setLevel(LOG_NOTSET)
 	mmLogger.mmForce("###### Sample Force Message ######")
 	mmLogger.mmDebug("###### Sample debug Message ######")
 	mmLogger.mmReprt("\n========= Sample Report =========\nBlah\nBlah\nBlah\n========= End of Report =========\n")
+	mmLogger.mmERROR("###### Sample error Message ######")
+
+	# Performance tests comparative to original mmLib_Log
+
+	mmLogger.setLevel(LOG_TIMESTAMP)
+	mmLogger.mmTStmp("###### Start Timer")
+	for x in range(1,10000):
+		mmLogger.mmTerse("Placeholder")
+	mmLogger.mmTStmp("###### End Timer")
+
+	mmLogger.mmTStmp("###### Start Timer 2")
+	for x in range(1,10000):
+		mmLib_Log.logVerbose("Placeholder")
+	mmLogger.mmTStmp("###### End Timer 2")
+
+	mmLogger.mmTStmp("###### Start Timer 3")
+	for x in range(1,10000):
+		mmLogger.mmNullMessage("Placeholder")
+	mmLogger.mmTStmp("###### End Timer 3")
+
+	try:
+		x = 1/0
+	except:
+		mmLogger.mmERROR("###### EXCEPTION error Message ######")
+
+	mmLogger.mmForce(getZero())
+	#mmLogger.mmForce("###### This is a force direct string exception ######" + getZero())
+	mmLogger.mmForce("###### This is force mesage")
+
+	mmLogger.mmForce("###### This is force mesage 2")
+
 	#End Test
 	mmLogger.setLevel(LOG_TERSE_NOTE)	# default to Terse
 
 	#doTest()
 
-############################################################################################
-# Test code
-############################################################################################
+def getZero():
+	return(0)
 
 def testLevel(theLevel):
 	mmLogger.setLevel(theLevel)

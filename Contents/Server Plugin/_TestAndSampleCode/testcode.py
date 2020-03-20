@@ -25,12 +25,19 @@ import subprocess
 
 import random
 import logging
+import time
 
 #====================================
 #============  Main  ================
 #====================================
 
-print "%I:%M:%S %p"
+msg = "This is a timestamp."
+ct = time.time()
+lt = time.localtime(ct)
+t = time.strftime("%Y-%m-%d %H:%M:%S", lt)
+timestampTime = "%s.%03d" % (t, (ct - long(ct)) * 1000)
+msg = timestampTime + " " + msg
+print msg
 exit()
 
 LOG_NOTSET = 0
@@ -200,135 +207,4 @@ OneDeep("Testing from onedeep")
 TwoDeep("Testing from TwoDeep")
 
 exit()
-
-
-	mmOurPlugin.logger.info("\n\nTesting Info method\n")
-
-	if 0:
-		try:
-			logTerse = IndigoLogHandlerTerse(_MotionMapPlugin.MM_NAME)
-			logTerse.setLevel(logging.LOG_TERSE_NOTE)
-			logTerse.setFormatter('%(asctime)s %(levelname)s %(message)s')
-			ourPlugin.logger.addHandler(logTerse)
-			logging.addLevelName(LOG_TERSE_NOTE, MM_LOG_TERSE_NOTE)
-
-			logVerbose = IndigoLogHandlerVerbose(_MotionMapPlugin.MM_NAME)
-			logVerbose.setLevel(logging.LOG_VERBOSE_NOTE)
-			logVerbose.setFormatter('%(asctime)s %(levelname)s %(message)s')
-			ourPlugin.logger.addHandler(logVerbose)
-			logging.addLevelName(LOG_VERBOSE_NOTE, MM_LOG_VERBOSE_NOTE)
-		except:
-			indigo.server.log("###Error getting indigo_log_handler")
-
-		logTerse._log(LOG_TERSE_NOTE, "This is a terse note")
-		logVerbose._log(LOG_VERBOSE_NOTE, "This is a verbose note")
-
-# indigo.server.log(message="Welcome to MotionMap", type="Warning", isError=0)
-
-class IndigoLogHandler(logging.Handler, object):
-
-	logLevelNameDict = {
-		logging.DEBUG:MM_LOG_DEBUG_NOTE,
-		LOG_DEBUG_NOTE:MM_LOG_DEBUG_NOTE,
-		LOG_VERBOSE_NOTE:MM_LOG_VERBOSE_NOTE,
-		LOG_TERSE_NOTE:MM_LOG_TERSE_NOTE,
-		LOG_WARNING:MM_LOG_WARNING,
-		LOG_ERROR:MM_LOG_ERROR,
-		LOG_FORCE_NOTE:MM_LOG_FORCE_NOTE,
-		LOG_TIMESTAMP:MM_LOG_TIMESTAMP,
-		LOG_REPORT:MM_LOG_REPORT
-	}
-
-	def __init__(self, displayName, level=logging.NOTSET):
-		super(IndigoLogHandler, self).__init__(level)
-		self.displayName = displayName
-		#indigo.server.log("   Init IndigoLogHandler with displayName of: " + str(displayName))
-		#< LogRecord: MotionMap3, 20, plugin.py, 141, "Initializing python %s, version=%s" >\
-
-		#for level,levelName in self.logLevelNameDict.items():
-		#	logging.addLevelName(level, levelName)
-
-		indigo.server.log("IndigoLogHandler Initialized")
-
-	def emit(self, record):
-		# First, determine if it needs to be an Indigo error
-		is_error = True if record.levelno == LOG_ERROR else False
-
-		# Capture the level name from our dict. If its not in our dict, just use its STR equivalent
-		levelName = self.logLevelNameDict.get(record.levelno,str(record.levelno))
-
-		# Setup Stack visualization
-
-		theTrace = traceback.extract_stack()
-		NestingDepth = max(0, min(len(theTrace) - 3, 21))
-		callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]	# unpack the trace record for the call to mmLib_Log
-
-		#callingPackage = str("(" + os.path.basename(callingFile) + "." + str(callingProc) + ":" + str(callingLine) + ")")	# Construct a MM callingPackage (we skip the jump table)
-		#if exception != "": exception = "[" + exception + "]"
-		#logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)), str( datetime.datetime.now().strftime("%I:%M:%S %p") + " [" + logType + "] " + logMessage + exception + callingPackage))
-
-		logMessage = ""
-
-		if levelName == MM_LOG_REPORT:
-			stackLevel = ""
-			logMessage += "\n"
-		else:
-			stackLevel = '[{0:<22}]'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)))
-
-		if levelName == MM_LOG_TIMESTAMP:
-			timeStamp = " " + str(datetime.datetime.now().strftime("%I:%M:%S %p"))
-		else:
-			timeStamp = ""
-
-		if levelName == MM_LOG_DEBUG_NOTE:
-			type_string = self.displayName + " " + stackLevel + ' mmDebug'
-			logMessage = ":  " + self.format(record)
-		else:
-			type_string = self.displayName + " " + stackLevel
-			logMessage += levelName + " : " + timeStamp + " " + self.format(record)
-
-		if levelName == MM_LOG_ERROR:
-			type_string = self.displayName + " " + stackLevel + ' M'
-			logMessage = ":  " + self.format(record)
-
-		indigo.server.log(message=logMessage, type=type_string, isError=is_error)
-
-	def set_debug(self, debugOn):
-		if debugOn:
-			mmOurPlugin.__logger.setLevel(logging.DEBUG)
-		else:
-			mmOurPlugin.__logger.setLevel(logging.INFO)
-		mmOurPlugin.__logger.info("set_debug to '%s'", debugOn)
-
-
-
-class IndigoLogHandlerTerse(logging.Handler, object):
-
-
-	def __init__(self, displayName, level=logging.NOTSET):
-		indigo.server.log("Entering IndigoLogHandlerTerse")
-		super(IndigoLogHandlerTerse, self).__init__(displayName, level)
-		indigo.server.log("IndigoLogHandlerTerse Initialized")
-
-	def mmTerse(self, msg, *args, **kwargs):
-		indigo.server.log(message="Terse Message", type="MotionMap3" + "mmTerse", isError=False)
-
-	def emit(self, record):
-
-		indigo.server.log(message="In Terse Handler: " + self.format(record), type="mmTerse", isError=False)
-
-
-class IndigoLogHandlerVerbose(logging.Handler, object):
-
-	def __init__(self, displayName, level=logging.NOTSET):
-		indigo.server.log("Entering IndigoLogHandlerVerbose")
-		super(IndigoLogHandlerVerbose, self).__init__(displayName, level)
-		indigo.server.log("IndigoLogHandlerVerbose Initialized")
-
-	def mmVrbse(self, msg, *args, **kwargs):
-		indigo.server.log(message="Verbose Message", type="MotionMap3" + "mmVrbse", isError=False)
-
-	def emit(self, record):
-
-		indigo.server.log(message="In Verbose Handler: " + self.format(record), type="mmVerbose", isError=False)
 
