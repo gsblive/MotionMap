@@ -106,6 +106,7 @@ unknownAddress = {}
 
 mmNonVolatiles = {}
 mmNVFileName = ""
+mmLogFolder = ""			# Gets set in plugin.py, __init__()
 
 class anIndigoDev:
 
@@ -143,6 +144,12 @@ def	cacheNVDict():
 	global mmNVFileName
 
 	try:
+		os.mkdir(mmLogFolder)
+	except Exception as err:
+		if err.args[0] != 17:
+			print ("Creation of the directory %s failed" % mmLogFolder)
+
+	try:
 		mmLib_Log.logForce("=== Writing MotionMap Nonvolatile File: " + ntpath.basename(mmNVFileName) )	# Only File Name
 	except:
 		mmLib_Log.logForce(" === Error Writing Data... Nonvolatile file not found.")
@@ -160,13 +167,11 @@ def initializeNVDict(theDevName):
 
 	global mmNonVolatiles
 	global mmNVFileName
+	global mmLogFolder
 
 	if mmNVFileName == "":
 		# get Pathname parent of plugin... We dont want to replace the NV file every time we update the pugin
-		current_file = os.path.abspath(os.path.dirname(__file__))
-		target_dir = os.path.join(current_file, '../../../')
-		mmNVPath = os.path.abspath(target_dir)
-		mmNVFileName = mmNVPath +"/"+ _MotionMapPlugin.nvFileName
+		mmNVFileName = mmLogFolder + _MotionMapPlugin.nvFileName
 		#mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + mmNVFileName)	# Full Pathname
 		mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + _MotionMapPlugin.nvFileName)	# Just Filename
 
@@ -329,7 +334,7 @@ def	daytimeTransition(eventID, eventParameters):
 	global MMSysNonvolatileData
 
 	if indigo.variables['MMDayTime'].value == "true":
-		mmLib_Log.logReportLine( "*** It is now Daytime *** | Indigo Variable \'MMDayTime\' value = " + str(indigo.variables['MMDayTime'].value))
+		mmLib_Log.logReportLine( "\n*** It is now Daytime *** | Indigo Variable \'MMDayTime\' value = " + str(indigo.variables['MMDayTime'].value) + "\n")
 		# only process the reports if they have not been processed in the past 23 hours (we only want them once a day)
 		lastDaytimeTransition = initializeNVElement(MMSysNonvolatileData, "lastReportTime", 0)
 

@@ -36,7 +36,9 @@ def parseConfig(theFilePath):
 	currentmmDeviceType = ""
 #	inObjectTime = 0
 
-	initialLogSensitivity = mmLib_Log.getLogSensitivity()
+	initialLogSensitivity = mmLib_Log.currentTextLogLevel
+
+	mmLib_Log.setLogSensitivity(mmLib_Log.MM_LOG_TERSE_NOTE)		# restore log sensitivity (in case it changed while parsing)
 
 	#mmLib_Log.logTerse("Parsing file: " + theFilePath)			# For Full Pathname
 	mmLib_Log.logTerse("Parsing file: " + ntpath.basename(theFilePath))			# For just file name

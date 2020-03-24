@@ -173,7 +173,7 @@ except:
 #
 MM_NAME = "MotionMap3"
 MM_VERSION = "0.9.0"
-MM_DEFAULT_LOG_FILE = "MotionMap.log.txt"
+MM_DEFAULT_LOG_FILE = "MotionMap.log"
 #Note: If the wrong hostname appears below, just change it in the terminal with these 3 commands:
 #	sudo scutil --set ComputerName "newname"
 #	sudo scutil --set LocalHostName "newname"

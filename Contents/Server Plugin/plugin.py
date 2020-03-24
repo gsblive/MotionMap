@@ -22,7 +22,6 @@ except:
 	pass
 
 import mmLib_Log
-import mmLib_Log2
 import mmLib_Low
 import mmLib_Events
 
@@ -30,6 +29,8 @@ import mmLib_CommandQ
 import mmLib_Config
 from timeit import default_timer as timer
 import time
+#import os.path
+import os
 import logging
 
 from collections import deque
@@ -134,15 +135,21 @@ class Plugin(indigo.PluginBase):
 
 		indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 
+		mmLib_Low.mmLogFolder = str(os.path.expanduser("~") + "/MotionMap3 Logs/")	# moved the log folder to the user space
+
+		try:
+			os.mkdir(mmLib_Low.mmLogFolder)
+		except Exception as err:
+			if err.args[0] != 17:
+				print ("Creation of the directory %s failed" % mmLib_Low.mmLogFolder)
+
+
 		self.debug = True
 
-
-		mmLib_Log.init("MotionMap.log.txt", self)
-
-		mmLib_Log2.init("MotionMap.log.txt", self)
+		mmLib_Log.init("MotionMap.log", self)
 
 
-		mmLib_Log.logForce(_MotionMapPlugin.MM_NAME + " Plugin version " + _MotionMapPlugin.MM_VERSION + ". Initialization complete. Waiting for Startup Command.")
+		mmLib_Log.logTimestamp(_MotionMapPlugin.MM_NAME + " Plugin version " + _MotionMapPlugin.MM_VERSION + ". Initialization complete. Waiting for Startup Command.")
 
 
 	########################################
@@ -162,10 +169,11 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def startup(self):
 		global startTime
+		global mmFilePath
 
 		startTime = time.time()
 
-		mmLib_Log.logForce("---" + _MotionMapPlugin.MM_NAME + " plugin version " + _MotionMapPlugin.MM_VERSION + ". Startup called")
+		mmLib_Log.logForceGray("### " + _MotionMapPlugin.MM_NAME + " plugin version " + _MotionMapPlugin.MM_VERSION + ". Startup called")
 
 		mmLib_Log.start()
 		mmLib_Low.init()
@@ -178,7 +186,7 @@ class Plugin(indigo.PluginBase):
 
 	########################################
 	#
-	#		testInitComplete	The plugin is being called to stop and shutdown
+	#		InitComplete	The plugin is Up and runningn
 	#
 	########################################
 	def initComplete(self):
@@ -202,7 +210,8 @@ class Plugin(indigo.PluginBase):
 		except Exception as exception:
 			mmLib_Log.logError( "MMSys Distributing \'initComplete\' failed. Exception: " + str(exception))
 
-		mmLib_Log.mmDebugNote("--- " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
+		mmLib_Log.logForceGray("### " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
+		mmLib_Log.logTimestamp( _MotionMapPlugin.MM_NAME + " Startup complete. " + _MotionMapPlugin.MM_NAME + " is now running.")
 
 		return
 
@@ -214,9 +223,9 @@ class Plugin(indigo.PluginBase):
 	def shutdown(self):
 		global pluginInitialized
 
-		mmLib_Log.mmDebugNote("--- " + _MotionMapPlugin.MM_NAME + "Shutdown requested. Shutting Down MotionMap.")
 		pluginInitialized = 0	# Stop all processing
 		mmLib_Low.cacheNVDict()	# cache the nonvolatiles
+		mmLib_Log.logTimestamp("### " + _MotionMapPlugin.MM_NAME + "Shutdown requested. MotionMap session complete.")
 
 
 	########################################

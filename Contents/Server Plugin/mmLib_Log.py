@@ -1,22 +1,28 @@
 ############################################################################################
 #
-# mmLib_Log.py
-# Error Log processing for MotionMap2
+# mmLib_Log.py (Version 2.0)
+#		This version uses an object for the logger based loosely on python login functionality
+#		This replaces all functionality for  mmLib_Log.py maintaining all command compability
+#		This version is slightly more performance enhanced, however if you need to look at
+#		earlier code, the original is called mmLib_LogOld.py
+#
+# Error Log processing for MotionMap3
 #
 ############################################################################################
 
-# import json
+import os.path
 import sys
 import os
+import ntpath
 import traceback
 import datetime
+import logging
+import time
+import mmLib_Low
 try:
 	import indigo
 except:
 	pass
-import mmLib_Low
-import _MotionMapPlugin
-import logging
 
 ##################################
 # Constants
@@ -25,180 +31,248 @@ import logging
 MAX_LOG_SIZE = 1024*1024
 RESET_LOG_SIZE = 512*1024
 
+# Log Levels in numeric order
 
-# Log type constants. This is displayed in the left margin of the EventLog per each log entry
+LOG_NOTSET = 0
+LOG_DEBUG_NOTE = 12
+LOG_VERBOSE_NOTE = 13
+LOG_TERSE_NOTE = 15
+LOG_REPORT = 17
+LOG_TIMESTAMP = 19
+LOG_FORCE_GRAY_NOTE = 24
+LOG_FORCE_NOTE = 25
+LOG_WARNING = 35
+LOG_ERROR = 45
 
+# Log Level names
+
+MM_LOG_NOTSET = "mmNotSet"
 MM_LOG_DEBUG_NOTE = "mmDebug"
 MM_LOG_VERBOSE_NOTE = "mmVrbse"
 MM_LOG_TERSE_NOTE = "mmTerse"
+MM_LOG_REPORT = "mmReprt"
+MM_LOG_TIMESTAMP = "mmTStmp"
+MM_LOG_FORCE_GRAY_NOTE = "mmForcG"
+MM_LOG_FORCE_NOTE = "mmForce"
 MM_LOG_WARNING = "mmWARNG"
 MM_LOG_ERROR = "mmERROR"
-MM_LOG_FORCE_NOTE = "mmForce"
-MM_LOG_TIMESTAMP = "mmTStmp"
-MM_LOG_REPORT = "MMReprt"
 
-LOG_DEBUG_NOTE = 11
-LOG_VERBOSE_NOTE = 12
-LOG_TERSE_NOTE = 15
-LOG_WARNING = 35
-LOG_ERROR = 45
-LOG_FORCE_NOTE = 47
-LOG_TIMESTAMP = 48
-LOG_REPORT = 49
+logLevelDict =	{
+				MM_LOG_NOTSET: LOG_NOTSET,
+				MM_LOG_DEBUG_NOTE: LOG_DEBUG_NOTE,
+				MM_LOG_VERBOSE_NOTE: LOG_VERBOSE_NOTE,
+				MM_LOG_TERSE_NOTE: LOG_TERSE_NOTE,
+				MM_LOG_REPORT: LOG_REPORT,
+				MM_LOG_TIMESTAMP: LOG_TIMESTAMP,
+				MM_LOG_FORCE_GRAY_NOTE: LOG_FORCE_GRAY_NOTE,
+				MM_LOG_FORCE_NOTE: LOG_FORCE_NOTE,
+				MM_LOG_WARNING: LOG_WARNING,
+				MM_LOG_ERROR: LOG_ERROR
+				}
+# Jump table with default mmNullMessage
+
+def mmNullMessage(msg): return
+
+setLogSensitivity = mmNullMessage
 
 
-# Log Filtering - for mmLogSensitivity
-MM_SHOW_EVERYTHING = 'all'
-MM_SHOW_VERBOSE_NOTES = 'verbose'
-MM_SHOW_TERSE_NOTES = 'terse'
-MM_SHOW_WARNINGS = 'warnings'
-MM_SHOW_ERRORS = 'errors'
+logNull = mmNullMessage			# will never do anything... it never changes
+logNotSet = mmNullMessage		# will always display this message regardles of loglevel setting
+logDebug = mmNullMessage
+logVerbose = mmNullMessage
+logTerse = mmNullMessage
+logReportLine = mmNullMessage
+logTimestamp = mmNullMessage
+logForceGray = mmNullMessage
+logForce = mmNullMessage
+logWarning = mmNullMessage
+logError = mmNullMessage
 
-loggerDispatchTable = {}	# Must be initialized at init time when we have a pointer to our plugin object
-logSuoportedSensitivities = [ MM_SHOW_EVERYTHING, MM_SHOW_VERBOSE_NOTES, MM_SHOW_TERSE_NOTES, MM_SHOW_WARNINGS, MM_SHOW_ERRORS]
+
+logMsgFormatDict = {
+	MM_LOG_NOTSET: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_DEBUG_NOTE: ' ',		# everything is in Type so the messaage will present gray
+	MM_LOG_VERBOSE_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_TERSE_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_REPORT: '%(msg)s',
+	MM_LOG_TIMESTAMP: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_FORCE_GRAY_NOTE: ' ',
+	MM_LOG_FORCE_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_WARNING: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_ERROR: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.'
+}
+
+logTypeFormatDict = {
+	MM_LOG_NOTSET: '%(ourLoggerName)s %(stackGraph)s',
+	MM_LOG_DEBUG_NOTE: '%(ourLoggerName)s %(stackGraph)s %(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_VERBOSE_NOTE: '%(ourLoggerName)s %(stackGraph)s',
+	MM_LOG_TERSE_NOTE: '%(ourLoggerName)s %(stackGraph)s',
+	MM_LOG_REPORT: ' ',
+	MM_LOG_TIMESTAMP: '%(ourLoggerName)s %(stackGraph)s',
+	MM_LOG_FORCE_GRAY_NOTE: '%(ourLoggerName)s %(stackGraph)s %(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_FORCE_NOTE: '%(ourLoggerName)s %(stackGraph)s',
+	MM_LOG_WARNING: '%(ourLoggerName)s %(stackGraph)s',
+	MM_LOG_ERROR: '%(ourLoggerName)s %(stackGraph)s'
+}
 
 ##################################
-# Log Runtime Settings
+# Module Global Variables
 ##################################
 
-mmLogFileName = "undefined"
-mmDefaultLogSensitivity = MM_SHOW_TERSE_NOTES
-mmLogSensitivity = "undefined"	# Force actual setting in first call to SetSensitivity
+
+ourLoggerName = "LoggerName not Set"
+ourLoggerFile = "LoggerFile not Set"
+mmOurPlugin = 0
+mmLogger = 0
+
+currentNumericLogLevel = LOG_NOTSET
+currentTextLogLevel = MM_LOG_NOTSET
+
+
+# Eventually, we may log to the terminal, then we can support color
 
 def prRed(skk): return ("\033[91m {}\033[00m" .format(skk))
 def prGreen(skk): return ("\033[92m {}\033[00m" .format(skk))
 def prCyan(skk): return ("\033[96m {}\033[00m" .format(skk))
 
-############################################################################################
-############################################################################################
-#
-#  Logging JumpTable - These are used as the logging entry points for the routines below
-#
-#  	These are the functions to call to print a log entry
-#
-############################################################################################
-############################################################################################
-#
-#	Internal Logging Support functions
-#
-############################################################################################
-############################################################################################
 
-############################################################################################
-# Special indirect routines
-############################################################################################
+class myLogger(logging.Logger):
 
-# mmLog - WildCard, overrides current log settings for 1 single call
-# Not part of the jump table above
+	def __init__(self, name, level=MM_LOG_NOTSET):
+		super(myLogger, self).__init__(name)
+		self.setLevel(level)
 
-def mmLog(MODE, logMessage):
-	displayMessage(MODE, logMessage, loggerDispatchTable[MODE])
-	return
+	def setLevel(self,logLevelString):
 
-#	mmLogNone - Default Proc
-#	Shunt when a logging function is turned off
+		global logNotSet, logDebug, logVerbose, logTerse, logReportLine, logTimestamp, logForceGray, logForce, logWarning, logError, setLogSensitivity, logLevelDict, currentNumericLogLevel, currentTextLogLevel
 
-def mmLogNone(logMessage):
-	pass
+		setLogSensitivity = self.setLevel
 
-############################################################################################
-# Logging Jump table
-# Its here because it needs to be below mmLogNone()
-#
-# We can gret rid of these jump tables (which take a fair amount of system overhead), by
-# Requiring an additional parameter (MM_LOG_DEBUG_NOTE, MM_LOG_VERBOSE_NOTE, etc) that will look up
-# parameters and settings in a dictionary indexed by the log type... Similar to how mmLog() works above.
-#
-# The problem with this is that wwe will have to always put in another parameter when calling the
-# displayMessage procedure
-#
-# The following are the namer s used for logging functions throught the code. This level of
-# indirection is to allow for logging functions to be turned off selectively by setLogSensitivity()
-# below. When it is called, all Log functions that are irrelivant to sensitivity level get shunted
-# by the mmLogNone function as per logSensitivityMap below.
-#
-############################################################################################
+		numericVal = logLevelDict.get(logLevelString, 'Unknown')
 
-logDebug = mmLogNone
-logVerbose = mmLogNone
-logTerse = mmLogNone
-logWarning = mmLogNone
-logError = mmLogNone
-logForce = mmLogNone
-logTimestamp = mmLogNone
-logReportLine = mmLogNone
+		if numericVal == 'Unknown':
+			self.emit(MM_LOG_NOTSET, "Error Setting Log Level to " + str(logLevelString) + ". Should be text based in set " + str(logLevelDict.keys()))
+			return
+
+		logNotSet = self.mmNotSet if LOG_NOTSET >= numericVal else mmNullMessage
+		logDebug = self.mmDebug if LOG_DEBUG_NOTE >= numericVal else mmNullMessage
+		logVerbose = self.mmVrbse if LOG_VERBOSE_NOTE >= numericVal else mmNullMessage
+		logTerse = self.mmTerse if LOG_TERSE_NOTE >= numericVal else mmNullMessage
+		logReportLine = self.mmReprt if LOG_REPORT >= numericVal else mmNullMessage
+		logTimestamp = self.mmTStmp if LOG_TIMESTAMP >= numericVal else mmNullMessage
+		logForceGray = self.mmForceGray if LOG_FORCE_GRAY_NOTE >= numericVal else mmNullMessage
+		logForce = self.mmForce if LOG_FORCE_NOTE >= numericVal else mmNullMessage
+		logWarning = self.mmWARNG if LOG_WARNING >= numericVal else mmNullMessage
+		logError = self.mmERROR if LOG_ERROR >= numericVal else mmNullMessage
+
+		currentNumericLogLevel = numericVal
+		currentTextLogLevel = logLevelString
+		#Call directly to emit so our stack frame represents the actual caller (not ourselves)
+		self.emit(MM_LOG_NOTSET, "Log Level value now " + str(numericVal) + ", " + logLevelString)
 
 
-############################################################################################
-############################################################################################
-#
-# The actual logging functions are here (referenced by the jump table above)
-#
-############################################################################################
-############################################################################################
+	def emit(self, levelname, msg):
+
+		newString = checkString(msg)
+		if newString:
+			msg = newString
+			levelname = MM_LOG_ERROR
+
+		theTrace = traceback.extract_stack()
+		NestingDepth = max(0, min(len(theTrace) - 3, 21))
+		callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]  # unpack the trace record to get calling routine etc.
+		callingTime = str( datetime.datetime.now().strftime("%I:%M:%S %p"))
+
+		valDict = {
+						"ourLoggerName": ourLoggerName,
+						"callingTime": callingTime,
+						"levelname": levelname,
+						"msg": msg,
+						"filename": os.path.basename(callingFile),
+						"funcName": callingProc,
+						"lineno": callingLine,
+						"stackGraph": '[{0:<22}]'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)))
+					}
+		logMessage = logMsgFormatDict[levelname] % valDict
+		logType = logTypeFormatDict[levelname] % valDict
+
+		indigo.server.log(message=logMessage, type=logType, isError=levelname == MM_LOG_ERROR)
+
+		return 0
+
+	# log dispatch area
+
+	def mmNotSet(self, msg):
+		# Show everything
+		self.emit(MM_LOG_NOTSET, msg)
+
+	def mmDebug(self, msg):
+		self.emit(MM_LOG_DEBUG_NOTE, msg)
+
+	def mmVrbse(self, msg):
+		self.emit(MM_LOG_VERBOSE_NOTE, msg)
+
+	def mmTerse(self, msg):
+		self.emit(MM_LOG_TERSE_NOTE, msg)
+
+	# You probably dont want to set levels beyond this line. We should always accept report, force, warnings and errors.
+
+	def mmReprt(self, msg):
+		self.emit(MM_LOG_REPORT, msg)
+
+	def mmTStmp(self, msg):
+		ct = time.time()
+		lt = time.localtime(ct)
+		t = time.strftime("%Y-%m-%d %H:%M:%S", lt)
+		timestampTime = "%s.%03d" % (t, (ct - long(ct)) * 1000)
+		msg = timestampTime + " " + msg
+		self.emit(MM_LOG_TIMESTAMP, msg)
+		writeToLogFile(MM_LOG_TIMESTAMP, msg, 1, 0)
+
+	def mmForceGray(self, msg):
+		self.emit(MM_LOG_FORCE_GRAY_NOTE, msg)
+
+	def mmForce(self, msg):
+		self.emit(MM_LOG_FORCE_NOTE, msg)
+
+	def mmWARNG(self, msg):
+		self.emit(MM_LOG_WARNING, msg)
+		writeToLogFile(MM_LOG_WARNING, msg, 1, 1)
+
+	def mmERROR(self, msg):
+		# Append Exception to msg if necessary
+		excType, excValue, excTraceback = sys.exc_info()
+		if excType == None:
+			postScript = "No exception found"
+		else:
+			theTrace = traceback.extract_tb(excTraceback, 1)
+			callingFile, callingLine, callingProc, sourceCode = theTrace[0]  # unpack the trace record
+			postScript = str(str(excValue) + ". Exception @ " + str(os.path.basename(callingFile)) + "." + str(callingProc) + ":" + str(callingLine))
+
+		# return and Indent postscript to align with Error Message
+		msg = msg +"\n" + ' ' * 45 + postScript
+
+		self.emit(MM_LOG_ERROR, msg)
+		writeToLogFile(MM_LOG_ERROR, msg, 1, 1)
+
+	def mmNullMessage(self, msg):
+		return
 
 
-# mmDebugNote - only show the message provided if mmLogSensitivity is set to MM_SHOW_EVERYTHING
-#
+def checkString(msg):
+	# Returns 0 if the string is OK, otherwise returns a replacement string
+	try:
+		stringCheck = isinstance(msg, str)
+	except:
+		# this new exception will take priority over any previous exception. Here, we were handed a bad string,
+		# so our original message would have thrown another exception anyway
+		# Though I dont think it ever gets here.
+		return ('##### String Exception #####')
 
-def mmDebugNote(logMessage):
-	displayMessage(MM_LOG_DEBUG_NOTE, logMessage, loggerDispatchTable[MM_LOG_DEBUG_NOTE])
-	return
+	if not stringCheck:
+		return ('##### String Type Error #####')
 
-
-#	mmVerboseNote - only show the message provided if mmLogSensitivity is set to MM_SHOW_VERBOSE_NOTES
-#
-def mmVerboseNote(logMessage):
-	displayMessage(MM_LOG_VERBOSE_NOTE, logMessage, loggerDispatchTable[MM_LOG_VERBOSE_NOTE])
-	return
-
-
-#	mmTerseNote - only show the message provided if mmLogSensitivity is set to MM_SHOW_TERSE_NOTES
-#
-def mmTerseNote(logMessage):
-	displayMessage(MM_LOG_TERSE_NOTE, logMessage, loggerDispatchTable[MM_LOG_TERSE_NOTE])
-	return
-
-
-#	mmWarning - only show the message provided if mmLogSensitivity is set to MM_SHOW_WARNINGS, also place a debugInfo/stackcrawl and timestamp into the log file
-#
-def mmWarning(logMessage):
-	displayMessage(MM_LOG_WARNING, logMessage, loggerDispatchTable[MM_LOG_WARNING])
-	writeToLogFile(MM_LOG_WARNING, logMessage, 1, 1)
-	return
-
-
-#	mmError - only show the message provided if mmLogSensitivity is set to MM_SHOW_ERRORS, also place a debugInfo/stackcrawl and timestamp into the log file
-#
-def mmError(logMessage):
-	displayMessage(MM_LOG_ERROR, logMessage, loggerDispatchTable[MM_LOG_ERROR])
-	writeToLogFile(MM_LOG_ERROR, logMessage, 1, 1)
-	return
-
-
-#	mmForceNote - show the message provided in all cases
-#
-def mmForceNote(logMessage):
-	displayMessage(MM_LOG_FORCE_NOTE, logMessage, loggerDispatchTable[MM_LOG_FORCE_NOTE])
-	return
-
-#	mmPrintReportLine - show the message provided in all cases
-#
-def mmPrintReportLine(logMessage):
-	displayMessage(MM_LOG_REPORT, logMessage, loggerDispatchTable[MM_LOG_REPORT])
-	return
-
-
-#	mmTimestamp - show the message provided in all cases, also place a debugInfo/stackcrawl and timestamp into the log file
-#
-def mmTimestamp(logMessage):
-	displayMessage(MM_LOG_TIMESTAMP, logMessage, loggerDispatchTable[MM_LOG_TIMESTAMP])
-	writeToLogFile(MM_LOG_TIMESTAMP, logMessage, 1, 0)
-	return
-
-
-
-
+	return (0)
 
 
 ############################################################################################
@@ -229,10 +303,12 @@ def trimFile(theFilename,resetSize):
 #
 def writeToLogFile(logType, logMessage, writeTimeStamp, writeTraceLog):
 
+	# By Default we are only sending Errors, Warnings and Timestamps to the file
+
 	theDateTime = datetime.datetime.now().strftime("%I:%M:%S %p") + " "
 
 	try:
-		f = open(mmLogFileName, 'a')
+		f = open(ourLoggerFile, 'a')
 
 		if writeTimeStamp:
 			f.write("==============================================================" + '\n' + "=" + '\n')
@@ -250,173 +326,11 @@ def writeToLogFile(logType, logMessage, writeTimeStamp, writeTraceLog):
 
 		f.write('\n\n\n')
 		f.close()
-		if os.path.getsize(mmLogFileName) > MAX_LOG_SIZE: trimFile(mmLogFileName, RESET_LOG_SIZE)
+		if os.path.getsize(ourLoggerFile) > MAX_LOG_SIZE: trimFile(ourLoggerFile, RESET_LOG_SIZE)
 	except:
 		indigo.server.log("Could not open Log file")
 
 	return(logMessage)
-
-
-
-# displayMessage	Format and display the lof message
-#
-#	logType:			MM_LOG_DEBUG_NOTE 		Log the debugging note to SQL function logger.debug
-#						MM_LOG_VERBOSE_NOTE 	Print the verbose message to the standard indigo.server.log
-#						MM_LOG_TERSE_NOTE		Log the debugging note to SQL function logger.info
-#						MM_LOG_WARNING 			Log the debugging note to SQL function logger.warn
-#						MM_LOG_ERROR 			Log the debugging note to SQL function logger.error This will report the exception in addition to the message
-#						MM_LOG_FORCE_NOTE 		Print the verbose message to the standard indigo.server.log
-#						MM_LOG_TIMESTAMP		Log the debugging note to SQL function logger.info
-#						MM_LOG_REPORT			Print the verbose message to the standard indigo.server.log
-#
-#	These logs mentioned are archived daily at midnight to timestamped files at /Library/Application Support/Perceptive Automation/Indigo 7/Logs/MotionMap3.listener/
-#	All SQL Logs listed above also put test strings into PLugin.log file at the directory above. SQL versions will only be stored as directed by
-#	accesing the configuation menu at Indigo 7.4->Plugins->	Plugins->SQL Logger:
-#
-def displayMessage(logType, logMessage, displayProc):
-
-	exception = ""
-	stringCheck = 0
-
-	try:
-		stringCheck = isinstance(logMessage, str)
-	except Exception as exception:
-		# this new exception will take priority over any previous exception. Here, we were handed a bad string,
-		# so our original message would have thrown another exception anyway
-		# Though I dont think it ever gets here.
-		pass
-
-	if not stringCheck:
-			# The value passed in wasnt a string. Put up a custom message
-			logMessage = "XXX displayMessage Error: Message was not a well-formed String."
-			logType = MM_LOG_ERROR
-			displayProc = loggerDispatchTable[logType]
-
-	if logType == MM_LOG_REPORT:
-		indigo.server.log(logMessage, " ")
-	else:
-		if logType == MM_LOG_ERROR:
-			# Capture the exception if there is one
-			excType, excValue, excTraceback = sys.exc_info()
-			exception = str(excValue)
-			theTrace = traceback.extract_tb(excTraceback, 1)
-			NestingDepth = 0
-			callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]	# unpack the trace record
-		else:
-			theTrace = traceback.extract_stack()
-			NestingDepth = max(0, min(len(theTrace) - 3, 21))
-			callingFile, callingLine, callingProc, sourceCode = theTrace[NestingDepth]	# unpack the trace record for the call to mmLib_Log
-
-		callingPackage = str("(" + os.path.basename(callingFile) + "." + str(callingProc) + ":" + str(callingLine) + ")")	# Construct a MM callingPackage (we skip the jump table)
-		if exception != "": exception = "[" + exception + "]"
-		logMessage = '[{0:<22}] {1}'.format(str('|' * NestingDepth) + str('.' * int(22 - NestingDepth)), str( datetime.datetime.now().strftime("%I:%M:%S %p") + " [" + logType + "] " + logMessage + exception + callingPackage))
-
-		displayProc(logMessage)
-
-	return
-
-
-
-
-
-############################################################################################
-############################################################################################
-#
-#	Other User Callable Logging functions
-#
-############################################################################################
-############################################################################################
-
-
-############################################################################################
-#
-# getLogSensitivity
-#
-#	will return:
-# 		MM_SHOW_EVERYTHING = 0
-# 		MM_SHOW_VERBOSE_NOTES = 1
-# 		MM_SHOW_TERSE_NOTES = 2
-# 		MM_SHOW_WARNINGS = 3
-# 		MM_SHOW_ERRORS = 4
-#
-#############################################################################################
-def getLogSensitivity():
-	global mmLogSensitivity
-	#indigo.server.log("getLogSensitivity is returning " + str(mmLogSensitivity))
-	return(mmLogSensitivity)
-
-
-
-############################################################################################
-#
-# setLogSensitivity	This short-circuits any log processing that is beyond the scope of what would be displayed
-#						Adjust the logSensitivityMap below to influence what types of messages are shown for each of the sensitivity levels
-#
-#	Note this function needs to be called before any logging can happen... logging is defeated bu default
-#
-#	accepts:
-# 		MM_SHOW_EVERYTHING ('all')			Show Everything
-# 		MM_SHOW_VERBOSE_NOTES ('verbose')	Show Many things
-# 		MM_SHOW_TERSE_NOTES ('terse')		Show some things
-# 		MM_SHOW_WARNINGS ('warnings')		Show Warnings and Errors
-# 		MM_SHOW_ERRORS ('errors')			Show Only Errors
-#
-# 	The following logSensitivityMap is a map (from the code below) of how the Sensitivity levels mask the different logging types. Entries containing mmLogNone are masked
-#	Look accross the top row to find your loging type of interest, then look down its column to see which sensitivity levels masks it
-#
-#	Note MotionMap always shows logForce, logTimestamp, and logReportLine for Program Functionality
-#
-#############################################################################################
-#	logSensitivityMap - Controls the masking of each Log type
-#											logDebug,		logVerbose,		logTerse,		logWarning,	logError,	logForce,		logTimestamp,	logReportLine
-logSensitivityMap = {
-					MM_SHOW_EVERYTHING: 	[mmDebugNote,	mmVerboseNote,	mmTerseNote,	mmWarning,	mmError,	mmForceNote,	mmTimestamp,	mmPrintReportLine],
-					MM_SHOW_VERBOSE_NOTES:	[mmLogNone,		mmVerboseNote,	mmTerseNote,	mmWarning,	mmError,	mmForceNote,	mmTimestamp,	mmPrintReportLine],
-					MM_SHOW_TERSE_NOTES:	[mmLogNone,		mmLogNone,		mmTerseNote,	mmWarning,	mmError,	mmForceNote,	mmTimestamp,	mmPrintReportLine],
-					MM_SHOW_WARNINGS:		[mmLogNone,		mmLogNone,		mmLogNone,		mmWarning,	mmError,	mmForceNote,	mmTimestamp,	mmPrintReportLine],
-					MM_SHOW_ERRORS:			[mmLogNone,		mmLogNone,		mmLogNone,		mmLogNone,	mmError,	mmForceNote,	mmTimestamp,	mmPrintReportLine]}
-
-def setLogSensitivity(newVal):
-
-	global mmLogSensitivity
-	global logDebug
-	global logVerbose
-	global logTerse
-	global logWarning
-	global logError
-	global logForce
-	global logTimestamp
-	global logReportLine
-	global logSensitivityMap
-
-	if mmLogSensitivity != newVal:
-
-		try:
-			newSettings = logSensitivityMap[newVal]
-		except:
-			mmWarning("  Log Sensitivity mode \'" + str(newVal) + "\' is not supported. Try one of these: " )
-			mmWarning( str( logSuoportedSensitivities ))
-			return(mmLogSensitivity)
-
-		logDebug = newSettings[0]
-		logVerbose = newSettings[1]
-		logTerse = newSettings[2]
-		logWarning = newSettings[3]
-		logError = newSettings[4]
-		logForce = newSettings[5]
-		logTimestamp = newSettings[6]
-		logReportLine = newSettings[7]
-		mmLogSensitivity = newVal
-
-		mmForceNote("  Log Sensitivity is now: \'" + str(newVal) + "\'.")
-
-		# Update The indigo Variable too
-
-		mmLib_Low.setIndigoVariable('MMLoggingMode', newVal)
-
-
-	return(newVal)
-
 
 
 ############################################################################################
@@ -430,13 +344,12 @@ def setLogSensitivityMMCommand(theParameters):
 	try:
 		theNewValue = theParameters["TheValue"]
 	except:
-		mmWarning("SetLogSensitivity cammand did not include \'TheValue\'")
+		logWarning("SetLogSensitivity cammand did not include \'TheValue\'")
 		return(1)
 
-	setLogSensitivity(theNewValue)
+	setLogSensitivity(str(theNewValue))
 
 	return (1)
-
 
 
 ############################################################################################
@@ -451,52 +364,144 @@ def setLogSensitivityMMCommand(theParameters):
 ############################################################################################
 def verifyLogMode(theCommandParameters):
 
-	varTextValue = mmLib_Low.getIndigoVariable('MMLoggingMode', 'terse')
-	setLogSensitivity(varTextValue)
+	varTextValue = mmLib_Low.getIndigoVariable('MMLoggingMode', MM_LOG_TERSE_NOTE)
+	setLogSensitivity(str(varTextValue))	# typecast here because all indigo stuff is unicode
 
-#
-#	initLoggerDispatchTable	Must be called from init before any log calls
-#
-#	Note .logger refers to an SQL logging system included in Indigo
-#
-def	initLoggerDispatchTable():
-	global	loggerDispatchTable
-
-	loggerDispatchTable = {
-						MM_LOG_DEBUG_NOTE: mmOurPlugin.logger.debug,
-						MM_LOG_VERBOSE_NOTE: mmOurPlugin.logger.info,
-						MM_LOG_TERSE_NOTE: mmOurPlugin.logger.info,
-						MM_LOG_WARNING: mmOurPlugin.logger.warn,
-						MM_LOG_ERROR: mmOurPlugin.logger.error,
-						MM_LOG_FORCE_NOTE: mmOurPlugin.logger.info,
-						MM_LOG_TIMESTAMP: mmOurPlugin.logger.info,
-						MM_LOG_REPORT: mmOurPlugin.logger.info
-						}
 
 
 ############################################################################################
-#
-#
 # Initialization
-#
-#
 ############################################################################################
 def init(logFileName, ourPlugin):
 
-	global mmLogFileName
+	global ourLoggerName
+	global ourLoggerFile
 	global mmOurPlugin
+	global mmLogger
 
 
+	ourLoggerName = "MotionMap3"
+	ourLoggerFile = str(mmLib_Low.mmLogFolder + logFileName)
+	indigo.server.log( "--- Setting mmLog file to " + str(ourLoggerFile))
 	mmOurPlugin = ourPlugin
-	mmLogFileName = logFileName
-	initLoggerDispatchTable()
-	setLogSensitivity(mmDefaultLogSensitivity)
-	logForce( "--- Initializing mmLog")
+	mmLogger = myLogger(ourLoggerName)	#initialize our logger object
 
+	# testSuite(mmLogger)
 
+	mmLogger.setLevel(MM_LOG_TERSE_NOTE)	# default to Terse
+	logForce( "--- Setting mmLog file to " + str(ourLoggerFile))
 
 def start():
 
 	logForce( "--- Starting mmLog")
 	verifyLogMode({'theCommand':'verifyLogMode'})
+
+
+
+
+############################################################################################
+# Test code
+############################################################################################
+
+def testSuite(testLogger):
+
+	"""
+		logNotSet = mmNullMessage
+		logDebug = mmNullMessage
+		logVerbose = mmNullMessage
+		logTerse = mmNullMessage
+		logReportLine = mmNullMessage
+		logTimestamp = mmNullMessage
+		logForce = mmNullMessage
+		logWarning = mmNullMessage
+		logError = mmNullMessage
+	"""
+
+	indigo.server.log("\n#####################################\n# Starting testSuite\n#####################################")
+
+	testLogger.setLevel(LOG_NOTSET)
+	logNotSet("#######  Test LogNotSet message  #########")
+	logForce("###### Sample Force Message ######")
+	logDebug("###### Sample debug Message ######")
+	logReportLine("\n========= Sample Report =========\nBlah\nBlah\nBlah\n========= End of Report =========\n")
+	logError("###### Sample error Message ######")
+
+	logForce("###### about to dispatch a type error")
+	logForce(getZero())
+
+	try:
+		x = 1/0
+	except:
+		logError("###### EXCEPTION error Message ######")
+
+	# End Test
+	testLogger.setLevel(LOG_NOTSET)
+
+	#logLevelTest(testLogger)
+	#logSpeedComparison(testLogger)
+
+def getZero():
+	return(0)
+
+def testLevel(testLogger,theLevel):
+
+	logLevelNameDict = {
+		LOG_NOTSET: MM_LOG_NOTSET,
+		LOG_DEBUG_NOTE: MM_LOG_DEBUG_NOTE,
+		LOG_VERBOSE_NOTE: MM_LOG_VERBOSE_NOTE,
+		LOG_TERSE_NOTE: MM_LOG_TERSE_NOTE,
+		LOG_REPORT: MM_LOG_REPORT,
+		LOG_TIMESTAMP: MM_LOG_TIMESTAMP,
+		LOG_FORCE_NOTE: MM_LOG_FORCE_NOTE,
+		LOG_WARNING: MM_LOG_WARNING,
+		LOG_ERROR: MM_LOG_ERROR
+	}
+
+	testLogger.setLevel(theLevel)
+
+	indigo.server.log('====================')
+	indigo.server.log('== New Level: '+ logLevelNameDict[theLevel] + ' ==')
+	indigo.server.log('====================')
+
+	for level,levelName in logLevelNameDict.items():
+		s = 'mmLogger.%(levelName)s(\"This is an %(levelName)s note\")' % {"levelName": levelName}
+		eval(s)
+
+
+def logSpeedComparison(testLogger):
+
+	indigo.server.log("### Speed Comparison Tests ###")
+
+	testLogger.setLevel(LOG_TERSE_NOTE)  # default to Terse
+
+	# Performance tests comparative to original mmLib_Log, display short message 100 times
+
+	testLogger.setLevel(LOG_TIMESTAMP)
+	logTimestamp("###### Start 100 message test")
+	for x in range(1, 100):
+		logForce(".")
+	testLogger.mmTStmp("###### End 100 message test")
+
+	logTimestamp("###### Start Timer mmLogger Null")
+	for x in range(1, 10000):
+		logNull("Placeholder")
+	logTimestamp("###### End Timer mmLogger Null")
+
+	# The Last is the fastest by 2ms per 10,000 calls to null message pointer
+
+
+def	logLevelTest(testLogger):
+	indigo.server.log( "### Level Tests ###")
+	testLevel(testLogger, LOG_NOTSET)
+	testLevel(testLogger, LOG_DEBUG_NOTE)
+	testLevel(testLogger, LOG_TIMESTAMP)
+	testLevel(testLogger, LOG_VERBOSE_NOTE)
+	testLevel(testLogger, LOG_TERSE_NOTE)
+	testLevel(testLogger, LOG_REPORT)
+	testLevel(testLogger, LOG_FORCE_NOTE)
+	testLevel(testLogger, LOG_WARNING)
+	testLevel(testLogger, LOG_ERROR)
+
+
+
 
