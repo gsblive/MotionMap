@@ -386,8 +386,6 @@ def init(logFileName, ourPlugin):
 	mmOurPlugin = ourPlugin
 	mmLogger = myLogger(ourLoggerName)	#initialize our logger object
 
-	# testSuite(mmLogger)
-
 	mmLogger.setLevel(MM_LOG_TERSE_NOTE)	# default to Terse
 	logForce( "--- Setting mmLog file to " + str(ourLoggerFile))
 
@@ -395,113 +393,5 @@ def start():
 
 	logForce( "--- Starting mmLog")
 	verifyLogMode({'theCommand':'verifyLogMode'})
-
-
-
-
-############################################################################################
-# Test code
-############################################################################################
-
-def testSuite(testLogger):
-
-	"""
-		logNotSet = mmNullMessage
-		logDebug = mmNullMessage
-		logVerbose = mmNullMessage
-		logTerse = mmNullMessage
-		logReportLine = mmNullMessage
-		logTimestamp = mmNullMessage
-		logForce = mmNullMessage
-		logWarning = mmNullMessage
-		logError = mmNullMessage
-	"""
-
-	indigo.server.log("\n#####################################\n# Starting testSuite\n#####################################")
-
-	testLogger.setLevel(LOG_NOTSET)
-	logNotSet("#######  Test LogNotSet message  #########")
-	logForce("###### Sample Force Message ######")
-	logDebug("###### Sample debug Message ######")
-	logReportLine("\n========= Sample Report =========\nBlah\nBlah\nBlah\n========= End of Report =========\n")
-	logError("###### Sample error Message ######")
-
-	logForce("###### about to dispatch a type error")
-	logForce(getZero())
-
-	try:
-		x = 1/0
-	except:
-		logError("###### EXCEPTION error Message ######")
-
-	# End Test
-	testLogger.setLevel(LOG_NOTSET)
-
-	#logLevelTest(testLogger)
-	#logSpeedComparison(testLogger)
-
-def getZero():
-	return(0)
-
-def testLevel(testLogger,theLevel):
-
-	logLevelNameDict = {
-		LOG_NOTSET: MM_LOG_NOTSET,
-		LOG_DEBUG_NOTE: MM_LOG_DEBUG_NOTE,
-		LOG_VERBOSE_NOTE: MM_LOG_VERBOSE_NOTE,
-		LOG_TERSE_NOTE: MM_LOG_TERSE_NOTE,
-		LOG_REPORT: MM_LOG_REPORT,
-		LOG_TIMESTAMP: MM_LOG_TIMESTAMP,
-		LOG_FORCE_NOTE: MM_LOG_FORCE_NOTE,
-		LOG_WARNING: MM_LOG_WARNING,
-		LOG_ERROR: MM_LOG_ERROR
-	}
-
-	testLogger.setLevel(theLevel)
-
-	indigo.server.log('====================')
-	indigo.server.log('== New Level: '+ logLevelNameDict[theLevel] + ' ==')
-	indigo.server.log('====================')
-
-	for level,levelName in logLevelNameDict.items():
-		s = 'mmLogger.%(levelName)s(\"This is an %(levelName)s note\")' % {"levelName": levelName}
-		eval(s)
-
-
-def logSpeedComparison(testLogger):
-
-	indigo.server.log("### Speed Comparison Tests ###")
-
-	testLogger.setLevel(LOG_TERSE_NOTE)  # default to Terse
-
-	# Performance tests comparative to original mmLib_Log, display short message 100 times
-
-	testLogger.setLevel(LOG_TIMESTAMP)
-	logTimestamp("###### Start 100 message test")
-	for x in range(1, 100):
-		logForce(".")
-	testLogger.mmTStmp("###### End 100 message test")
-
-	logTimestamp("###### Start Timer mmLogger Null")
-	for x in range(1, 10000):
-		logNull("Placeholder")
-	logTimestamp("###### End Timer mmLogger Null")
-
-	# The Last is the fastest by 2ms per 10,000 calls to null message pointer
-
-
-def	logLevelTest(testLogger):
-	indigo.server.log( "### Level Tests ###")
-	testLevel(testLogger, LOG_NOTSET)
-	testLevel(testLogger, LOG_DEBUG_NOTE)
-	testLevel(testLogger, LOG_TIMESTAMP)
-	testLevel(testLogger, LOG_VERBOSE_NOTE)
-	testLevel(testLogger, LOG_TERSE_NOTE)
-	testLevel(testLogger, LOG_REPORT)
-	testLevel(testLogger, LOG_FORCE_NOTE)
-	testLevel(testLogger, LOG_WARNING)
-	testLevel(testLogger, LOG_ERROR)
-
-
 
 
