@@ -189,7 +189,7 @@ MiddleFloorMultisensorTemperature,5,noDebug
 TopFloorMasterMultisensorTemperature,5,noDebug
 TopFloorStairsMultisensorTemperature,5,noDebug
 TopFloorMasterBathLavMultisensorTemperature,5,noDebug
-TopFloorMasterBathShowerMultisensorTemperature,5,noDebug
+#TopFloorMasterBathShowerMultisensorTemperature,5,noDebug
 GregsDeskMultisensorTemperature,5,noDebug
 
 
