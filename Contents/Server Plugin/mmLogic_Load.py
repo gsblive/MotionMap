@@ -121,7 +121,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if len(self.allControllerGroups):
 				self.maxOnTime = int(60*60*24)		# 24 hour maximum for any device with controllers
 			else:
-				self.maxOnTime = int(0)				# If no controllers, no timeout
+				self.maxOnTime = self.unoccupationDelay				# If no controllers, use occupationDelay as noted in config file notes. If it is 0, the load will stay on forever
 
 
 			self.companions = []
