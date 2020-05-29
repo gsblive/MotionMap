@@ -83,7 +83,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		self.currentOnState = False	# we have to assume we have no motion to start with (cameras dont save a motion state)
 
 		super(mmCamMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
-		if self.debugDevice: mmLib_Log.logForce( " === Initializing " + self.deviceName)
+		if self.debugDevice: mmLib_Log.logForce( " === Initializing " + self.deviceName + ".")
 
 		self.influentialLights = filter(None, theDeviceParameters["influentialLights"].split(';'))
 		self.influentialTimeout = int(theDeviceParameters["influentialTimeout"])
@@ -91,12 +91,13 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		self.supportedCommandsDict.update({'motionEvent': self.camMotionEvent})
 
 		self.exclusionLights = filter(None, theDeviceParameters["exclusionLights"].split(';'))
+		self.minMovementSeconds = (int(self.minMovement) * 60)
 
 		# A camera is not a true indigo device (its virtual), so we have to maintain a credible lastUpdate time ourselves...
-		# Cameras have a static 30 second timeout imposed by come code below, so since we dont know when the last time the camera saw motion, we have to guess..
+		# Cameras have a static "minMovementSeconds" timeout imposed by come code below, so since we dont know when the last time the camera saw motion, we have to guess..
 		# We are claiming above that the camera is not detecting movement, so lets make sure setInitialOccupiedState below will back us up on that...
 		# To do that we claim that the last update was "minMovement" minutes ago (converted to seconds), then the math in setInitialOccupiedState will work out the rest.
-		self.lastUpdateTimeSeconds = int(time.mktime(time.localtime()) - (int(self.minMovement) * 60))
+		self.lastUpdateTimeSeconds = int(time.mktime(time.localtime()) - self.minMovementSeconds)
 
 		# this is a virtual device, so it wont really get events... We have some action groups or triggers that call us through executeCommand function
 		# we convert those messages to update events and distribute them as if we were indigo, so register for the update events here
@@ -157,7 +158,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 					continue
 				# mmLib_Log.logForce("=== " + self.deviceName + "\'s Time delta for " + devName + " is: " + str(timeDelta))
 			except:
-				mmLib_Log.logForce(self.deviceName + " Check Load Devices... No Such device " + str(devName))
+				mmLib_Log.logForce(self.deviceName + " Check Load Devices... No Such device " + str(devName) + ".")
 				continue
 
 			if timeDelta < theDeltaTime: theDeltaTime = timeDelta
@@ -169,22 +170,23 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 
 	# Add the motion stop event for the camMotionEvent below.
-	def	processMotionEventOn(self):
+	def	processMotionEventOn(self, updateOnly):
 
-		mmLib_Log.logForce("### Motion Event (ON) for " + self.deviceName)
-		# mmLib_Log.logForce("   Camera Info: \n" + str(camDev))
-		self.currentOnState = True
+		if(not updateOnly):
+			mmLib_Log.logForce("### Motion Event (ON) for " + self.deviceName + ".")
+			# mmLib_Log.logForce("   Camera Info: \n" + str(camDev))
+			self.currentOnState = True
 
-		# convert it to an event and distribute it to continue processing with the mmMotion object
+			# convert it to an event and distribute it to continue processing with the mmMotion object
 
-		# distribute it on behalf of indigo o it goes to the mmMotion object in the right format
-		mmLib_Events.distributeEvents('Indigo', ['AttributeUpdate'], self.deviceName, {'onState':True})
+			# distribute it on behalf of indigo o it goes to the mmMotion object in the right format
+			mmLib_Events.distributeEvents('Indigo', ['AttributeUpdate'], self.deviceName, {'onState':True})
 
-		mmLib_Low.registerDelayedAction(
-			{'theFunction': self.camMotionTimeout, 'timeDeltaSeconds': 30, 'theDevice': self.deviceName,
-			 'timerMessage': "camMotionTimeout", 'offTimerType': "Timeout"})
-
-
+			mmLib_Low.registerDelayedAction(
+				{'theFunction': self.camMotionTimeout, 'timeDeltaSeconds': self.minMovementSeconds, 'theDevice': self.deviceName,
+				 'timerMessage': "camMotionTimeout", 'offTimerType': "Timeout"})
+		else:
+			mmLib_Low.delayDelayedAction(self.camMotionTimeout, self.minMovementSeconds)
 
 	#
 	# camMotionEvent
@@ -201,7 +203,8 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 
 		if( timeForNonMotion ):
 			# Ignore the phantom transition/motion due to light change
-			mmLib_Log.logForce(" === Debouncing motion on " + self.deviceName + " we havent had a motionOff event yet")
+			mmLib_Log.logForce(" +++ Additional Motion Detected. Updating Timeout on " + self.deviceName + ", extending off timer.")
+			self.processMotionEventOn(True)
 			return('Dque')
 
 		# At night, If the motion is likely a result of a nearby influential light, exit
@@ -228,7 +231,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		except:
 			camDev = "Unknown"
 
-		self.processMotionEventOn()
+		self.processMotionEventOn(False)
 
 		return('Dque')		# we are complete... dequeue the command (if async)
 

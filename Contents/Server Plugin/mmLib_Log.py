@@ -97,7 +97,7 @@ logMsgFormatDict = {
 	MM_LOG_REPORT: '%(msg)s',
 	MM_LOG_TIMESTAMP: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
 	MM_LOG_FORCE_GRAY_NOTE: ' ',
-	MM_LOG_FORCE_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
+	MM_LOG_FORCE_NOTE: '%(callingTime)s [%(levelname)s] %(msg)s : %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
 	MM_LOG_WARNING: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.',
 	MM_LOG_ERROR: '%(callingTime)s [%(levelname)s] %(msg)s. %(levelname)s @ %(filename)s.%(funcName)s:%(lineno)d.'
 }
