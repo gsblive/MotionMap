@@ -56,8 +56,8 @@ def makeScheduleDict(theFilePath):
 			currentHeader = lineList
 			continue
 		else:
-			#print(dictEntry)
 			dictEntry = dict(zip(currentHeader, lineList))
+			print(dictEntry)
 			key = dt.isoformat(dt.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
 			if todayISO > key:
 				print("Abandoning expired entry " + key)
@@ -65,7 +65,24 @@ def makeScheduleDict(theFilePath):
 				print("Adding entry " + key)
 				scheduleDict[key] = dictEntry
 	f.close()
+	return(0)
 
+def resetArrivalFile(theFilePath):
+
+	try:
+		f = open(theFilePath, 'r+')
+	except Exception as e:
+		print("Error in resetArrivalFile(): " + str(e) + " Terminating session.")
+		return(-1)
+
+	firstLine = f.readline()
+	print(firstLine)
+	f.seek(0,0)
+	f.truncate()
+	# Add Header
+	f.write(firstLine)
+	f.close()
+	return(0)
 
 def writeScheduleDict(theFilePath):
 	global scheduleDict
@@ -84,10 +101,10 @@ def writeScheduleDict(theFilePath):
 	f.truncate()
 	# Add Header
 	string = str(currentHeader)
-	string = re.sub('[\'\[\]]', '', string)	# GB FIN ME.. THIS IS PUTTING SPACES IN THE HEADER FIELD NAMES  take out the brackets and single quotes
+	string = re.sub('[\'\[\]\ ]', '', string)	# take out the brackets, spaces, and single quotes
 	f.write(string + "\r\n")
 
-	for anEvent in scheduleDict:
+	for anEvent in sorted(scheduleDict):
 		eventDict = scheduleDict[anEvent]
 		print("EventDict: " + str(eventDict))
 		ArrivalDate = eventDict['ArrivalDate']
@@ -101,7 +118,7 @@ def writeScheduleDict(theFilePath):
 	# Add the entries
 
 	f.close()
-
+	return(0)
 
 #
 # Main
@@ -112,8 +129,8 @@ dateToday = dateToday.replace(hour=0, minute=0, second=0, microsecond=0)
 todayString = dt.strftime(dateToday, "%m/%d/%y")
 todayISO = dt.isoformat(dt.strptime(todayString, "%m/%d/%y"))
 
-makeScheduleDict(ArrivalSchedule)
-makeScheduleDict(NewArrivals)
+localError = makeScheduleDict(ArrivalSchedule)
+if not localError: localError = makeScheduleDict(NewArrivals)
 
 print(scheduleDict)
 # Any codes to change today?
@@ -130,7 +147,8 @@ else:
 
 	# Schedule Lock Code Reset
 
-	# and reWrite the ArrivalSchedule file back out
+# either way, rewrite the arrival schedule file
+if not localError: localError = writeScheduleDict(ArrivalSchedule)
 
-# either way, rewrite the file
-writeScheduleDict(ArrivalSchedule)
+# Truncate the new arrivals file... We dont need to ptocess it again.
+if not localError: localError = resetArrivalFile(NewArrivals)
