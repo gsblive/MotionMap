@@ -13,7 +13,7 @@ todayString = ""
 currentHeader = 0
 
 # Process NewArrivals and add them to the ArrivalSchedule
-# Then, process ArrivalSchedule to change door codes as needed
+# Then, process ArrivalSchedule to change DoorCodes as needed
 
 ArrivalSchedule = "/Users/gbrewer/Library/Mobile Documents/com~apple~CloudDocs/Documents/_Short Term Rentals/SandCastle:Oceanview/ArrivalSchedule.csv"
 NewArrivals = "/Users/gbrewer/Library/Mobile Documents/com~apple~CloudDocs/Documents/_Short Term Rentals/SandCastle:Oceanview/NewArrivals.csv"
@@ -110,8 +110,8 @@ def writeScheduleDict(theFilePath):
 		ArrivalDate = eventDict['ArrivalDate']
 		DepartureDate = eventDict['DepartureDate']
 		GuestName = eventDict['GuestName']
-		Code = eventDict['Code']
-		string = str(ArrivalDate + ',' + DepartureDate + ',' + GuestName + ',' + Code)
+		DoorCode = eventDict['Code']
+		string = str(ArrivalDate + ',' + DepartureDate + ',' + GuestName + ',' + DoorCode)
 		#print("Adding Entry " + string)
 		f.write(string + "\r\n")
 
@@ -133,19 +133,19 @@ localError = makeScheduleDict(ArrivalSchedule)
 if not localError: localError = makeScheduleDict(NewArrivals)
 
 print(scheduleDict)
-# Any codes to change today?
+# Any DoorCodes to change today?
 changeDict = scheduleDict.get(todayISO, 0)
 
 if changeDict == 0:
 	print("Today is " + todayString + ". Nothing to be done.")
 else:
 	#print(changeDict)
-	print("Changing Code for guest " + changeDict["GuestName"] + " to code " + changeDict["Code"])
-	print("  Code to be reset on " + changeDict["DepartureDate"])
+	print("Changing DoorCode for guest " + changeDict["GuestName"] + " to DoorCode " + changeDict["Code"])
+	print("  DoorCode to be reset on " + changeDict["DepartureDate"])
 
-	# Change Lock Code
+	# Change Lock DoorCode
 
-	# Schedule Lock Code Reset
+	# Schedule Lock DoorCode Reset
 
 # either way, rewrite the arrival schedule file
 if not localError: localError = writeScheduleDict(ArrivalSchedule)
