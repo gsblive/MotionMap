@@ -57,12 +57,12 @@ def makeScheduleDict(theFilePath):
 			continue
 		else:
 			dictEntry = dict(zip(currentHeader, lineList))
-			print(dictEntry)
+			#print(dictEntry)
 			key = dt.isoformat(dt.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
 			if todayISO > key:
 				print("Abandoning expired entry " + key)
 			else:
-				print("Adding entry " + key)
+				#print("Adding entry " + key)
 				scheduleDict[key] = dictEntry
 	f.close()
 	return(0)
@@ -132,7 +132,7 @@ todayISO = dt.isoformat(dt.strptime(todayString, "%m/%d/%y"))
 localError = makeScheduleDict(ArrivalSchedule)
 if not localError: localError = makeScheduleDict(NewArrivals)
 
-print(scheduleDict)
+#print(scheduleDict)
 # Any DoorCodes to change today?
 changeDict = scheduleDict.get(todayISO, 0)
 
