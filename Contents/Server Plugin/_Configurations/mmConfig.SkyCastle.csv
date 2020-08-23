@@ -653,7 +653,6 @@ GregsOfficeBathAll,11,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOf
 GregsOfficeAll,12,GregsOfficeClosetDimmer;GregsOfficeBathVanityLight;GregsOfficeBathFanLight;GregsOfficeBathShowerLight;GregsOfficeBathFan;GregsOfficeLight,noDebug,,,,,,,
 KitchenAll,13,Kitchen Dining Lights;Kitchen Lights;Kitchen Cabinets Lights;Kitchen Island Lights;Kitchen Sink Light,noDebug,,,,,,,
 ,,,,,,,,,,
-,,,,,,,,,,
 ########################################################,,,,,,,,,,
 #,,,,,,,,,,
 # OccupationAction – IndigoActionGroups to execute based on area occupation,,,,,,,,,,
@@ -671,3 +670,18 @@ deviceName,occupationEvent,activateAction,actionController,debugDeviceMode,,,,,,
 BackDeckDoorTrigger,UnoccupiedAll,_Security_LockBackDeckDoor,DoorBackDeckGroup,noDebug,,,,,,
 CarPortDoorTrigger,UnoccupiedAll,_Security_LockCarPortDoor,DoorCarPortGroup,noDebug,,,,,,
 #allLocksOnHouseUnoccupied,UnoccupiedAll,_Security_LockAllDoors,DoorAllGroup,noDebug,,,,,,
+
+########################################################
+#
+# ZWaveLockMgr – ZWave Controlled Lock. Sets user codes based on schedule.
+#
+#   deviceName – The English name of the device
+#   lockDeviceNames -  The names of the LockDevices for this manager
+#	  maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
+#
+########################################################
+#
+#-h,ZWaveLockMgr
+#deviceName,lockDeviceNames,maxSequentialErrorsAllowed,debugDeviceMode
+#BottomFloorRoomLightNearStairs,_LockControl_FrontDoorLock;_LockControl_BackDoorLock,2,noDebug

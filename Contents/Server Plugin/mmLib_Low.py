@@ -91,7 +91,7 @@ SubmodelDeviceDict = {}
 
 MMSysNonvolatileData = {}	# the NVs specifically for MMSys
 
-MMVirtualDeviceTypes = ["Scene","OccupationAction","OccupationGroup","CamMotion"]
+MMVirtualDeviceTypes = ["Scene","OccupationAction","OccupationGroup","CamMotion","ZWaveLockMgr"]
 DebugDevices = {}
 unknownAddress = {}
 

@@ -477,6 +477,21 @@ UpstairsHallLightB,UpstairsHallLight,2,noDebug,,,,,,,
 ,,,,,,,,,,
 ########################################################
 #
+# ZWaveLockMgr – ZWave Controlled Lock. Sets user codes based on schedule.
+#
+#   deviceName – The English name of the device
+#   lockDeviceNames -  The names of the LockDevices for this manager
+#	  maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
+#
+########################################################
+#,,,,,,,,,,
+#-h,ZWaveLockMgr
+#deviceName,lockDeviceNames,maxSequentialErrorsAllowed,debugDeviceMode
+#OceanViewLocks,_LockControl_FrontDoorLock;_LockControl_BackDoorLock,2,noDebug
+,,,,,,,,,,
+########################################################
+#
 # OccupationAction – IndigoActionGroups to execute based on area occupation,,,,,,,,,,
 #
 #   deviceName – The name of the OccupationAction,,,,,,,,,,

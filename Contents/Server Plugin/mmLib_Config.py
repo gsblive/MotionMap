@@ -13,6 +13,7 @@ import mmObj_IOLink
 import mmObj_Multisensor
 import mmDev_InsteonLoad
 import mmDev_ZWaveLoad
+import mmDev_ZWaveLockMgr
 import mmObj_Companion
 import mmDev_HVACInsteon
 import mmDev_HVACNest
@@ -58,6 +59,7 @@ def parseConfig(theFilePath):
 						'CamMotion':mmObj_CamMotion.mmCamMotion,
 						'LoadDevice':mmDev_InsteonLoad.mmILoad,
 						'zLoadDevice':mmDev_ZWaveLoad.mmZLoad,
+						'ZWaveLockMgr':mmDev_ZWaveLockMgr.mmZLockMgr,
 						'Companion':mmObj_Companion.mmCompanion,
 						'HVAC_Insteon':mmDev_HVACInsteon.mmHVACInsteon,
 						'HVAC_Nest':mmDev_HVACNest.mmHVACNest,
