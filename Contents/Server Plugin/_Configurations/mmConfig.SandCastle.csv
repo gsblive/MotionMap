@@ -154,9 +154,9 @@ GregsDeskMultisensorLuminance,noDebug
 #   deviceName – The English name of the device
 #
 ########################################################
--h,MultisensorHumidity
-deviceName,debugDeviceMode
-GregsDeskMultisensorHumidity,noDebug
+#-h,MultisensorHumidity
+#deviceName,debugDeviceMode
+#GregsDeskMultisensorHumidity,noDebug
 
 
 ########################################################
@@ -166,9 +166,9 @@ GregsDeskMultisensorHumidity,noDebug
 #   deviceName – The English name of the device
 #
 ########################################################
--h,MultisensorUltraviolet
-deviceName,debugDeviceMode
-GregsDeskMultisensorUltraviolet,noDebug
+#-h,MultisensorUltraviolet
+#deviceName,debugDeviceMode
+#GregsDeskMultisensorUltraviolet,noDebug
 
 
 ########################################################

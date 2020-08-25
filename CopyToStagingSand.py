@@ -4,7 +4,7 @@ import CopyToStaging
 #  Main
 ##############
 
-print "*** CopyToStagingSand ***"
+print("*** CopyToStagingSand ***")
 CopyToStaging.copyToStaging(["/Volumes/MotionMapStagingSandCastle","/Volumes/MotionMapStagingSandCastle-1"])
 
 quit()

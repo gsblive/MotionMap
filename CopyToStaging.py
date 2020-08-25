@@ -13,19 +13,19 @@ import time
 def	doCopy(targetVolName, pluginName):
 
 	if not os.access(targetVolName, os.W_OK):
-		print "### Volume " + targetVolName + " does not exist or have write access ###"
+		print("### Volume " + targetVolName + " does not exist or have write access ###")
 		return 1
 
-	print str("### Copying " + pluginName + " to " + targetVolName)
+	print(str("### Copying " + pluginName + " to " + targetVolName))
 
-	theCommand = "rsync -av --exclude .git --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + str(pluginName) + " " + targetVolName + " 2>/dev/null"
+	theCommand = "rsync -av --exclude .git --exclude Contents/.idea --exclude venv --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + str(pluginName) + " " + targetVolName + " 2>/dev/null"
 	#print str(theCommand)
 	#subprocess.call([theCommand])		# this is preferable (with try/except), but I couldnt get it to work right away... revisit.
 	result = os.system(theCommand)
 	if result:
-		print str("###################################")
-		print str("### Copy failed with code " + str(result) + " ###")
-		print str("###################################")
+		print(str("###################################"))
+		print(str("### Copy failed with code " + str(result) + " ###"))
+		print(str("###################################"))
 
 	return result
 
@@ -36,15 +36,15 @@ def copyToStaging(volList):
 	#print str(indigoPlugin)
 	indigoPlugin = indigoPlugin.replace(' ', '\\ ')
 	for theVol in volList:
-		print str("")
+		print(str(""))
 		# print str("### Attempting to copy to " + theVol)
 		if not doCopy(theVol, indigoPlugin):
-			print str("")
-			print str("**********************************")
-			print str("****       Copy Success       ****")
+			print(str(""))
+			print(str("**********************************"))
+			print(str("****       Copy Success       ****"))
 			theTimeString = time.strftime("%m/%d/%Y %I:%M:%S %p")
-			print str("****  " + theTimeString + "  ****")
-			print str("**********************************")
+			print(str("****  " + theTimeString + "  ****"))
+			print(str("**********************************"))
 			break
 
 

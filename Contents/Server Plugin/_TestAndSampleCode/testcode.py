@@ -17,7 +17,6 @@ currentHeader = 0
 
 ArrivalSchedule = "/Users/gbrewer/Library/Mobile Documents/com~apple~CloudDocs/Documents/_Short Term Rentals/SandCastle:Oceanview/ArrivalSchedule.csv"
 NewArrivals = "/Users/gbrewer/Library/Mobile Documents/com~apple~CloudDocs/Documents/_Short Term Rentals/SandCastle:Oceanview/NewArrivals.csv"
-testSchedule = "/Users/gbrewer/Library/Mobile Documents/com~apple~CloudDocs/Documents/_Short Term Rentals/SandCastle:Oceanview/TestSchedule.csv"
 
 # Note processOccupancySchedule handles all access to ArrivalSchedule. Do not open this file for write access remotely.
 
