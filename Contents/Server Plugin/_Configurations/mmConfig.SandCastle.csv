@@ -400,8 +400,8 @@ TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloo
 ########################################################
 
 -h,ZWaveLockMgr
-deviceName,lockDeviceNames,maxSequentialErrorsAllowed,debugDeviceMode
-OceanViewLocks,_LockControl_FrontDoorLock;_LockControl_BackDoorLock,2,noDebug
+deviceName,lockDeviceNames,userNumber,maxSequentialErrorsAllowed,debugDeviceMode
+OceanViewLocks,Security_TopFloorLock;Security_BottomFloorLock,10,2,noDebug
 
 ########################################################
 #

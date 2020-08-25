@@ -52,12 +52,13 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 			#
 			# Set object variables
 			#
+			self.userNo = theDeviceParameters["userNumber"]
 			self.doorLocks = theDeviceParameters["lockDeviceNames"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
 
 			for aLock in self.doorLocks:
 				try:
 					theLockDevice = indigo.devices[aLock]
-					self.ourLockDevicesIndigo.append(theLockDevice)
+					self.ourLockDevicesIndigo.append(aLock)
 				except:
 					mmLib_Log.logForce( self.deviceName + " ### Could not find Lock Device \'" + str(aLock) + "\'.")
 					continue
@@ -200,6 +201,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		return(0)
 
 	def resetArrivalFile(self, theFilePath):
+		mmLib_Log.logForce(self.deviceName + "### Resetting Arrival File")
 
 		try:
 			f = open(theFilePath, 'r+')
@@ -252,6 +254,70 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		f.close()
 		return(0)
 
+	def convertListToHexStr(self, bList):
+		return ' '.join(["%02X" % byte for byte in bList])
+
+	def convertListToStr(self, bList):
+		return ' '.join(["%02X" % byte for byte in bList])
+
+	def getPinStr(self,inPin):
+		if (len(inPin) == 4):
+			d1 = int(ord(inPin[0:1]))
+			d2 = int(ord(inPin[1:2]))
+			d3 = int(ord(inPin[2:3]))
+			d4 = int(ord(inPin[3:4]))
+			return [d1,d2,d3,d4]
+		elif (len(inPin) == 6):
+			d1 = int(ord(inPin[0:1]))
+			d2 = int(ord(inPin[1:2]))
+			d3 = int(ord(inPin[2:3]))
+			d4 = int(ord(inPin[3:4]))
+			d5 = int(ord(inPin[4:5]))
+			d6 = int(ord(inPin[5:6]))
+			return [d1,d2,d3,d4,d5,d6]
+		elif (len(inPin) == 8):
+			d1 = int(ord(inPin[0:1]))
+			d2 = int(ord(inPin[1:2]))
+			d3 = int(ord(inPin[2:3]))
+			d4 = int(ord(inPin[3:4]))
+			d5 = int(ord(inPin[4:5]))
+			d6 = int(ord(inPin[5:6]))
+			d7 = int(ord(inPin[6:7]))
+			d8 = int(ord(inPin[7:8]))
+			return [d1,d2,d3,d4,d5,d6,d7,d8]
+		elif (len(inPin) == 32):
+			d1 = int(inPin[0:2],16)
+			d2 = int(inPin[3:5],16)
+			d3 = int(inPin[6:8],16)
+			d4 = int(inPin[9:11],16)
+			d5 = int(inPin[12:14],16)
+			d6 = int(inPin[15:17],16)
+			d7 = int(inPin[18:20],16)
+			d8 = int(inPin[21:23],16)
+			d9 = int(inPin[24:26],16)
+			d10 = int(inPin[27:29],16)
+			d11 = int(inPin[30:32],16)
+			return [d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11]
+		else:
+			return []
+
+	def setUserPin(self, indigoDevID, userNo, userPin):
+
+		mmLib_Log.logForce( self.deviceName + " setUserPin action called")
+		mmLib_Log.logForce( self.deviceName + " Indigo lock selected: " + str(indigoDevID))
+
+		if len(userPin) not in [4,6,8,32]:
+			mmLib_Log.logForce( self.deviceName + "This plugin only supports 4, 6 or 8 digit PINs or 11 character RFID tags")
+			return
+
+		mmLib_Log.logForce( self.deviceName + " Setting PIN for user " + str(userNo) + " to: " + str(userPin))
+
+		codeStr = [99, 0o1, int(userNo), 0o1] + self.getPinStr(userPin)
+		mmLib_Log.logForce( self.deviceName + " ### Got CodeString. Looking for " + indigoDevID)
+
+		indigo.zwave.sendRaw(device=indigo.devices[indigoDevID], cmdBytes=codeStr, sendMode=1, waitUntilAck = False)
+		mmLib_Log.logForce(self.deviceName + "Sending raw command: [" + self.convertListToStr(codeStr) + "] to device " + str(indigoDevID))
+
 
 	######################################################################################
 	#
@@ -297,6 +363,8 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 			mmLib_Log.logForce( self.deviceName + "  DoorCode to be reset on " + changeDict["DepartureDate"])
 
 			# Change Lock DoorCode
+			for aLock in self.doorLocks:
+				self.setUserPin(aLock, self.userNo, changeDict["Code"])
 
 			# Schedule Lock DoorCode Reset
 
