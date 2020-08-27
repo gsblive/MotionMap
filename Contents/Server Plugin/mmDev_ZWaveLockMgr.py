@@ -201,8 +201,27 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 				continue
 			else:
 				dictEntry = dict(zip(self.currentHeader, lineList))
+
+				lPin = len(dictEntry['Code'])
+
+				if lPin < 4:
+
+					if lPin == 1:
+						dictEntry['Code'] = "000" + dictEntry['Code']
+					elif lPin == 2:
+						dictEntry['Code'] = "00" + dictEntry['Code']
+					elif lPin == 3:
+						dictEntry['Code'] = "0" + dictEntry['Code']
+					lPin = 4
+				# for the purposes of this module we only allow 4 digit pins, though the hardware supports many lengths. We are forcing 4 digit below.
+				# if lPin not in [4,6,8,32]:
+
+				if lPin != 4:
+					mmLib_Log.logForceAndMail(self.deviceName + "WARNING This plugin only supports 4 digit DoorCodes. Please manually change this value for entry " + dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.", "SandCastle Automation Message", "9258727124@vtext.com")
+
 				arrivalTimeISO = dt.isoformat(dt.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
 				departureTimeISO = dt.isoformat(dt.strptime(dictEntry["DepartureDate"], "%m/%d/%y"))
+
 
 				if arrivalTimeISO == departureTimeISO:
 					mmLib_Log.logForceAndMail(self.deviceName + " WARNING: ArrivalDate and Departure Date are the same for entry " + dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.", "SandCastle Automation Message", "9258727124@vtext.com")
@@ -349,8 +368,10 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " setUserPin action called")
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Indigo lock selected: " + str(indigoDevID))
 
+		#Hardware supports supports 4,6,8,32 digit codes, but we only support 4 digits here.
+
 		if len(userPin) not in [4,6,8,32]:
-			mmLib_Log.logForce(self.deviceName + "This plugin only supports 4, 6 or 8 digit PINs or 11 character RFID tags")
+			mmLib_Log.logForceAndMail(self.deviceName + "WARNING This plugin only supports 4 digit DoorCodes. Please manually change this value.", "SandCastle Automation Message", "9258727124@vtext.com")
 			return
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Setting PIN for user " + str(userNo) + " to: " + str(userPin))
@@ -438,4 +459,3 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		if not localError: localError = self.resetArrivalFile(self.NewArrivals)
 
 		return(localError)
-	
