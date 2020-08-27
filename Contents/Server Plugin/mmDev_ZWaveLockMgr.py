@@ -438,3 +438,4 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		if not localError: localError = self.resetArrivalFile(self.NewArrivals)
 
 		return(localError)
+	
