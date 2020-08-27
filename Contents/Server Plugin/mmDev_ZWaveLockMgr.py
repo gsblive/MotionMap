@@ -60,10 +60,10 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 					theLockDevice = indigo.devices[aLock]
 					self.ourLockDevicesIndigo.append(aLock)
 				except:
-					mmLib_Log.logForce( self.deviceName + " ### Could not find Lock Device \'" + str(aLock) + "\'.")
+					mmLib_Log.logForce(self.deviceName + " ### Could not find Lock Device \'" + str(aLock) + "\'.")
 					continue
 
-				mmLib_Log.logForce( self.deviceName + " Found Lock Device \'" + str(aLock) + "\'.")
+				mmLib_Log.logForce(self.deviceName + " Found Lock Device \'" + str(aLock) + "\'.")
 
 		#mmLib_Log.logForce(self.deviceName + " Lock entries are: " + str(self.ourLockDevicesIndigo) )
 
@@ -98,7 +98,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 	#
 	def receivedCommandEvent(self, eventID, eventParameters):
 
-		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " received command event from \'" + eventParameters['publisher'] + "\'.")
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " received command event from \'" + eventParameters['publisher'] + "\'.")
 
 		return (0)
 
@@ -106,7 +106,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
 	#
 	def errorCommandEvent(self, eventID, eventParameters  ):
-		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " received error command event from \'" + eventParameters['publisher'] + "\'.")
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " received error command event from \'" + eventParameters['publisher'] + "\'.")
 		return (0)
 
 	######################################################################################
@@ -141,7 +141,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 	#
 	def completeInit(self, eventID, eventParameters):
 
-		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Entering completeInit." )
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Entering completeInit." )
 
 		mmLib_Low.registerDelayedAction({'theFunction': self.PeriodicTime,
 											 'timeDeltaSeconds': 60*60,
@@ -150,26 +150,37 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 
 		return 0
 
+	#
+	# PeriodicTime - we get called every once in a while for maintenance
+	#
 	def PeriodicTime(self, eventID, eventParameters):
 
-		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Entering PeriodicTime." )
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Entering PeriodicTime." )
 
 		return 0
 
+	#
+	# selectArrivalFile - Show a dialog box to find the file we want (if its not included in the command line)
+	#
 	# If we cant find the files, we may be able to ask the user to find them.
 	# we will have to store the file path to a variable in indigo
+	#
 	def selectArrivalFile(self):
 		self.ArrivalSchedule = askopenfilename()
 		self.NewArrivals = self.ArrivalSchedule.replace("ArrivalSchedule","NewArrivals")
 		mmLib_Log.logForce("New Arrival Schedule is: " + self.ArrivalSchedule)
 		return(0)
 
+	#
+	# makeScheduleDict - We manage the schedule through two files. We make a dict from those files for easy processing.
+	# This routine is called twice... once for the primary schedule, and once for the new arrival additions
+	#
 	def makeScheduleDict(self, theFilePath, todayISO):
 
 		self.currentHeader = 0
 
 		#mmLib_Log.logTerse("Parsing file: " + ntpath.basename(theFilePath))			# For just file name
-		mmLib_Log.logForce( self.deviceName + "Processing file: " + ntpath.basename(theFilePath))							# For just file name)
+		mmLib_Log.logForce(self.deviceName + " Processing file: " + ntpath.basename(theFilePath))							# For just file name)
 
 		try:
 			f = open(theFilePath, 'r')
@@ -181,33 +192,45 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		for line in f:
 			lineList = line.strip()
 			lineList = lineList.split(",")
-			#mmLib_Log.logForce( self.deviceName + lineList[0])
+			#mmLib_Log.logForce(self.deviceName + lineList[0])
 
 			# Process this line. If it is the first line, its the header
 			if not self.currentHeader:
-				#mmLib_Log.logForce( self.deviceName + "Found Header " + line)
+				#mmLib_Log.logForce(self.deviceName + "Found Header " + line)
 				self.currentHeader = lineList
 				continue
 			else:
 				dictEntry = dict(zip(self.currentHeader, lineList))
-				#mmLib_Log.logForce( self.deviceName + dictEntry)
-				key = dt.isoformat(dt.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
-				if todayISO > key:
-					mmLib_Log.logForce(self.deviceName + "Abandoning expired entry " + key)
+				#mmLib_Log.logForce(self.deviceName + dictEntry)
+				arrivalTimeISO = dt.isoformat(dt.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
+				departureTimeISO = dt.isoformat(dt.strptime(dictEntry["DepartureDate"], "%m/%d/%y"))
+				if todayISO > arrivalTimeISO:
+					# Tennent arrived 1 or more days ago, but may be due to leave today
+					if todayISO >= departureTimeISO:
+						# Departure time is today, or in the past. Mark the code for deletion,
+						self.scheduleDict["Delete"] = dictEntry
+						mmLib_Log.logForce(self.deviceName + " self.deviceName + Stay is over, marking entry \'" + dictEntry['GuestName'] + " " + dictEntry['ArrivalDate'] + "\' for deletion.")
+					else:
+						# the tennent is still here
+						mmLib_Log.logForce(self.deviceName + " Preserving current tennent\'s entry \'" + dictEntry['GuestName'] + " " + dictEntry['ArrivalDate'] + "\'")
+						self.scheduleDict[arrivalTimeISO] = dictEntry
 				else:
-					mmLib_Log.logForce(self.deviceName + "Adding entry " + key)
-					self.scheduleDict[key] = dictEntry
+					mmLib_Log.logForce(self.deviceName + " Adding entry \'" + dictEntry['GuestName'] + " " + dictEntry['ArrivalDate'] + "\'")
+					self.scheduleDict[arrivalTimeISO] = dictEntry
 		f.close()
 		return(0)
 
+	#
+	# resetArrivalFile - After we process the arrival file, we reset it to include only the header
+	#
 	def resetArrivalFile(self, theFilePath):
-		mmLib_Log.logForce(self.deviceName + "### Resetting Arrival File")
+		#mmLib_Log.logForce(self.deviceName + " ### Resetting Arrival File")
 
 		try:
 			f = open(theFilePath, 'r+')
 		except Exception as e:
 			mmLib_Log.logForce(
-			self.deviceName + "Error in resetArrivalFile(): " + str(e) + " Terminating session.")
+			self.deviceName + " Error in resetArrivalFile(): " + str(e) + " Terminating session.")
 			return(-1)
 
 		firstLine = f.readline()
@@ -219,16 +242,20 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		f.close()
 		return(0)
 
+	#
+	# writeScheduleDict - After we process new schedule dict, we write it back out to a file. All the unwanted lines have
+	# been removed from the dict so the file is self pruning
+	#
 	def writeScheduleDict(self,theFilePath):
 
 
 		#mmLib_Log.logTerse("Parsing file: " + ntpath.basename(theFilePath))			# For just file name
-		mmLib_Log.logForce( self.deviceName + "Writing file: " + ntpath.basename(theFilePath))							# For just file name)
+		mmLib_Log.logForce(self.deviceName + " Writing file: " + ntpath.basename(theFilePath))							# For just file name)
 
 		try:
 			f = open(theFilePath, 'w+')
 		except Exception as e:
-			mmLib_Log.logForce( self.deviceName + "Error in parseOccupancySchedule(): " + str(e) + " Terminating session.")
+			mmLib_Log.logForce(self.deviceName + " Error in parseOccupancySchedule(): " + str(e) + " Terminating session.")
 			return(-1)
 
 		f.truncate()
@@ -239,14 +266,16 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 
 		for anEvent in sorted(self.scheduleDict):
 			eventDict = self.scheduleDict[anEvent]
-			mmLib_Log.logForce(
-			self.deviceName + "EventDict: " + str(eventDict))
+			if anEvent == "Delete":
+				mmLib_Log.logForce(self.deviceName + " Deleting " + eventDict['GuestName'] + " " + eventDict['ArrivalDate'] + ". Event is complete")
+				continue
+			mmLib_Log.logForce(self.deviceName + " Writing EventDict: " + str(eventDict))
 			ArrivalDate = eventDict['ArrivalDate']
 			DepartureDate = eventDict['DepartureDate']
 			GuestName = eventDict['GuestName']
 			DoorCode = eventDict['Code']
 			string = str(ArrivalDate + ',' + DepartureDate + ',' + GuestName + ',' + DoorCode)
-			#mmLib_Log.logForce( self.deviceName + "Adding Entry " + string)
+			#mmLib_Log.logForce(self.deviceName + " Adding Entry " + string)
 			f.write(string + "\r\n")
 
 		# Add the entries
@@ -254,12 +283,21 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		f.close()
 		return(0)
 
+	#
+	# convertListToHexStr - Utility routine
+	#
 	def convertListToHexStr(self, bList):
 		return ' '.join(["%02X" % byte for byte in bList])
 
+	#
+	# convertListToStr - Utility routine
+	#
 	def convertListToStr(self, bList):
 		return ' '.join(["%02X" % byte for byte in bList])
 
+	#
+	# getPinStr - Format the pin string to send via raw command to the lock
+	#
 	def getPinStr(self,inPin):
 		if (len(inPin) == 4):
 			d1 = int(ord(inPin[0:1]))
@@ -301,23 +339,39 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		else:
 			return []
 
+	#
+	# setUserPin - Send a user code to the lock
+	#
 	def setUserPin(self, indigoDevID, userNo, userPin):
 
-		mmLib_Log.logForce( self.deviceName + " setUserPin action called")
-		mmLib_Log.logForce( self.deviceName + " Indigo lock selected: " + str(indigoDevID))
+		mmLib_Log.logForce(self.deviceName + " setUserPin action called")
+		mmLib_Log.logForce(self.deviceName + " Indigo lock selected: " + str(indigoDevID))
 
 		if len(userPin) not in [4,6,8,32]:
-			mmLib_Log.logForce( self.deviceName + "This plugin only supports 4, 6 or 8 digit PINs or 11 character RFID tags")
+			mmLib_Log.logForce(self.deviceName + "This plugin only supports 4, 6 or 8 digit PINs or 11 character RFID tags")
 			return
 
-		mmLib_Log.logForce( self.deviceName + " Setting PIN for user " + str(userNo) + " to: " + str(userPin))
+		mmLib_Log.logForce(self.deviceName + " Setting PIN for user " + str(userNo) + " to: " + str(userPin))
 
 		codeStr = [99, 0o1, int(userNo), 0o1] + self.getPinStr(userPin)
-		mmLib_Log.logForce( self.deviceName + " ### Got CodeString. Looking for " + indigoDevID)
+		mmLib_Log.logForce(self.deviceName + " ### Got CodeString. Looking for " + indigoDevID)
 
-		indigo.zwave.sendRaw(device=indigo.devices[indigoDevID], cmdBytes=codeStr, sendMode=1, waitUntilAck = False)
-		mmLib_Log.logForce(self.deviceName + "Sending raw command: [" + self.convertListToStr(codeStr) + "] to device " + str(indigoDevID))
+		#mmLib_Log.logForce(self.deviceName + " Sending raw command: [" + self.convertListToStr(codeStr) + "] to device " + str(indigoDevID))
+		indigo.zwave.sendRaw(device=indigo.devices[indigoDevID], cmdBytes=codeStr, sendMode=1, waitUntilAck=False)
 
+	#
+	# clearUserPin - Erase the user pin
+	#
+	def clearUserPin(self, indigoDevID, userNo):
+		mmLib_Log.logForce(self.deviceName + " clearUserPin action called")
+		mmLib_Log.logForce(self.deviceName + " Indigo lock selected: " + str(indigoDevID))
+
+		mmLib_Log.logForce(self.deviceName + " Clearing PIN for user " + userNo)
+
+		codeStr = [99, 0o1, int(userNo), 0o0]
+
+		#mmLib_Log.logForce(self.deviceName + " Sending raw command: [" + self.convertListToStr(codeStr) + "] to device " + str(indigoDevID))
+		indigo.zwave.sendRaw(device=indigo.devices[indigoDevID],cmdBytes=codeStr,sendMode=1, waitUntilAck=False)
 
 	######################################################################################
 	#
@@ -330,10 +384,12 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 	#
 	# Process the CSV files and set lock codes
 	#
-	# Process NewArrivals and add them to the ArrivalSchedule
-	# Then, process ArrivalSchedule to change DoorCodes as needed
-
-	# Note processOccupancySchedule handles all access to ArrivalSchedule. Do not open this file for write access remotely.
+	# Load arrival schedule file, turning it to a dict
+	# Then add New Arrivals to the dict
+	#
+	# Process the dict to set or clear door codes as needed
+	#
+	# Note processSchedule handles all access to ArrivalSchedule.csv. Do not open this file for write access remotely.
 
 	def processSchedule(self, theCommandParameters):
 
@@ -351,22 +407,28 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		if not localError:
 			localError = self.makeScheduleDict(self.NewArrivals, todayISO)
 
-		#mmLib_Log.logForce( self.deviceName + self.scheduleDict)
-		# Any DoorCodes to change today?
+		deleteDict = self.scheduleDict.get("Delete",0)
+		if deleteDict != 0:
+			# delete the door code for this entry
+			mmLib_Log.logForce(self.deviceName + " Deleting pin for " + deleteDict['GuestName'] + " " + deleteDict['ArrivalDate'])
+			# Change Lock DoorCode
+			for aLock in self.doorLocks:
+				self.clearUserPin(aLock, self.userNo)
+
+		#mmLib_Log.logForce(self.deviceName + self.scheduleDict)
+		# Look for new DoorCodes to change today?
 		changeDict = self.scheduleDict.get(todayISO, 0)
 
 		if changeDict == 0:
-			mmLib_Log.logForce(self.deviceName + "Today is " + todayString + ". Nothing to be done.")
+			mmLib_Log.logForce(self.deviceName + " Today is " + todayString + ". Nothing to be done.")
 		else:
-			#mmLib_Log.logForce( self.deviceName + changeDict)
-			mmLib_Log.logForce( self.deviceName + "Changing DoorCode for guest " + changeDict["GuestName"] + " to DoorCode " + changeDict["Code"])
-			mmLib_Log.logForce( self.deviceName + "  DoorCode to be reset on " + changeDict["DepartureDate"])
+			#mmLib_Log.logForce(self.deviceName + changeDict)
+			mmLib_Log.logForce(self.deviceName + " Changing DoorCode for guest " + changeDict["GuestName"] + " to DoorCode " + changeDict["Code"])
+			mmLib_Log.logForce(self.deviceName + "  DoorCode to be reset on " + changeDict["DepartureDate"])
 
 			# Change Lock DoorCode
 			for aLock in self.doorLocks:
 				self.setUserPin(aLock, self.userNo, changeDict["Code"])
-
-			# Schedule Lock DoorCode Reset
 
 		# either way, rewrite the arrival schedule file
 		if not localError: localError = self.writeScheduleDict(self.ArrivalSchedule)
