@@ -72,6 +72,7 @@ logLevelDict =	{
 # Jump table with default mmNullMessage
 
 def mmNullMessage(msg): return
+def mmNullMessageWithMail(msg, subject, address): return
 
 setLogSensitivity = mmNullMessage
 
@@ -85,6 +86,7 @@ logReportLine = mmNullMessage
 logTimestamp = mmNullMessage
 logForceGray = mmNullMessage
 logForce = mmNullMessage
+logForceAndMail = mmNullMessageWithMail
 logWarning = mmNullMessage
 logError = mmNullMessage
 
@@ -144,7 +146,7 @@ class myLogger(logging.Logger):
 
 	def setLevel(self,logLevelString):
 
-		global logNotSet, logDebug, logVerbose, logTerse, logReportLine, logTimestamp, logForceGray, logForce, logWarning, logError, setLogSensitivity, logLevelDict, currentNumericLogLevel, currentTextLogLevel
+		global logNotSet, logDebug, logVerbose, logTerse, logReportLine, logTimestamp, logForceGray, logForce, logForceAndMail, logWarning, logError, setLogSensitivity, logLevelDict, currentNumericLogLevel, currentTextLogLevel
 
 		setLogSensitivity = self.setLevel
 
@@ -162,6 +164,7 @@ class myLogger(logging.Logger):
 		logTimestamp = self.mmTStmp if LOG_TIMESTAMP >= numericVal else mmNullMessage
 		logForceGray = self.mmForceGray if LOG_FORCE_GRAY_NOTE >= numericVal else mmNullMessage
 		logForce = self.mmForce if LOG_FORCE_NOTE >= numericVal else mmNullMessage
+		logForceAndMail = self.mmForceAndMail if LOG_FORCE_NOTE >= numericVal else mmNullMessageWithMail
 		logWarning = self.mmWARNG if LOG_WARNING >= numericVal else mmNullMessage
 		logError = self.mmERROR if LOG_ERROR >= numericVal else mmNullMessage
 
@@ -235,6 +238,10 @@ class myLogger(logging.Logger):
 	def mmForce(self, msg):
 		self.emit(MM_LOG_FORCE_NOTE, msg)
 
+	def mmForceAndMail(self, msg, theSubject, theAddress):
+		self.emit(MM_LOG_FORCE_NOTE, msg)
+		indigo.server.sendEmailTo(theAddress, subject=theSubject, body=msg)
+
 	def mmWARNG(self, msg):
 		self.emit(MM_LOG_WARNING, msg)
 		writeToLogFile(MM_LOG_WARNING, msg, 1, 1)
@@ -258,6 +265,8 @@ class myLogger(logging.Logger):
 	def mmNullMessage(self, msg):
 		return
 
+	def mmNullMessageWithMail(self, msg, subject, address):
+		return
 
 def checkString(msg):
 	# Returns 0 if the string is OK, otherwise returns a replacement string
