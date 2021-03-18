@@ -289,7 +289,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		for anEvent in sorted(self.scheduleDict):
 			eventDict = self.scheduleDict[anEvent]
 			if anEvent == "Delete":
-				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Deleting " + eventDict['GuestName'] + " " + eventDict['ArrivalDate'] + ". Event is complete")
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Deleting " + eventDict['GuestName'] + " " + eventDict['ArrivalDate'] + " from arrival schedule. Event is complete")
 				continue
 			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Writing EventDict: " + str(eventDict))
 			ArrivalDate = eventDict['ArrivalDate']
@@ -433,7 +433,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		deleteDict = self.scheduleDict.get("Delete",0)
 		if deleteDict != 0:
 			# delete the door code for this entry
-			mmLib_Log.logForceAndMail(self.deviceName + " Deleting DoorCode for guest" + deleteDict['GuestName'] + " " + deleteDict['ArrivalDate'], "SandCastle Automation Message", "9258727124@vtext.com")
+			mmLib_Log.logForceAndMail(self.deviceName + " Deleting DoorCode for guest " + deleteDict['GuestName'] + " " + deleteDict['ArrivalDate'], "SandCastle Automation Message", "9258727124@vtext.com")
 			for aLock in self.doorLocks:
 				self.clearUserPin(aLock, self.userNo)
 
