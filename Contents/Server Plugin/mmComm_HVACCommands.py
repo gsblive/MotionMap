@@ -105,11 +105,11 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 
 		if self.allowAsync:
 			if operationMode == indigo.kHvacMode.Heat:
-				resultCode = self.sendRawInsteonCommandLow( [107, 10, 10, 0, 0], False, True)
+				resultCode = self.sendRawInsteonCommandLow( [107, 10, 10, 0, 0], False, True, False)
 			elif operationMode == indigo.kHvacMode.Cool:
-				resultCode = self.sendRawInsteonCommandLow( [107, 11, 11, 0, 0], False, True)
+				resultCode = self.sendRawInsteonCommandLow( [107, 11, 11, 0, 0], False, True, False)
 			elif operationMode == indigo.kHvacMode.HeatCool:
-				resultCode = self.sendRawInsteonCommandLow( [107, 12, 12, 0, 0], False, True)
+				resultCode = self.sendRawInsteonCommandLow( [107, 12, 12, 0, 0], False, True, False)
 			else:
 				mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. Illegal Operation mode for " + self.deviceName)
 		else:
@@ -137,9 +137,9 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 
 		if self.allowAsync:
 			if newFanMode == indigo.kFanMode.AlwaysOn:
-				resultCode = self.sendRawInsteonCommandLow( [107, 7, 7, 0, 0], False, True)
+				resultCode = self.sendRawInsteonCommandLow( [107, 7, 7, 0, 0], False, True, False)
 			elif newFanMode == indigo.kFanMode.Auto:
-				resultCode = self.sendRawInsteonCommandLow( [107, 6, 6, 0, 0], False, True)
+				resultCode = self.sendRawInsteonCommandLow( [107, 6, 6, 0, 0], False, True, False)
 			else:
 				mmLib_Log.logForce(theCommandParameters['theCommand'] + " command has been skipped. Illegal Fan mode for " + self.deviceName)
 		else:
@@ -166,7 +166,7 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 
 		if int(self.theIndigoDevice.coolSetpoint) != int(newSetPoint):
 			if self.allowAsync:
-				resultCode = self.sendRawInsteonCommandLow([mmComm_Insteon.kInsteonHVACCoolSetpoint, int(newSetPoint) * 2, int(newSetPoint) * 2, 4, 0], False, True)
+				resultCode = self.sendRawInsteonCommandLow([mmComm_Insteon.kInsteonHVACCoolSetpoint, int(newSetPoint) * 2, int(newSetPoint) * 2, 4, 0], False, True, False)
 			else:
 				resultCode = indigo.thermostat.setCoolSetpoint(self.devIndigoID, value=int(newSetPoint))
 				resultCode = 'Dque'		# Tell dispatch have to qdueue... we are not waiting
@@ -194,7 +194,7 @@ class mmHVACCommands(mmComm_Insteon.mmInsteon):
 
 		if int(self.theIndigoDevice.heatSetpoint) != int(newSetPoint):
 			if self.allowAsync:
-				resultCode = self.sendRawInsteonCommandLow([mmComm_Insteon.kInsteonHVACHeatSetpoint, int(newSetPoint) * 2, int(newSetPoint) * 2, 4, 0], False, True)
+				resultCode = self.sendRawInsteonCommandLow([mmComm_Insteon.kInsteonHVACHeatSetpoint, int(newSetPoint) * 2, int(newSetPoint) * 2, 4, 0], False, True, False)
 			else:
 				indigo.thermostat.setHeatSetpoint(self.devIndigoID, value=int(newSetPoint))
 				resultCode = 'Dque'		# Tell dispatch have to qdueue... we are not waiting

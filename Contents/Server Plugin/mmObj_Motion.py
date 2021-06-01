@@ -33,6 +33,9 @@ import collections
 import random
 from datetime import datetime, timedelta
 
+# How many ON transitions will resuklt in a bettery level test
+BAT_LEVEL_ON_FACTOR = 100
+
 ######################################################
 #
 # mmMotion - Motion Sensor Device
@@ -59,6 +62,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.lastOffTimeSeconds = 0
 		self.blackOutTill = 0
 		self.onlineState = 'on'
+		self.battLevelOnCounter = 2 #Initial value to make sure we get up to date battery level right away
 
 		super(mmMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 		if self.initResult == 0:
@@ -88,14 +92,44 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 			self.supportedCommandsDict.update({'devStatus': self.devStatus})
 
+			self.supportedCommandsDict.update({'sendRawInsteonCommand': self.sendRawInsteonCommand})
+
 			# register for the indigo events we want
 
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.initializationComplete, {}, self.deviceName)
 
+			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {}, self.deviceName)
+			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {}, self.deviceName)
 
 			# The following is now handled at init above so it can get overridden by child classas
 			# 	mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
 
+	#
+	# completeCommand - we received a commandSent completion message from the server for this device.
+	#
+	def completeCommandEvent(self, eventID, eventParameters ):
+		theCommandByte = 0
+		if self.debugDevice: mmLib_Log.logForce( "Success for " + self.deviceName + " during command completion. Completion Event Parameters: " + str(eventParameters))
+		commandParameters = eventParameters['cmd']
+		if self.debugDevice: mmLib_Log.logForce("   Command Parameters: " + str(commandParameters))
+		theCommandByte = commandParameters.cmdBytes[0]
+
+		super(mmMotion, self).completeCommandEvent(eventID, eventParameters)	# Nothing special here, forward to the Base class
+
+		if theCommandByte == mmComm_Insteon.kInsteonRequestBattLevel:
+			indigo.server.log(str(commandParameters.replyBytes))
+			batteryLevel = str(float(commandParameters.replyBytes[13] / 10.0))
+			mmLib_Log.logForce( "Battery Level for " + self.deviceName + " is " + batteryLevel)
+			mmLib_Low.setIndigoVariable("MotionBatteryLevel_" + self.deviceName, batteryLevel)
+		else:
+			mmLib_Log.logForce( "###Unknown complete event type " + str(theCommandByte) + " for " + self.deviceName + " during command completion.")
+
+	#
+	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
+	#
+	def errorCommandEvent(self, eventID, eventParameters  ):
+
+		return(0)
 
 	######################################################################################
 	#
@@ -330,6 +364,47 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		return 0
 
 	#
+	# getBatteryStatus - Occasionally check the battery level, every BAT_LEVEL_ON_FACTOR number of ON transitions
+	#
+	def getBatteryStatus(self):
+
+		self.battLevelOnCounter = self.battLevelOnCounter-1
+
+		if self.battLevelOnCounter <= 1:
+			self.battLevelOnCounter = BAT_LEVEL_ON_FACTOR
+			mmLib_Log.logForce( "Checking Battery Level for " + self.deviceName + ". Resetting ON counter to " + str(self.battLevelOnCounter) + ".")
+
+			mmLib_Low.registerDelayedAction({'theFunction': self.dispatchBatteryStatusCommand,
+											 'timeDeltaSeconds': int(2),
+											 'theDevice': self.deviceName,
+											 'timerMessage': "Motion Sensor battery status request Timer"})
+
+
+			#batteryLevel = reply.replyBytes[13]
+
+			#mmLib_Log.logForce("Battery level (approx. Volts): " + str(float(batteryLevel / 10.0)))
+
+			#indigo.variable.updateValue(serverBattery, str(float(batteryLevel / 10.0)))
+
+		return 0
+
+	#
+	# dispatchBatteryStatusCommand - happens approximately 2 seconds after receiving an on command
+	#
+	def dispatchBatteryStatusCommand(self, theParameters):
+
+		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is sending BatteryStatus Command.")
+		# we dont really care about the result.. it is async and will be handled in the response processing
+		#reply = indigo.insteon.sendRawExtended(self.theIndigoDevice.address, [0x2E, 0x00], waitForExtendedReply=False)
+
+		# Do it as a queued command so we can get the result without waiting. trhe result will
+		# come in as DevCmdComplete (success) or DevCmdErr (error) events
+
+		self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'extended':True, 'ackWait': 0, 'cmd1': 0x2E, 'cmd2': 0x00, 'cmd3': 0x00, 'cmd4': 0x00, 'cmd5': 0x00, 'waitForExtendedReply':True, 'retry': 0})
+
+		return 0  # Cancel timer
+
+	#
 	# resetIndigoOccupationVariable - Distribute Occupation Events and set the indigo occupation variable.
 	#
 	def resetIndigoOccupationVariable(self, timeDeltaSeconds, stringExtension):
@@ -439,6 +514,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 					# And dispatch the ON event
 					self.dispatchOnOffEvents( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
+
+					# Check the battery status in the wake of this on event
+					self.getBatteryStatus()
 
 				else:
 					# Dispatch the Off event

@@ -369,7 +369,7 @@ class mmIndigo(object):
 					if rampCommand:
 						# Use Ramp command
 
-						self.sendRawInsteonCommandLow([rampCommand,self.makeRampCmdModifier(theValue, theRampRate)], False, 0)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
+						self.sendRawInsteonCommandLow([rampCommand,self.makeRampCmdModifier(theValue, theRampRate)], False, 0, False)		# light ON with Ramp (see //_Documentation/InsteonCommandTables.pdf)
 
 						if theValue == 0:
 							# Only if we are trying to dim to 0... for some reason, dimming doesnt go down to 0, it goes to 6. Finish up the last dimming step at the end of the ramp cycle
@@ -460,7 +460,7 @@ class mmIndigo(object):
 					#self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 1,'cmd1': int(theCommandParameters['UpOrDown']), 'cmd2': 0, 'retry': 0})
 					# Do the initiel ramp step
 					try:
-						self.sendRawInsteonCommandLow([int(directionOfChange), 0], False, 0)  # step light brightness (either up or down)
+						self.sendRawInsteonCommandLow([int(directionOfChange), 0], False, 0, False)  # step light brightness (either up or down)
 						self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 996,'retry': 0})
 					except:
 						mmLib_Log.logWarning("sendRawInsteonCommandLow command " + str(directionOfChange) + " failed for device " + self.deviceName)

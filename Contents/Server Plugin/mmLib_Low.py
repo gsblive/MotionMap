@@ -85,7 +85,7 @@ lastDelayProcRunTime = 0
 FractionalGranularity = .000001
 fractionalIndex = FractionalGranularity
 
-TIMER_QUEUE_GRANULARITY = 5
+TIMER_QUEUE_GRANULARITY = 2	# seconds
 
 SubmodelDeviceDict = {}
 

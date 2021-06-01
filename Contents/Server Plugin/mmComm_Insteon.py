@@ -39,6 +39,7 @@ kInsteonStopBrightDim = 24
 kInsteonStatusRequest = 25
 kInsteonBeep = 48
 kInsteonBrightenWithRamp = 46
+kInsteonRequestBattLevel = 46
 kInsteonBrightenWithRamp2 = 52
 kInsteonHVACMode = 107
 kInsteonHVACCoolSetpoint = 108
@@ -205,6 +206,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	def sendRawInsteonCommand(self, theCommandParameters):
 
 		mmLib_Log.logDebug("Sending Raw command to " + self.deviceName + " command: " + str(theCommandParameters))
+		waitForExtendedReply = False
 
 		try:
 			extended = int(theCommandParameters["extended"])
@@ -229,6 +231,13 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 			except:
 				mmLib_Log.logForce("While sending Extended Raw command to " + self.deviceName + "... Parameter Error (extended cmds not found). command: " + str(theCommandParameters))
 				return(0)
+
+			try:
+				waitForExtendedReply = int(theCommandParameters["waitForExtendedReply"])
+				waitForExtendedReply = True
+			except:
+				waitForExtendedReply = False
+
 		else:
 			try:
 				theCommand = [0,0]
@@ -238,7 +247,8 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 				mmLib_Log.logForce("While sending Raw command to " + self.deviceName + "... Parameter Error. command: " + str(theCommandParameters))
 				return(0)
 
-		resultCode = self.sendRawInsteonCommandLow( theCommand, ackWait, extended)
+
+		resultCode = self.sendRawInsteonCommandLow( theCommand, ackWait, extended, waitForExtendedReply)
 
 		return(resultCode)
 
@@ -262,7 +272,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 			return('unresponsive')
 
 		if self.theIndigoDevice.version >= 0x38:
-			resultCode = self.sendRawInsteonCommandLow([kInsteonBeep,0], False, False)
+			resultCode = self.sendRawInsteonCommandLow([kInsteonBeep,0], False, False, False)
 		else:
 			mmLib_Log.logWarning("Beep Requested on Device that doesnt support it: " + self.deviceName)
 
@@ -292,14 +302,14 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	#
 	############################################################################################
 
-	def sendRawInsteonCommandLow(self, theCommand, ackWait, extendedCommand):
+	def sendRawInsteonCommandLow(self, theCommand, ackWait, extendedCommand, ExtendedWaitReply):
 
 		resultCode = 0
 
 		mmLib_Log.logDebug("Sending Raw command to " + self.theIndigoDevice.name + " command: " + str(theCommand))
 
 		if extendedCommand:
-			resultCode = indigo.insteon.sendRawExtended(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait)
+			resultCode = indigo.insteon.sendRawExtended(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait, waitForExtendedReply=ExtendedWaitReply)
 		else:
 			resultCode = indigo.insteon.sendRaw(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait)
 
