@@ -98,8 +98,21 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.initializationComplete, {}, self.deviceName)
 
-			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {}, self.deviceName)
-			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {}, self.deviceName)
+			# The two procedures below are for Battery level process ing for Indigo Motion Sensors only
+			self.isInsteonMotionDevice = False
+			try:
+				prot = self.theIndigoDevice.protocol
+				image = self.theIndigoDevice.displayStateImageSel
+				if str(prot) + " " + str(image) == "Insteon MotionSensor":
+					self.isInsteonMotionDevice = True
+			except:
+				pass
+
+			if self.debugDevice:mmLib_Log.logForce(" ### " + self.deviceName + ".isInsteonMotionDevice: " + str(self.isInsteonMotionDevice))
+
+			if self.isInsteonMotionDevice:
+				mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {}, self.deviceName)
+				mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {}, self.deviceName)
 
 			# The following is now handled at init above so it can get overridden by child classas
 			# 	mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes':{'onState':0}}, self.deviceName)
@@ -118,7 +131,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		if theCommandByte == mmComm_Insteon.kInsteonRequestBattLevel:
 			indigo.server.log(str(commandParameters.replyBytes))
-			batteryLevel = str(float(commandParameters.replyBytes[13] / 10.0))
+			batteryLevel = str(float(commandParameters.replyBytes[13] / 100.0))
 			mmLib_Log.logForce( "Battery Level for " + self.deviceName + " is " + batteryLevel)
 			mmLib_Low.setIndigoVariable("MotionBatteryLevel_" + self.deviceName, batteryLevel)
 		else:
@@ -394,10 +407,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	def dispatchBatteryStatusCommand(self, theParameters):
 
 		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is sending BatteryStatus Command.")
-		# we dont really care about the result.. it is async and will be handled in the response processing
-		#reply = indigo.insteon.sendRawExtended(self.theIndigoDevice.address, [0x2E, 0x00], waitForExtendedReply=False)
-
-		# Do it as a queued command so we can get the result without waiting. trhe result will
+		# Do it as a queued command so we can get the result without waiting. the result will
 		# come in as DevCmdComplete (success) or DevCmdErr (error) events
 
 		self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'extended':True, 'ackWait': 0, 'cmd1': 0x2E, 'cmd2': 0x00, 'cmd3': 0x00, 'cmd4': 0x00, 'cmd5': 0x00, 'waitForExtendedReply':True, 'retry': 0})
@@ -516,7 +526,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 					self.dispatchOnOffEvents( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
 
 					# Check the battery status in the wake of this on event
-					self.getBatteryStatus()
+					if self.isInsteonMotionDevice: self.getBatteryStatus()
 
 				else:
 					# Dispatch the Off event
@@ -640,25 +650,30 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def checkBattery(self, theCommandParameters):
 
-		addString = ""
+		if self.isInsteonMotionDevice:
+			addString = "Last known battery level for " +self.deviceName + " = " + str(mmLib_Low.getIndigoVariable("MotionBatteryLevel_" + self.deviceName, "0.0\n"))
+			mmLib_Log.logReportLine(addString)
+		else:
+			addString = ""
+
 
 		# if the device is ON, see if has been on too long
 		if self.controllerMissedCommandCount > mmLib_Low.MOTION_MAX_MISSED_COMMANDS:
 			newString =  self.deviceName + " has missed " + str(self.controllerMissedCommandCount) + " events. The battery is likely dead"
 			addString = addString + newString + "\n"
-			mmLib_Log.logForce(newString)
+			mmLib_Log.logReportLine(newString)
 
 		if self.getOnState() == True:
 			if self.getSecondsSinceUpdate() > mmLib_Low.MOTION_MAX_ON_TIME:
 				newString =  self.deviceName + " has been on for " + str(int(self.getSecondsSinceUpdate()) / int(60*60)) + " hours. The device may need to be reset or the battery may be dead"
 				addString = addString + newString + "\n"
-				mmLib_Log.logForce(newString)
+				mmLib_Log.logReportLine(newString)
 				indigo.device.turnOff(self.devIndigoID)	# doesnt honor the unresponsive flag because this just sets statte in indigo (no command is sent to the device)
 		else:
 			if self.getSecondsSinceUpdate() > mmLib_Low.MOTION_MAX_OFF_TIME:
 				newString =  self.deviceName + " has been off for " + str(int(self.getSecondsSinceUpdate()) / int(24*60*60)) + " days. The device may need to be reset or the battery may be dead "
 				addString = addString + newString + "\n"
-				mmLib_Log.logForce(newString)
+				mmLib_Log.logReportLine(newString)
 
 		return(addString)
 
