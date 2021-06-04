@@ -87,10 +87,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "rapidTransitionTimeList", [])
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "problemReportTime", 0)
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "batteryQueryTimeSeconds", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "batteryQueryTimeSecondsStr", " Unknown ")
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "batteryLevel", 0)
-			if self.debugDevice:
-				mmLib_Log.logForce("###DEBUG:Forcing batteryQueryTimeSeconds to 0")
-				self.ourNonvolatileData["batteryQueryTimeSeconds"] = 0
+
+			#if self.debugDevice:
+			#	mmLib_Log.logForce("###DEBUG:Forcing batteryQueryTimeSeconds to 0")
+			#	self.ourNonvolatileData["batteryQueryTimeSeconds"] = 0
+
 			s = str(self.deviceName + ".Occupation")
 			self.occupationIndigoVar = s.replace(' ', '.')
 			if self.debugDevice: mmLib_Log.logForce("Initializing " + str(self.occupationIndigoVar) + " for " + self.deviceName + " to occupiedState " + str(self.occupiedState) + ". (" + str(OccupiedStateList[self.occupiedState]) + ")")
@@ -140,6 +143,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.ourNonvolatileData["batteryLevel"] = str(float(commandParameters.replyBytes[13] / 100.0))
 			mmLib_Log.logForce( "Battery Level for " + self.deviceName + " is " + self.ourNonvolatileData["batteryLevel"])
 			self.ourNonvolatileData["batteryQueryTimeSeconds"] = int(time.mktime(time.localtime()))
+			self.ourNonvolatileData["batteryQueryTimeSecondsStr"] = str(datetime.now().strftime("%m/%d/%Y"))
+
 			mmLib_Low.setIndigoVariable("MotionBatteryLevel_" + self.deviceName, self.ourNonvolatileData["batteryLevel"] + " (as of " + str(datetime.now().strftime("%m/%d/%Y")) + ")")
 		else:
 			mmLib_Log.logForce( "###Unknown complete event type " + str(theCommandByte) + " for " + self.deviceName + " during command completion.")
@@ -658,7 +663,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	def checkBattery(self, theCommandParameters):
 
 		if self.isInsteonMotionDevice:
-			addString = "Last known battery level for " +self.deviceName + " = " + str(mmLib_Low.getIndigoVariable("MotionBatteryLevel_" + self.deviceName, "0.0\n"))
+			addString = str("Last known battery level for " + self.deviceName + " = " + str(self.ourNonvolatileData["batteryLevel"]) + " (as of " + str(self.ourNonvolatileData["batteryQueryTimeSecondsStr"]) + ")")
 			mmLib_Log.logReportLine(addString)
 		else:
 			addString = ""
