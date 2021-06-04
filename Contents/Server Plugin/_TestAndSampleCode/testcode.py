@@ -1,19 +1,14 @@
 import os
 import sys
 import ntpath
-from datetime import datetime as dt
-from datetime import datetime as dt
+from datetime import datetime
 from tkinter.filedialog import askopenfilename
 import re
+import time
 
-arrivalTimeISO = dt.isoformat(dt.strptime("08/20/20", "%m/%d/%y"))
-departureTimeISO = dt.isoformat(dt.strptime("08/20/20", "%m/%d/%y"))
 
-print("Departure: " + departureTimeISO + " Arrival: " + arrivalTimeISO)
+# datetime object containing current date and time
+dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+print("date and time =", dt_string)
 
-if arrivalTimeISO == departureTimeISO:
-	print("stirngs are equal")
-elif arrivalTimeISO > departureTimeISO:
-	print("arrivalTimeISO greater than departureTimeISO")
-else:
-	print("arrivalTimeISO less than departureTimeISO")
+exit()

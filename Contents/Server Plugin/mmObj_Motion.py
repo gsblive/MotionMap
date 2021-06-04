@@ -35,6 +35,7 @@ from datetime import datetime, timedelta
 
 # How many ON transitions will resuklt in a bettery level test
 BAT_LEVEL_ON_FACTOR = 100
+BAT_LEVEL_CHECK_INTERVAL_SECONDS = 24*3600		# 1 Day
 
 ######################################################
 #
@@ -85,6 +86,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.ourNonvolatileData = mmLib_Low.initializeNVDict(self.deviceName)
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "rapidTransitionTimeList", [])
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "problemReportTime", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "batteryQueryTimeSeconds", 0)
+			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "batteryLevel", 0)
+			if self.debugDevice:
+				mmLib_Log.logForce("###DEBUG:Forcing batteryQueryTimeSeconds to 0")
+				self.ourNonvolatileData["batteryQueryTimeSeconds"] = 0
 			s = str(self.deviceName + ".Occupation")
 			self.occupationIndigoVar = s.replace(' ', '.')
 			if self.debugDevice: mmLib_Log.logForce("Initializing " + str(self.occupationIndigoVar) + " for " + self.deviceName + " to occupiedState " + str(self.occupiedState) + ". (" + str(OccupiedStateList[self.occupiedState]) + ")")
@@ -130,10 +136,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		super(mmMotion, self).completeCommandEvent(eventID, eventParameters)	# Nothing special here, forward to the Base class
 
 		if theCommandByte == mmComm_Insteon.kInsteonRequestBattLevel:
-			indigo.server.log(str(commandParameters.replyBytes))
-			batteryLevel = str(float(commandParameters.replyBytes[13] / 100.0))
-			mmLib_Log.logForce( "Battery Level for " + self.deviceName + " is " + batteryLevel)
-			mmLib_Low.setIndigoVariable("MotionBatteryLevel_" + self.deviceName, batteryLevel)
+			if self.debugDevice: mmLib_Log.logForce(str(commandParameters.replyBytes))
+			self.ourNonvolatileData["batteryLevel"] = str(float(commandParameters.replyBytes[13] / 100.0))
+			mmLib_Log.logForce( "Battery Level for " + self.deviceName + " is " + self.ourNonvolatileData["batteryLevel"])
+			self.ourNonvolatileData["batteryQueryTimeSeconds"] = int(time.mktime(time.localtime()))
+			mmLib_Low.setIndigoVariable("MotionBatteryLevel_" + self.deviceName, self.ourNonvolatileData["batteryLevel"] + " (as of " + str(datetime.now().strftime("%m/%d/%Y")) + ")")
 		else:
 			mmLib_Log.logForce( "###Unknown complete event type " + str(theCommandByte) + " for " + self.deviceName + " during command completion.")
 
@@ -141,7 +148,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
 	#
 	def errorCommandEvent(self, eventID, eventParameters  ):
-
+		# dont do anything... currently this can only happen a battery request has been
+		# issued (we only issue kInsteonRequestBattLevel to insteon motion devices).
+		# Another kInsteonRequestBattLevel will be issued the next time this motion sensor detects motion
 		return(0)
 
 	######################################################################################
@@ -381,24 +390,21 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def getBatteryStatus(self):
 
-		self.battLevelOnCounter = self.battLevelOnCounter-1
+		if self.ourNonvolatileData["batteryQueryTimeSeconds"] == 0:		# this will be filled in the first time a motion event has been received (for Insteon Motion devices only)
+			secondsSinceBatteryStatusCheck = int(BAT_LEVEL_CHECK_INTERVAL_SECONDS) # force battery check (its never been done before
+		else:
+			secondsSinceBatteryStatusCheck = int(time.mktime(time.localtime())) - int(self.ourNonvolatileData["batteryQueryTimeSeconds"] )
 
-		if self.battLevelOnCounter <= 1:
-			self.battLevelOnCounter = BAT_LEVEL_ON_FACTOR
-			mmLib_Log.logForce( "Checking Battery Level for " + self.deviceName + ". Resetting ON counter to " + str(self.battLevelOnCounter) + ".")
+		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " secondsSinceBatteryStatusCheck = " + str(secondsSinceBatteryStatusCheck))
+
+		if secondsSinceBatteryStatusCheck >= BAT_LEVEL_CHECK_INTERVAL_SECONDS:
+
+			mmLib_Log.logForce( "Checking Battery Level for " + self.deviceName + " in 2 seconds.")
 
 			mmLib_Low.registerDelayedAction({'theFunction': self.dispatchBatteryStatusCommand,
 											 'timeDeltaSeconds': int(2),
 											 'theDevice': self.deviceName,
 											 'timerMessage': "Motion Sensor battery status request Timer"})
-
-
-			#batteryLevel = reply.replyBytes[13]
-
-			#mmLib_Log.logForce("Battery level (approx. Volts): " + str(float(batteryLevel / 10.0)))
-
-			#indigo.variable.updateValue(serverBattery, str(float(batteryLevel / 10.0)))
-
 		return 0
 
 	#
@@ -409,6 +415,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is sending BatteryStatus Command.")
 		# Do it as a queued command so we can get the result without waiting. the result will
 		# come in as DevCmdComplete (success) or DevCmdErr (error) events
+		# waitForExtendedReply must be set to true or we wont get a result in the completion proc
 
 		self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'extended':True, 'ackWait': 0, 'cmd1': 0x2E, 'cmd2': 0x00, 'cmd3': 0x00, 'cmd4': 0x00, 'cmd5': 0x00, 'waitForExtendedReply':True, 'retry': 0})
 
