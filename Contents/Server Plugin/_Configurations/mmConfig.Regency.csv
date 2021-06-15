@@ -77,7 +77,7 @@
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off,,,,,,,,,,
 #   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed,,,,,,,,,,
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent; anything else for verbose),,,,,,,,,,
-#
+#			autoEnableActivityLight - true = manage turning on or off activity light at daytime/nighttime events; false dont do this behavior (supported by Insteon motion only)
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass),,,,,,,,,,
 #
 # Note: Motionsensor also maintains an indigo variable 'NameOfMotionsensor.Occupation' that contains the current occupation state,,,,,,,,,,
@@ -89,22 +89,22 @@
 ########################################################
 ,,,,,,,,,,
 -h,MotionSensor,,,,,,,,,
-deviceName,maxMovement,minMovement,debugDeviceMode,,,,,,,
-CoatClosetMotion,30,5,noDebug,,,,,,,
-GarageManDoorMotion,480,15,noDebug,,,,,,,
-GarageWorkbenchMotion,480,30,noDebug,,,,,,,
-GregsOfficeMotion,480,15,noDebug,,,,,,,
-GregsDeskMotion,480,15,noDebug,,,,,,,
-GuestBathMotion,90,30,noDebug,,,,,,,
-GuestRoomMotion,480,240,noDebug,,,,,,,
-HalfBathMotion,90,30,noDebug,,,,,,,
-LaundryMotion,90,30,noDebug,,,,,,,
-MasterClosetMotion,60,5,noDebug,,,,,,,
-MasterClosetMotionB,60,5,noDebug,,,,,,,
-UpstairsBathroomMotion,120,15,noDebug,,,,,,,
+deviceName,maxMovement,minMovement,autoEnableActivityLight,debugDeviceMode,,,,,,,
+CoatClosetMotion,30,5,false,noDebug,,,,,,,
+GarageManDoorMotion,480,15,false,noDebug,,,,,,,
+GarageWorkbenchMotion,480,30,false,noDebug,,,,,,,
+GregsOfficeMotion,480,15,false,noDebug,,,,,,,
+GregsDeskMotion,480,15,true,noDebug,,,,,,,
+GuestBathMotion,90,30,false,noDebug,,,,,,,
+GuestRoomMotion,480,240,true,noDebug,,,,,,,
+HalfBathMotion,90,30,false,noDebug,,,,,,,
+LaundryMotion,90,30,false,noDebug,,,,,,,
+MasterClosetMotion,60,5,false,noDebug,,,,,,,
+MasterClosetMotionB,60,5,false,noDebug,,,,,,,
+UpstairsBathroomMotion,120,15,false,noDebug,,,,,,,
 #The following are contact sensors, not motion sensors... But they work the same way
-DogDoorSensor,20,0,noDebug,,,,,,,
-SecretShelfSensor,20,0,noDebug,,,,,,,
+DogDoorSensor,20,0,false,noDebug,,,,,,,
+SecretShelfSensor,20,0,false,noDebug,,,,,,,
 #The following are Remotes, not motion sensors... But they work the same way... just send on/off messages (from various buttons)
 
 ########################################################

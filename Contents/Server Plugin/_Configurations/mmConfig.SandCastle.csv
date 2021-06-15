@@ -79,6 +79,7 @@
 #   deviceName – The English name of the device
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off into unoccupied state
 #   minMovement – How long (in minutes) that non motion is required before non occupancy is assumed
+#			autoEnableActivityLight - true = manage turning on or off activity light at daytime/nighttime events; false dont do this behavior (supported by Insteon motion only)
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass)
@@ -89,17 +90,17 @@
 ########################################################
 
 -h,MotionSensor
-deviceName,maxMovement,minMovement,debugDeviceMode
-TopFloorMasterBathMotion,60,10,noDebug
-TopFloorMasterBathShowerMotion,60,10,noDebug
-TopFloorMasterBathLavMotion,60,10,noDebug
-TopFloorMasterMotion,60,10,noDebug
-TopFloorStairsMotion,60,5,noDebug
-MiddleFloorMotion,60,20,noDebug
-MiddleFloorBathMotion,60,10,noDebug
-MiddleFloorBathToiletMotion,60,10,noDebug
-BottomFloorStairsMotion,60,5,noDebug
-BottomFloorMotion,60,20,noDebug
+deviceName,maxMovement,minMovement,autoEnableActivityLight,debugDeviceMode
+TopFloorMasterBathMotion,60,10,false,noDebug
+TopFloorMasterBathShowerMotion,60,10,false,noDebug
+TopFloorMasterBathLavMotion,60,10,false,noDebug
+TopFloorMasterMotion,60,10,true,noDebug
+TopFloorStairsMotion,60,5,false,noDebug
+MiddleFloorMotion,60,20,false,noDebug
+MiddleFloorBathMotion,60,10,false,noDebug
+MiddleFloorBathToiletMotion,60,10,false,noDebug
+BottomFloorStairsMotion,60,5,false,noDebug
+BottomFloorMotion,60,20,false,noDebug
 
 ########################################################
 #

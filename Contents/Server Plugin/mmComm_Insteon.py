@@ -37,6 +37,7 @@ kInsteonDecreaseBrightness = 22
 kInsteonStartBrightDim = 23
 kInsteonStopBrightDim = 24
 kInsteonStatusRequest = 25
+kInsteonEnableDisableMotionLED = 32
 kInsteonBeep = 48
 kInsteonBrightenWithRamp = 46
 kInsteonRequestBattLevel = 46
@@ -61,7 +62,7 @@ mapCommandToInsteon = {	'setHVACMode': [kInsteonHVACMode],
 						'toggle': [kInsteonOff,kInsteonOn],
 						'flash': [kInsteonOff,kInsteonOn],
 						'check': [],
-						'sendRawInsteonCommand': [kInsteonBrightenWithRamp,kInsteonBrightenWithRamp2,kInsteonStartBrightDim,kInsteonStopBrightDim,kInsteonIncreaseBrightness,kInsteonDecreaseBrightness],
+						'sendRawInsteonCommand': [kInsteonEnableDisableMotionLED, kInsteonBrightenWithRamp,kInsteonBrightenWithRamp2,kInsteonStartBrightDim,kInsteonStopBrightDim,kInsteonIncreaseBrightness,kInsteonDecreaseBrightness],
 						'sendStatusRequest': [kInsteonStatusRequest] }
 
 mapInsteonToCommand = {kInsteonOn:['brighten','toggle', 'flash', 'onOffDevice','sceneOn'],\
@@ -197,6 +198,41 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	# Externally Addessable Routines, must have a single parameter - theCommandParameters
 	#
 	######################################################################################
+	#
+	# sendRawInsteonCommand
+	#	ackWait = 1 if Indigo should wait for an Ack
+	#	cmd = indigo command specific
+	#
+	def newSendRawInsteonCommand(self, theCommandParameters):
+
+		mmLib_Log.logDebug("Sending Raw command to " + self.deviceName + " command: " + str(theCommandParameters))
+
+		try:
+			cmd = theCommandParameters['cmd']
+		except:
+			mmLib_Log.logForce("### Sending Raw command to " + self.deviceName + ".... no cmd parameter found. Aborting command: " + str(theCommandParameters))
+			return(0)
+
+		try:
+			ackWait = int(theCommandParameters["ackWait"])
+		except:
+			ackWait = False
+
+		if len(cmd) > 2:
+			extended = True
+			try:
+				waitForExtendedReply = int(theCommandParameters["waitForExtendedReply"])
+			except:
+				waitForExtendedReply = False
+		else:
+			extended = False
+			waitForExtendedReply = False
+
+		resultCode = self.sendRawInsteonCommandLow( cmd, ackWait, extended, waitForExtendedReply)
+
+		return(resultCode)
+
+
 
 	#
 	# sendRawInsteonCommand
@@ -206,17 +242,20 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	def sendRawInsteonCommand(self, theCommandParameters):
 
 		mmLib_Log.logDebug("Sending Raw command to " + self.deviceName + " command: " + str(theCommandParameters))
-		waitForExtendedReply = False
 
 		try:
 			extended = int(theCommandParameters["extended"])
-			extended = True
+			try:
+				waitForExtendedReply = int(theCommandParameters["waitForExtendedReply"])
+			except:
+				waitForExtendedReply = False
+
 		except:
+			waitForExtendedReply = False
 			extended = False
 
 		try:
 			ackWait = int(theCommandParameters["ackWait"])
-			ackWait = True
 		except:
 			ackWait = False
 
@@ -231,12 +270,6 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 			except:
 				mmLib_Log.logForce("While sending Extended Raw command to " + self.deviceName + "... Parameter Error (extended cmds not found). command: " + str(theCommandParameters))
 				return(0)
-
-			try:
-				waitForExtendedReply = int(theCommandParameters["waitForExtendedReply"])
-				waitForExtendedReply = True
-			except:
-				waitForExtendedReply = False
 
 		else:
 			try:

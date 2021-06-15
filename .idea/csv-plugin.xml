@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/Contents/Server Plugin/_Configurations/mmConfig.SandCastle.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>
