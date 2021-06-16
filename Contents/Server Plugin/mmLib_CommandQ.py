@@ -201,6 +201,7 @@ def	dispatchQ():
 			#run the proc
 			try:
 				localError = theMMDevice.dispatchCommand(theCommandParameters)
+				#if theMMDevice.debugDevice: mmLib_Log.logForce("dispatchCommand result " + str(localError) + " for " + theMMDevice.deviceName + " theCommandParameters: " + str(theCommandParameters))
 			except:
 				mmLib_Log.logError("DispatchCommand Failed.")
 				mmLib_Log.logError("    Commmand Parameters: " + str(theCommandParameters))

@@ -312,6 +312,8 @@ class Plugin(indigo.PluginBase):
 			# however, since this is a command completion, the last command we sent out should be on the top of the queue
 			devAddress = str(cmd.address)
 
+		#mmLib_Log.logForce( "###CommandComplete with address: "+ str(devAddress))
+
 		theDev = mmLib_CommandQ.getQTopDev()
 
 		if not theDev or str(theDev.devIndigoAddress) != str(devAddress):
@@ -319,7 +321,7 @@ class Plugin(indigo.PluginBase):
 			#mmLib_Log.logForce("Got an Indigo Complete, but device is not ours getQDevTop = " + str(theDev) + " DevAddr = " + str(devAddress))
 			return 0
 
-		#if theDev.debugDevice: mmLib_Log.logForce( "CommandComplete at Plugin for " + self.deviceName + ".")
+		#if theDev.debugDevice: mmLib_Log.logForce( "CommandComplete at Plugin for " + theDev.deviceName + ".")
 
 		try:
 			theCommandByte = cmd.cmdBytes[0]

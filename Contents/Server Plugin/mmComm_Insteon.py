@@ -282,6 +282,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 
 
 		resultCode = self.sendRawInsteonCommandLow( theCommand, ackWait, extended, waitForExtendedReply)
+		if not ackWait: resultCode = 0
 
 		return(resultCode)
 
