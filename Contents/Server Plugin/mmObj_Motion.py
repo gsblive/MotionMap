@@ -167,10 +167,10 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
 	#
 	def errorCommandEvent(self, eventID, eventParameters  ):
-		if self.debugDevice: mmLib_Log.logForce( "Error sending a command to " + self.deviceName + ". Completion Event Parameters: " + str(eventParameters))
-		# dont do anything... currently this can only happen a battery request has been
-		# issued (we only issue kInsteonRequestBattLevel to insteon motion devices).
-		# Another kInsteonRequestBattLevel will be issued the next time this motion sensor detects motion
+		mmLib_Log.logForce( "### Error completing command to " + self.deviceName + ". We are dequeing the command from the commandqueue. Completion Event Parameters: " + str(eventParameters))
+		# We dont do retries in motion sensors so just dequeue command
+		mmLib_CommandQ.dequeQ(0)  # the 0 implies dequeue (us from top) and restart the queue
+
 		return(0)
 
 	######################################################################################

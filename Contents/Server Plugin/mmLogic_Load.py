@@ -309,10 +309,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 	#
 	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
+	#	We dont do anything special here, so it will be handled by the base class
 	#
-	#def errorCommandEvent(self, eventID, eventParameters  ):
-	#	super(mmHVACCommands, self).errorCommand(theInsteonCommand)	# Nothing special here, forward to the Base class
-
 
 
 

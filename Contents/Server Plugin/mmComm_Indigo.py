@@ -762,7 +762,7 @@ class mmIndigo(object):
 					if 'sendStatusRequest' in self.supportedCommandsDict:
 						self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName,'theValue': 0, 'retry': 2})
 
-				mmLib_CommandQ.dequeQ(1)  # Give up on this command, pop our old command off and Restart the Queue
+				mmLib_CommandQ.dequeQ(1)  # the 1 here just indicates "Restart the Queue". We are still on the top.
 
 		return 0
 

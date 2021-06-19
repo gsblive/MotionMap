@@ -271,6 +271,7 @@ def flushQ(theDeviceName, theCommandParameters, matchingEntries):
 	# Look up the commandID
 	CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters['theCommand']
 
+	# GB Fix me... doesnt this have to be in a loop? It may not matter because perhaps the logic of MotionMap wont allow multiple entries, but just sayin
 	try:
 		timeTag = timeTagDict[CommandID]
 	except:
@@ -346,7 +347,7 @@ def enqueQ(theTargetDevice, theCommandParameters, flushDirective):
 ############################################################################################
 #
 # dequeQ - Dequeue first pendingCommand (optional) and restart the queue
-#
+# GB Fix me... Handle 3 types of dequeues.. 0 Just restart the queue, 1 dequeueFirst element then restart, and 3 Dequeue all elements relating to the device on the top of the queue
 ############################################################################################
 def dequeQ( dequeueFirst ):
 	global pendingCommands
@@ -364,6 +365,8 @@ def dequeQ( dequeueFirst ):
 			pendingCommands.popleft()		# pop the command
 		else:
 			mmLib_Log.logWarning("dequeQ: Pop called, but the queue is empty")
+
+	# if selector is 3 flushQ(qHead, ["theCommand"])
 
 	startQ() 				# Start Command Queue Processing
 

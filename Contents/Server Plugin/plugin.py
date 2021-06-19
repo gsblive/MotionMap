@@ -297,6 +297,14 @@ class Plugin(indigo.PluginBase):
 	#	or
 	#		theHandler('DevCmdErr', {'DevCmdErr', 'Indigo', Time of Event (seconds), Plus "handlerDefinedData", cmd (from Indigo)  })
 	#
+	#
+	# GB Fix me: Not a huge problem, but it would make for more readable code if this routine was responsible for
+	# dequing+restarting the command queue based on the result of the event delivery... completeCommandEvent and errorCommandEvent should
+	# be made to return 0, 1, or 2 that will be passed to through as results from root classes mmcomm_indigo.errorCommandLow() and mmcomm_indigo.completeCommandByte
+	# This 0, 1 or 2 will determine if the command at the top of the commandstack should be replayed, dequeued, or all commands from this device should be dequeued (0,1,2 respectively).
+	# This selector is passed to mmLib_CommandQ.dequeQ() from here and only here to aid debugging. mmLib_CommandQ.dequeQ had to be slightly modified for the selector 3.
+	#
+	#
 	########################################
 	def insteonCommandSent(self, cmd):
 
@@ -340,12 +348,6 @@ class Plugin(indigo.PluginBase):
 		except:
 			mmLib_Log.logWarning( "Failed to deliver a \'" + theEvent + "\' event.")
 
-		#if cmd.cmdSuccess == 1:
-		#	mmLib_Log.logDebug("Successful command: " + str(theCommandByte) + " Sent to " + str(theDev.deviceName))
-		#	theDev.completeCommand( cmd )
-		#else:
-		#	mmLib_Log.logForce("Unsuccessful command: " + str(theCommandByte) + " for " + str(theDev.deviceName))
-		#	theDev.errorCommand( cmd )
 
 
 
