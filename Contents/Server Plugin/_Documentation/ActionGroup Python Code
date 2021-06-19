@@ -795,7 +795,7 @@ mmId = indigo.variables["MMListenerName"].value
 mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
 	#Set downstairs cool setpoint to 80
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':1,'cmd1':108,'cmd2':162,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':1,[108,162],'retry':2})
 else:
 	indigo.server.log("MotinMap not Enabled")
 
@@ -809,7 +809,7 @@ mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
 	#Set downstairs cool setpoint to 80
 	#This extended Command is: [ Command (108), temp*2, temp*2 (again), deadband (we use 4), 0]
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':0,'extended':1,'cmd1':108,'cmd2':80*2,'cmd3':80*2,'cmd4':4,'cmd5':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':0,'extended':1,[108,80*2,80*2,4,0],'retry':2})
 else:
 	indigo.server.log("MotinMap not Enabled")
 
@@ -822,7 +822,7 @@ mmId = indigo.variables["MMListenerName"].value
 mmPlugin = indigo.server.getPlugin(mmId)
 if mmPlugin.isEnabled():
 	#Enable Status Change Mewssages
-	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':0,'extended':1,'cmd1':107,'cmd2':22,'cmd3':22,'cmd4':0,'cmd5':0,'retry':2})
+	mmPlugin.executeAction("executeMMCommand", deviceId=0, props={'theCommand':'sendRawInsteonCommand','theDevice':'HVACDownstairs','ackWait':0,'extended':1,'cmd1':[107,22,22,0,0],'retry':2})
 else:
 	indigo.server.log("MotinMap not Enabled")
 

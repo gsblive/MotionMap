@@ -63,7 +63,6 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.lastOffTimeSeconds = 0
 		self.blackOutTill = 0
 		self.onlineState = 'on'
-		self.battLevelOnCounter = 2 #Initial value to make sure we get up to date battery level right away
 
 		super(mmMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 		if self.initResult == 0:
@@ -90,9 +89,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "batteryQueryTimeSecondsStr", " Unknown ")
 			mmLib_Low.initializeNVElement(self.ourNonvolatileData, "batteryLevel", 0)
 
-			#if self.debugDevice:
-			#	mmLib_Log.logForce("###DEBUG:Forcing batteryQueryTimeSeconds to 0")
-			#	self.ourNonvolatileData["batteryQueryTimeSeconds"] = 0
+			if self.debugDevice:
+				mmLib_Log.logForce("###DEBUG:Forcing batteryQueryTimeSeconds to 0")
+				self.ourNonvolatileData["batteryQueryTimeSeconds"] = 0
 
 			s = str(self.deviceName + ".Occupation")
 			self.occupationIndigoVar = s.replace(' ', '.')
@@ -101,7 +100,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 			self.supportedCommandsDict.update({'devStatus': self.devStatus})
 
-			self.supportedCommandsDict.update({'sendRawInsteonCommand': self.sendRawInsteonCommand,'newSendRawInsteonCommand': self.newSendRawInsteonCommand })
+			self.supportedCommandsDict.update({'sendRawInsteonCommand': self.sendRawInsteonCommand })
 
 			# register for the indigo events we want
 
@@ -117,7 +116,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 					# the following is only valid for insteon motions
 					if theDeviceParameters["autoEnableActivityLight"] == "true":
 						self.autoEnableActivityLight = True
-						self.lastLEDEnableStateValue = "Unknown"
+						self.LEDDaytimeMode = "Unknown"		#GB FIX ME.. Make this a nonvolitile
 					else:
 						self.autoEnableActivityLight = False
 
@@ -138,27 +137,31 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def completeCommandEvent(self, eventID, eventParameters ):
 		theCommandByte = 0
-		if self.debugDevice: mmLib_Log.logForce( "Success for " + self.deviceName + " during command completion. Completion Event Parameters: " + str(eventParameters))
+		#if self.debugDevice: mmLib_Log.logForce( "completeCommandEvent. Success for " + self.deviceName + " during command completion. Completion Event Parameters: " + str(eventParameters))
 		commandParameters = eventParameters['cmd']
-		if self.debugDevice: mmLib_Log.logForce("   Command Parameters: " + str(commandParameters))
+		#if self.debugDevice: mmLib_Log.logForce("completeCommandEvent, Command Parameters: " + str(commandParameters))
 		theCommandByte = commandParameters.cmdBytes[0]
 
 		super(mmMotion, self).completeCommandEvent(eventID, eventParameters)	# Nothing special here, forward to the Base class
 
 		if theCommandByte == mmComm_Insteon.kInsteonRequestBattLevel:
-			if self.debugDevice: mmLib_Log.logForce(str(commandParameters.replyBytes))
+			#if self.debugDevice: mmLib_Log.logForce("completeCommandEvent. BatteryLevel completeCommandEvent for " + self.deviceName)
 			self.ourNonvolatileData["batteryLevel"] = str(float(commandParameters.replyBytes[13] / 100.0))
 			mmLib_Log.logForce( "Battery Level for " + self.deviceName + " is " + self.ourNonvolatileData["batteryLevel"])
 			self.ourNonvolatileData["batteryQueryTimeSeconds"] = int(time.mktime(time.localtime()))
 			self.ourNonvolatileData["batteryQueryTimeSecondsStr"] = str(datetime.now().strftime("%m/%d/%Y"))
 
 			mmLib_Low.setIndigoVariable("MotionBatteryLevel_" + self.deviceName, self.ourNonvolatileData["batteryLevel"] + " (as of " + str(datetime.now().strftime("%m/%d/%Y")) + ")")
+
 		elif theCommandByte == mmComm_Insteon.kInsteonEnableDisableMotionLED:
-			if self.debugDevice: mmLib_Log.logForce("EnableDisableMotionLED_" + self.deviceName + "ReplyBytes:" + str(commandParameters.replyBytes))
-			self.lastLEDEnableStateValue = indigo.variables['isDaylight'].value  # str("true") means enable LED, str("false") means disable
-			if self.debugDevice: mmLib_Log.logForce("EnableDisableMotionLED_" + self.deviceName + " Successfully set to:" + self.lastLEDEnableStateValue)
+			#if self.debugDevice: mmLib_Log.logForce("EnableDisableMotionLED_" + self.deviceName + "ReplyBytes:" + str(commandParameters.replyBytes))
+			if commandParameters.cmdSuccess == True:
+				self.LEDDaytimeMode = indigo.variables['isDaylight'].value  # str("true") means enable LED, str("false") means disable
+				if self.debugDevice: mmLib_Log.logForce("LEDDaytimeMode for " + self.deviceName + " Successfully set to:" + str(self.LEDDaytimeMode))
 		else:
 			mmLib_Log.logForce( "###Unknown complete event type " + str(theCommandByte) + " for " + self.deviceName + " during command completion.")
+
+		#if self.debugDevice: mmLib_Log.logForce("CompleteCommandEvent for " + self.deviceName + " Finished.")
 
 	#
 	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
@@ -416,7 +419,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		if secondsSinceBatteryStatusCheck >= BAT_LEVEL_CHECK_INTERVAL_SECONDS:
 
-			mmLib_Log.logForce( "Checking Battery Level for " + self.deviceName + " in 2 seconds.")
+			mmLib_Log.logForce( "insteonMotionPeriodicTasks. Checking Battery Level for " + self.deviceName + " in 2 seconds.")
 
 			mmLib_Low.registerDelayedAction({'theFunction': self.dispatchBatteryStatusCommand,
 											 'timeDeltaSeconds': int(2),
@@ -428,7 +431,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			# and only if the config file says to manage LED activity
 			if self.autoEnableActivityLight:
 				newEnabledState = indigo.variables['isDaylight'].value	# str("true") means enable LED, str("false") means disable
-				if self.lastLEDEnableStateValue != newEnabledState:
+				if self.LEDDaytimeMode != newEnabledState:
 					mmLib_Low.registerDelayedAction({'theFunction': self.dispatchMotionSensorDisableEnableCommand,
 													 'timeDeltaSeconds': int(2),
 													 'theDevice': self.deviceName,
@@ -443,13 +446,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def dispatchBatteryStatusCommand(self, theParameters):
 
-		if self.debugDevice: mmLib_Log.logForce("Motion sensor " + self.deviceName + " is sending BatteryStatus Command.")
+		if self.debugDevice: mmLib_Log.logForce("### Motion sensor " + self.deviceName + " is Queing BatteryStatus Command.")
 		# Do it as a queued command so we can get the result without waiting. the result will
 		# come in as DevCmdComplete (success) or DevCmdErr (error) events
 		# waitForExtendedReply must be set to true or we wont get a result in the completion proc
 
-		self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'extended':True, 'ackWait': 0, 'cmd1': 0x2E, 'cmd2': 0x00, 'cmd3': 0x00, 'cmd4': 0x00, 'cmd5': 0x00, 'waitForExtendedReply':True, 'retry': 0})
-		# New Version self.queueCommand({'theCommand': 'newSendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 0, 'cmd': [0x2E, 0x00, 0x00, 0x00, 0x00], 'waitForExtendedReply':True, 'retry': 0})
+		# OLD self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'extended':True, 'ackWait': 0, 'cmd1': 0x2E, 'cmd2': 0x00, 'cmd3': 0x00, 'cmd4': 0x00, 'cmd5': 0x00, 'waitForExtendedReply':True, 'retry': 0})
+		self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 0, 'cmd': [0x2E, 0x00, 0x00, 0x00, 0x00], 'waitForExtendedReply':True, 'retry': 0})
 
 		return 0  # Cancel timer
 
@@ -469,13 +472,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		if itsDaytime == "true":
 			# its daytime, Enable LED cmd2 = 0x03 and data14 0xDD
-			self.queueCommand({'theCommand': 'newSendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 0, 'cmd': [mmComm_Insteon.kInsteonEnableDisableMotionLED, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xDD], 'waitForExtendedReply':False, 'retry': 0})
+			self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 0, 'cmd': [mmComm_Insteon.kInsteonEnableDisableMotionLED, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xDD], 'waitForExtendedReply':False, 'retry': 0})
 		else:
 			# its nighttime,disable LED cmd2 = 0x02 and data14 0xDE
-			self.queueCommand({'theCommand': 'newSendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 0, 'cmd': [mmComm_Insteon.kInsteonEnableDisableMotionLED, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xDE], 'waitForExtendedReply':False, 'retry': 0})
+			self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 0, 'cmd': [mmComm_Insteon.kInsteonEnableDisableMotionLED, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xDE], 'waitForExtendedReply':False, 'retry': 0})
 
 		# either way, assume success
-		self.lastLEDEnableStateValue = itsDaytime
+		self.LEDDaytimeMode = itsDaytime
 
 		return 0  # Cancel timer
 
@@ -557,8 +560,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	def	deviceUpdatedEvent(self, eventID, eventParameters):
 
 		newOnState = eventParameters.get('onState', 'na')
-		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " deviceUpdatedEvent EventParameters:" + str(
-			eventParameters) + ". newOnState is " + str(newOnState))
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " deviceUpdatedEvent EventParameters:" + str(eventParameters) + ". newOnState is " + str(newOnState))
 
 		# If we are blacked out, dont process the event.
 

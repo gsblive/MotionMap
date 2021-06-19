@@ -303,7 +303,7 @@ class mmIndigo(object):
 		else:
 			# continue with the brightness steps
 			if self.debugDevice: mmLib_Log.logForce("Continue Dimming device. Issuing next step for " + self.deviceName)
-			self.queueCommand({'theCommand':'sendRawInsteonCommand', 'theDevice':self.deviceName, 'ackWait':0, 'cmd1':int(theCommandParameters['UpOrDown']), 'cmd2':0, 'retry':0})
+			self.queueCommand({'theCommand':'sendRawInsteonCommand', 'theDevice':self.deviceName, 'ackWait':0, 'cmd':[int(theCommandParameters['UpOrDown']), 0], 'retry':0})
 			self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 997, 'retry': 0})
 			continueTimeVariance = int((random.randint(1, 4)) * mmLib_Low.TIMER_QUEUE_GRANULARITY)	# randomize our timing so all devices dont fire on the same cycle when changing brightness.
 			# update recentBrightness for later to determine if the brightness was inadvertantly tampered with while ramping
@@ -457,8 +457,7 @@ class mmIndigo(object):
 						if self.debugDevice: mmLib_Log.logForce("brightenDevice for " + self.deviceName + " No brightness change requested. Exiting with \'Dque\'.")
 						return 'Dque'
 
-					#self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 1,'cmd1': int(theCommandParameters['UpOrDown']), 'cmd2': 0, 'retry': 0})
-					# Do the initiel ramp step
+					# Do the initial ramp step
 					try:
 						self.sendRawInsteonCommandLow([int(directionOfChange), 0], False, 0, False)  # step light brightness (either up or down)
 						self.queueCommand({'theCommand': 'sendStatusRequest', 'theDevice': self.deviceName, 'theValue': 996,'retry': 0})

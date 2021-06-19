@@ -237,7 +237,13 @@ def startQ():
 			pendingCommands.popleft()
 		else:
 			# The command is in the queue and running, start the timeout timer
-			qEntry = pendingCommands[0]
+			try:
+				qEntry = pendingCommands[0]
+			except:
+				# No need for timeout
+				# this can happen if the command gets finished and dequeued while we are in this loop.
+				# Usually occurs when issuing an async command that happens quickly
+				break
 
 			mmLib_Low.registerDelayedAction({'theFunction': qTimer, 'timeDeltaSeconds': MM_DISPATCH_TIMEOUT, 'theDevice': "CommandQueue", 'timerMessage': "15 second timeout for: " + qEntry['theDevice'] + " " + qEntry['theCommand']})
 			break

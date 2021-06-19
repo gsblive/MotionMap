@@ -40,7 +40,7 @@ kInsteonStatusRequest = 25
 kInsteonEnableDisableMotionLED = 32
 kInsteonBeep = 48
 kInsteonBrightenWithRamp = 46
-kInsteonRequestBattLevel = 46
+kInsteonRequestBattLevel = 46	# WARNING SAME CODE USED by Indigo/Insteon. However, we cant confuse kInsteonBrightenWithRamp and kInsteonRequestBattLevel processing command response because we rely on the fact that Brighten only works on Dimmers and Battery is only issued to Motion Sensors
 kInsteonBrightenWithRamp2 = 52
 kInsteonHVACMode = 107
 kInsteonHVACCoolSetpoint = 108
@@ -133,8 +133,6 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	# completeCommandEvent - we received a commandSent completion message from the server for this device.
 	#
 	def completeCommandEvent(self, eventID, eventParameters):
-		if self.debugDevice:
-			mmLib_Log.logForce(self.deviceName + " Command Complete.")
 
 		theInsteonCommand = eventParameters['cmd']
 		theCommandByte = self.parseInsteonCommandByte(theInsteonCommand )
@@ -203,9 +201,9 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	#	ackWait = 1 if Indigo should wait for an Ack
 	#	cmd = indigo command specific
 	#
-	def newSendRawInsteonCommand(self, theCommandParameters):
+	def sendRawInsteonCommand(self, theCommandParameters):
 
-		mmLib_Log.logDebug("Sending Raw command to " + self.deviceName + " command: " + str(theCommandParameters))
+		#if self.debugDevice: mmLib_Log.logForce("sendRawInsteonCommand. Sending New Raw command to " + self.deviceName + " command: " + str(theCommandParameters))
 
 		try:
 			cmd = theCommandParameters['cmd']
@@ -229,60 +227,10 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 			waitForExtendedReply = False
 
 		resultCode = self.sendRawInsteonCommandLow( cmd, ackWait, extended, waitForExtendedReply)
+		if resultCode and resultCode != 'Dque':
+			mmLib_Log.logForce("### While sending Raw Command " + str(theCommandParameters) + " to " + self.deviceName + " received result of " + str(resultCode))
 
-		return(resultCode)
-
-
-
-	#
-	# sendRawInsteonCommand
-	#	ackWait = 1 if Indigo should wait for an Ack
-	#	cmd1, cmd2 = [cmd1,cmd2] indigo command specific
-	#
-	def sendRawInsteonCommand(self, theCommandParameters):
-
-		mmLib_Log.logDebug("Sending Raw command to " + self.deviceName + " command: " + str(theCommandParameters))
-
-		try:
-			extended = int(theCommandParameters["extended"])
-			try:
-				waitForExtendedReply = int(theCommandParameters["waitForExtendedReply"])
-			except:
-				waitForExtendedReply = False
-
-		except:
-			waitForExtendedReply = False
-			extended = False
-
-		try:
-			ackWait = int(theCommandParameters["ackWait"])
-		except:
-			ackWait = False
-
-		if extended:
-			try:
-				theCommand = [0,0,0,0,0]
-				theCommand[0] = int(theCommandParameters["cmd1"])
-				theCommand[1] = int(theCommandParameters["cmd2"])
-				theCommand[2] = int(theCommandParameters["cmd3"])
-				theCommand[3] = int(theCommandParameters["cmd4"])
-				theCommand[4] = int(theCommandParameters["cmd5"])
-			except:
-				mmLib_Log.logForce("While sending Extended Raw command to " + self.deviceName + "... Parameter Error (extended cmds not found). command: " + str(theCommandParameters))
-				return(0)
-
-		else:
-			try:
-				theCommand = [0,0]
-				theCommand[0] = int(theCommandParameters["cmd1"])
-				theCommand[1] = int(theCommandParameters["cmd2"])
-			except:
-				mmLib_Log.logForce("While sending Raw command to " + self.deviceName + "... Parameter Error. command: " + str(theCommandParameters))
-				return(0)
-
-
-		resultCode = self.sendRawInsteonCommandLow( theCommand, ackWait, extended, waitForExtendedReply)
-		if not ackWait: resultCode = 0
+			if not ackWait: resultCode = 0 	# GB Fix Me and Verify Its probably still in process... Clear "in process" result so it doesnt get dequeued.
 
 		return(resultCode)
 
@@ -340,21 +288,22 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 
 		resultCode = 0
 
-		mmLib_Log.logDebug("Sending Raw command to " + self.theIndigoDevice.name + " command: " + str(theCommand))
+		#if self.debugDevice: mmLib_Log.logForce("sendRawInsteonCommandLow. Sending Raw command to " + self.deviceName + " command: " + str(theCommand))
 
 		if extendedCommand:
-			resultCode = indigo.insteon.sendRawExtended(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait, waitForExtendedReply=ExtendedWaitReply)
+			resultRecord = indigo.insteon.sendRawExtended(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait, waitForExtendedReply=ExtendedWaitReply)
 		else:
-			resultCode = indigo.insteon.sendRaw(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait)
+			resultRecord = indigo.insteon.sendRaw(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait)
 
-		if resultCode:
-			try:
-				if resultCode.cmdSuccess == True: resultCode = 0
-			except:
-				mmLib_Log.logForce("Sending Raw command to " + self.theIndigoDevice.name + " Received Result: " + str(resultCode) + ", *** substituting -1")
 
-		if ackWait == False:
-			if not resultCode: resultCode = 'Dque'		# we are not waiting for result... move on to the next command
+		if resultRecord:
+			#if self.debugDevice: mmLib_Log.logForce("### sendRawInsteonCommandLow. While sending Raw Command " + str(theCommand) + " to " + self.deviceName + " received result record of " + str(resultRecord))
+
+			if ackWait == False:
+				try:
+					if resultRecord.cmdSuccess == True: resultCode = 0	# Its already finished. The completion proc was already called and the command dequeued
+				except:
+					mmLib_Log.logForce("sendRawInsteonCommandLow. Error reading Raw command result code from " + self.deviceName + ".")
 
 		return(resultCode)
 
