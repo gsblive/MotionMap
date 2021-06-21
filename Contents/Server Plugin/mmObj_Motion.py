@@ -116,6 +116,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 					# the following is only valid for insteon motions
 					if theDeviceParameters["autoEnableActivityLight"] == "true":
 						self.autoEnableActivityLight = True
+						mmLib_Log.logForce("###DEBUG:Forcing LEDDaytimeMode to Unknown")
 						self.LEDDaytimeMode = "Unknown"		#GB FIX ME.. Make this a nonvolitile
 					else:
 						self.autoEnableActivityLight = False
@@ -169,7 +170,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	def errorCommandEvent(self, eventID, eventParameters  ):
 		mmLib_Log.logForce( "### Error completing command to " + self.deviceName + ". We are dequeing the command from the commandqueue. Completion Event Parameters: " + str(eventParameters))
 		# We dont do retries in motion sensors so just dequeue command
-		mmLib_CommandQ.dequeQ(0)  # the 0 implies dequeue (us from top) and restart the queue
+		mmLib_CommandQ.dequeQ(1)  # the 1 implies dequeue (us from top) and restart the queue (no retries on motion sensors - they will be asleep by the time a retry happens)
 
 		return(0)
 
