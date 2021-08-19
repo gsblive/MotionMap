@@ -266,7 +266,7 @@ BottomFloorStairsLightP,5,100,30,StatAsync;flash,BottomFloorStairsMotion,,2,noDe
 BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
 BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
 BottomFloorBunkRightLightP,60,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
-MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,MiddleFloorBathMotion,,2,noDebug
+MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,BottomFloorStairsMotion,MiddleFloorBathMotion,2,noDebug
 MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMotion,,2,noDebug
 MiddleFloorBathLavFanP,10,0,0,StatAsync,,MiddleFloorBathToiletMotion,2,noDebug
 MiddleFloorBackDeckP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
