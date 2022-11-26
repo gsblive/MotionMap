@@ -4,7 +4,7 @@ import CopyToStaging
 #  Main
 ##############
 
-print "*** CopyToStagingRegency ***"
+print("*** CopyToStagingRegency ***")
 CopyToStaging.copyToStaging(["/Volumes/MotionMapStagingRegency"])
 
 quit()

@@ -11,20 +11,14 @@ try:
 except:
 	pass
 
-import mmLib_Log
-import mmLib_Low
-import mmLib_Events
-import mmComm_Insteon
-import mmObj_OccupationGroup
-import mmComm_Indigo
-from collections import deque
-import os
-import sys
 import ntpath
-from datetime import datetime as dt
+import re
 from datetime import datetime as dt
 from tkinter.filedialog import askopenfilename
-import re
+
+import mmComm_Indigo
+import mmLib_Log
+import mmLib_Low
 
 kLoadDeviceTimeSeconds = 60
 kBlackOutTimeSecondsAfterOff = 10

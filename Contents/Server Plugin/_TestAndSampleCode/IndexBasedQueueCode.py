@@ -20,7 +20,7 @@ kqDeviceIndex = validCommands.index('qDeviceIndex')
 
 def qPrint(theQ):
 	for elem in theQ:                   # iterate over the deque's elements
-		print elem
+		print(elem)
 
 
 def qDelete(theQ, n):
@@ -100,7 +100,7 @@ def convertCommandListToIndexList(commandParameters):
 		try:
 			commandIndex = validCommands.index(key)
 		except:
-			print " unknown command parameter given " + str(key)
+			print(" unknown command parameter given " + str(key))
 			return(0)
 
 		newCommandList[commandIndex] = value
@@ -123,7 +123,7 @@ def convertFlushDirectiveToIndexList(flushDirective):
 		try:
 			directiveIndex = validCommands.index(key)
 		except:
-			print " unknown directive parameter given" + key
+			print(" unknown directive parameter given" + key)
 			return(0)
 
 		newDirectiveList.append(directiveIndex)
