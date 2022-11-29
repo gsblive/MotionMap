@@ -716,32 +716,49 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# 	FORCE it to the log
 	#	returns 0 if good battery, nonzero if bad
 	#
+	#	Parameter "ReportType" =
+	#		'DEAD'	Report only Dead or unresponsive controller devices
+	#		'LIVE'	Report All controller type devices that are responsive
+	#		'ALL'	Report All Controllers. regardless of responsiveness (includes motion sensitive cameras)
+	#
 	def checkBattery(self, theCommandParameters):
 
-		if self.isInsteonMotionDevice:
-			addString = str("Last known battery level for " + self.deviceName + " = " + str(self.ourNonvolatileData["batteryLevel"]) + " (as of " + str(self.ourNonvolatileData["batteryQueryTimeSecondsStr"]) + ")")
-			mmLib_Log.logReportLine(addString)
-		else:
-			addString = ""
+		theReportType = theCommandParameters["ReportType"]
+		itsDead = 0
+		addString = ""
 
+		if self.isInsteonMotionDevice:
+			preamble = str(self.deviceName + "\'s battery Level is " + str(self.ourNonvolatileData["batteryLevel"]) + " (as of " + str(self.ourNonvolatileData["batteryQueryTimeSecondsStr"]) + "). ")
+		else:
+			preamble = self.deviceName + "Does not support Battery Level Requests. "
+
+		# Has it experienced too many missed commands
+		if self.controllerMissedCommandCount > mmLib_Low.MOTION_MAX_MISSED_COMMANDS:
+			addString = addString + "It has missed " + str(self.controllerMissedCommandCount) + " events. "
+			itsDead = 1
 
 		# if the device is ON, see if has been on too long
-		if self.controllerMissedCommandCount > mmLib_Low.MOTION_MAX_MISSED_COMMANDS:
-			newString =  self.deviceName + " has missed " + str(self.controllerMissedCommandCount) + " events. The battery is likely dead"
-			addString = addString + newString + "\n"
-			mmLib_Log.logReportLine(newString)
-
 		if self.getOnState() == True:
 			if self.getSecondsSinceUpdate() > mmLib_Low.MOTION_MAX_ON_TIME:
-				newString =  self.deviceName + " has been on for " + str(int(self.getSecondsSinceUpdate()) / int(60*60)) + " hours. The device may need to be reset or the battery may be dead"
-				addString = addString + newString + "\n"
-				mmLib_Log.logReportLine(newString)
-				indigo.device.turnOff(self.devIndigoID)	# doesnt honor the unresponsive flag because this just sets statte in indigo (no command is sent to the device)
+				addString = addString + "It has been on for " + str(int(self.getSecondsSinceUpdate()) / int(60*60)) + " hours. Setting it to Off. "
+				indigo.device.turnOff(self.devIndigoID)	# doesn't honor the unresponsive flag because this just sets state in indigo (no command is sent to the device)
 		else:
 			if self.getSecondsSinceUpdate() > mmLib_Low.MOTION_MAX_OFF_TIME:
-				newString =  self.deviceName + " has been off for " + str(int(self.getSecondsSinceUpdate()) / int(24*60*60)) + " days. The device may need to be reset or the battery may be dead "
-				addString = addString + newString + "\n"
-				mmLib_Log.logReportLine(newString)
+				addString = addString + "It has been off for " + str(int(self.getSecondsSinceUpdate()) / int(24*60*60)) + " days. "
+				itsDead = 1
+
+		if itsDead: addString = addString + "The device may need to be reset or the battery may be dead."
+		addString = preamble + addString
+
+		if theReportType != "ALL":
+			if theReportType == "DEAD":
+				# We are reporting only dead devices
+				if itsDead == 0:
+					addString = ""
+			elif theReportType == "LIVE":
+				# We are reporting only live devices
+				if itsDead:
+					addString = ""
 
 		return(addString)
 

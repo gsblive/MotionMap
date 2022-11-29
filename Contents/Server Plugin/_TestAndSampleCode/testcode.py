@@ -6,9 +6,7 @@ from tkinter.filedialog import askopenfilename
 import re
 import time
 
-
-# datetime object containing current date and time
-dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-print("date and time =", dt_string)
-
+addString = "The device may need to be reset or the battery may be dead."
+print(addString)
+print("'" + addString[-5] +"'" )
 exit()

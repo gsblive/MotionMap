@@ -868,45 +868,57 @@ def displayMotionStatus(theCommandParameters):
 ############################################################################################
 def batteryReport(theCommandParameters):
 
+	liveString = ""
+	deadString = ""
 	emailString = ""
+
 	resultTotal = 0
 
 	try:
 		theReportType = theCommandParameters["ReportType"]
 	except:
-		theReportType = "Terse"
+		theReportType = "ALL"
+		theCommandParameters["ReportType"] = theReportType
 
-	addString = "==============================================="
-	mmLib_Log.logReportLine(addString)
-	emailString = emailString + addString + "\n"
+	emailString = "\n===============================================\n"
 
-	if theReportType == "Terse":
-		addString = "Display Battery Status for Controller Devices that have low battery."
+	if theReportType == "DEAD":
+		addString = "(" + theReportType + ") Display Battery Status for Controller Devices that have low battery."
+	elif theReportType == "LIVE":
+		addString = "(" + theReportType + ") Display Battery Status for Controller Devices that are working properly and active."
 	else:
-		addString = "Display Battery Status for all Controller Devices."
+		addString = "(" + theReportType + ") Display Battery Status for all Controller Devices."
 
-	mmLib_Log.logReportLine(addString)
-	emailString = emailString + addString + "\n"
+	emailString = emailString + addString + "\n" + "===============================================\n"
 
-	addString = "==============================================="
-	mmLib_Log.logReportLine(addString)
-	emailString = emailString + addString + "\n"
-
+	#	Call CheckBattery for each controller device:
+	#	Parameter "ReportType" =
+	#		'DEAD'	Report only Dead or unresponsive controller devices
+	#		'LIVE'	Report all controller type devices that are responsive
+	#		'ALL'	Report All Controllers. regardless of responsiveness (includes motion sensitive cameras)
 
 	for mmDev in controllerDeque:
 		addString = mmDev.checkBattery(theCommandParameters)
+		#mmLib_Log.logReportLine("Test : " + addString)
+
 		if addString != "":
-			emailString = emailString + addString + "\n"
+			# if the result talks about a dead battery, put it in the dead list. Else the standard list
+			if addString[-5:] == "dead.":
+				mmLib_Log.logReportLine("Test: Adding " + addString + " to Deadlist")
+				deadString = deadString + addString + "\n"
+			else:
+				liveString = liveString + addString + "\n"
 			resultTotal = resultTotal+1
 
 	if resultTotal == 0:
-		addString = "** Nothing to Report **"
-		mmLib_Log.logReportLine(addString)
-		emailString = emailString + addString + "\n"
+		emailString = emailString + "** Nothing to Report **\n"
+	else:
+		# combine string buckets
+		emailString = emailString + deadString + liveString
 
-	addString = "=============== end of report ==================="
-	mmLib_Log.logReportLine(addString)
-	emailString = emailString + addString + "\n"
+	emailString = emailString + "=============== end of report ===================\n"
+
+	mmLib_Log.logReportLine(emailString)
 
 	if resultTotal != 0:
 		theSubject = str("MotionMap2 " + str(indigo.variables["MMLocation"].value)+ " BatteryReport")
