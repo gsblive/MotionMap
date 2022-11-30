@@ -1,7 +1,7 @@
 __author__ = 'gbrewer'
 # ! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import sys
 
 
 ##################################################################################
@@ -148,8 +148,16 @@ class Plugin(indigo.PluginBase):
 
 		mmLib_Log.init("MotionMap.log", self)
 
+		try:
+			s = sys.version
+			d = s.split(" ", 1)
+			mmLib_Log.logForce( "Python version = " + d[0])
+		except Exception as err:
+			mmLib_Log.logForce( "\nPython version = Unknown")
 
-		mmLib_Log.logTimestamp(_MotionMapPlugin.MM_NAME + " Plugin version " + _MotionMapPlugin.MM_VERSION + ". Initialization complete. Waiting for Startup Command.")
+
+		mmLib_Log.logTimestamp( _MotionMapPlugin.MM_NAME + " Plugin version " + _MotionMapPlugin.MM_VERSION + ". Initialization complete. Waiting for Startup Command.")
+
 
 
 	########################################
