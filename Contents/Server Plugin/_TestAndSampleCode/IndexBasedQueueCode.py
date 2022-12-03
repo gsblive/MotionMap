@@ -96,11 +96,11 @@ def convertCommandListToIndexList(commandParameters):
 
 	newCommandList = [0] * len(validCommands)
 
-	for key, value in commandParameters.iteritems():
+	for key, value in commandParameters.items():
 		try:
 			commandIndex = validCommands.index(key)
 		except:
-			print(" unknown command parameter given " + str(key))
+			print((" unknown command parameter given " + str(key)))
 			return(0)
 
 		newCommandList[commandIndex] = value
@@ -123,7 +123,7 @@ def convertFlushDirectiveToIndexList(flushDirective):
 		try:
 			directiveIndex = validCommands.index(key)
 		except:
-			print(" unknown directive parameter given" + key)
+			print((" unknown directive parameter given" + key))
 			return(0)
 
 		newDirectiveList.append(directiveIndex)

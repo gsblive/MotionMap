@@ -203,7 +203,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 	#
 	def sendRawInsteonCommand(self, theCommandParameters):
 
-		#if self.debugDevice: mmLib_Log.logForce("sendRawInsteonCommand. Sending New Raw command to " + self.deviceName + " command: " + str(theCommandParameters))
+		if self.debugDevice: mmLib_Log.logForce("sendRawInsteonCommand. Sending New Raw command to " + self.deviceName + " command: " + str(theCommandParameters))
 
 		try:
 			cmd = theCommandParameters['cmd']
@@ -288,7 +288,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 
 		resultCode = 0
 
-		#if self.debugDevice: mmLib_Log.logForce("sendRawInsteonCommandLow. Sending Raw command to " + self.deviceName + " command: " + str(theCommand))
+		if self.debugDevice: mmLib_Log.logForce("sendRawInsteonCommandLow. Sending Raw command to " + self.deviceName + " command: " + str(theCommand))
 
 		if extendedCommand:
 			resultRecord = indigo.insteon.sendRawExtended(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait, waitForExtendedReply=ExtendedWaitReply)
@@ -297,7 +297,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 
 
 		if resultRecord:
-			#if self.debugDevice: mmLib_Log.logForce("### sendRawInsteonCommandLow. While sending Raw Command " + str(theCommand) + " to " + self.deviceName + " received result record of " + str(resultRecord))
+			if self.debugDevice: mmLib_Log.logForce("### sendRawInsteonCommandLow. While sending Raw Command " + str(theCommand) + " to " + self.deviceName + " received result record of\n" + str(resultRecord))
 
 			if ackWait == False:
 				try:

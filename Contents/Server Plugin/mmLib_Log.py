@@ -153,7 +153,7 @@ class myLogger(logging.Logger):
 		numericVal = logLevelDict.get(logLevelString, 'Unknown')
 
 		if numericVal == 'Unknown':
-			self.emit(MM_LOG_NOTSET, "Error Setting Log Level to " + str(logLevelString) + ". Should be text based in set " + str(logLevelDict.keys()))
+			self.emit(MM_LOG_NOTSET, "Error Setting Log Level to " + str(logLevelString) + ". Should be text based in set " + str(list(logLevelDict.keys())))
 			return
 
 		logNotSet = self.mmNotSet if LOG_NOTSET >= numericVal else mmNullMessage
@@ -227,7 +227,7 @@ class myLogger(logging.Logger):
 		ct = time.time()
 		lt = time.localtime(ct)
 		t = time.strftime("%Y-%m-%d %H:%M:%S", lt)
-		timestampTime = "%s.%03d" % (t, (ct - long(ct)) * 1000)
+		timestampTime = "%s.%03d" % (t, (ct - int(ct)) * 1000)
 		msg = timestampTime + " " + msg
 		self.emit(MM_LOG_TIMESTAMP, msg)
 		writeToLogFile(MM_LOG_TIMESTAMP, msg, 1, 0)

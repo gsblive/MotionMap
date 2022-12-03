@@ -138,7 +138,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def completeCommandEvent(self, eventID, eventParameters ):
 		theCommandByte = 0
-		#if self.debugDevice: mmLib_Log.logForce( "completeCommandEvent. Success for " + self.deviceName + " during command completion. Completion Event Parameters: " + str(eventParameters))
+		if self.debugDevice: mmLib_Log.logForce( "completeCommandEvent. Success for " + self.deviceName + " during command completion. Completion Event Parameters: " + str(eventParameters))
 		commandParameters = eventParameters['cmd']
 		#if self.debugDevice: mmLib_Log.logForce("completeCommandEvent, Command Parameters: " + str(commandParameters))
 		theCommandByte = commandParameters.cmdBytes[0]
@@ -454,6 +454,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		# OLD self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'extended':True, 'ackWait': 0, 'cmd1': 0x2E, 'cmd2': 0x00, 'cmd3': 0x00, 'cmd4': 0x00, 'cmd5': 0x00, 'waitForExtendedReply':True, 'retry': 0})
 		self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 0, 'cmd': [0x2E, 0x00, 0x00, 0x00, 0x00], 'waitForExtendedReply':True, 'retry': 0})
+		#self.queueCommand({'theCommand': 'sendRawInsteonCommand', 'theDevice': self.deviceName, 'ackWait': 1, 'cmd': [0x2E, 0x00, 0x00, 0x00, 0x00], 'waitForExtendedReply':True, 'retry': 0})
 
 		return 0  # Cancel timer
 
@@ -740,11 +741,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		# if the device is ON, see if has been on too long
 		if self.getOnState() == True:
 			if self.getSecondsSinceUpdate() > mmLib_Low.MOTION_MAX_ON_TIME:
-				addString = addString + "It has been on for " + str(int(self.getSecondsSinceUpdate()) / int(60*60)) + " hours. Setting it to Off. "
+				addString = addString + "It has been on for " + str(round(int(self.getSecondsSinceUpdate()) / int(60 * 60), 2)) + " hours. Setting it to Off. "
 				indigo.device.turnOff(self.devIndigoID)	# doesn't honor the unresponsive flag because this just sets state in indigo (no command is sent to the device)
 		else:
 			if self.getSecondsSinceUpdate() > mmLib_Low.MOTION_MAX_OFF_TIME:
-				addString = addString + "It has been off for " + str(int(self.getSecondsSinceUpdate()) / int(24*60*60)) + " days. "
+				addString = addString + "It has been off for " + str(round(int(self.getSecondsSinceUpdate()) / int(24 * 60 * 60), 2)) + " days. "
 				itsDead = 1
 
 		if itsDead: addString = addString + "The device may need to be reset or the battery may be dead."

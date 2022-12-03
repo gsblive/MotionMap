@@ -94,7 +94,7 @@ CoatClosetMotion,30,5,false,noDebug,,,,,,,
 GarageManDoorMotion,480,15,false,noDebug,,,,,,,
 GarageWorkbenchMotion,480,30,false,noDebug,,,,,,,
 GregsOfficeMotion,480,15,false,noDebug,,,,,,,
-GregsDeskMotion,480,15,true,Debug,,,,,,,
+GregsDeskMotion,480,15,true,noDebug,,,,,,,
 GuestBathMotion,90,30,false,noDebug,,,,,,,
 GuestRoomMotion,480,240,true,noDebug,,,,,,,
 HalfBathMotion,90,30,false,noDebug,,,,,,,
@@ -516,3 +516,4 @@ AllKitchenCabinetTopLights,1,Pantry Rope;KitchenTableLights(Hidden) - Top;Kitche
 #-h,OccupationAction,,,,,,,,,
 #deviceName,occupationEvent,activateAction,actionController,debugDeviceMode,,,,,,
 #BackDeckDoorTrigger,UnoccupiedAll,_Security_LockBackDeckDoor,DoorBackDeckGroup,noDebug,,,,,,
+

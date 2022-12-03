@@ -194,7 +194,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 				self.currentHeader = lineList
 				continue
 			else:
-				dictEntry = dict(zip(self.currentHeader, lineList))
+				dictEntry = dict(list(zip(self.currentHeader, lineList)))
 
 				lPin = len(dictEntry['Code'])
 

@@ -39,7 +39,7 @@ class mmHVACInsteon(mmLogic_HVAC.mmHVAC):
 		if self.initResult == 0:
 			self.onControllers = theDeviceParameters["onControllers"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
 			self.sustainControllers = theDeviceParameters["sustainControllers"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
-			self.combinedControllers = filter(None, theDeviceParameters["onControllers"].split(';') + theDeviceParameters["sustainControllers"].split(';'))
+			self.combinedControllers = [_f for _f in theDeviceParameters["onControllers"].split(';') + theDeviceParameters["sustainControllers"].split(';') if _f]
 			self.updateFrequency = int(theDeviceParameters["updateFrequency"])
 			self.maxTempDelta = int(theDeviceParameters["fanOnThreshold"])
 			self.operationalMode = theDeviceParameters["operationalMode"]

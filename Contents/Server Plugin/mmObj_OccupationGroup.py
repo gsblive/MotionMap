@@ -382,7 +382,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 				ft = datetime.now() + timedelta(seconds=self.unoccupiedRelayDelaySeconds)
 				varString = mmLib_Low.getIndigoVariable(self.occupationIndigoVar, "Unknown")
 				varString = varString.partition(' ')[0] + " ( Non-Motion Timeout at " + '{:%-I:%M %p}'.format(ft) + " )"
-		 		mmLib_Low.setIndigoVariable(self.occupationIndigoVar, varString)
+				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, varString)
 		return 0
 
 

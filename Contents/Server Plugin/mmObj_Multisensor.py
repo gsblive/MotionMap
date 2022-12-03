@@ -68,16 +68,16 @@ class mmMultisensor(object):
 
 	def __init__(self, theDeviceParameters):
 
-		supportMatrixDict = {	 u'Multi Sensor 6 (ZW100) Humidity': mmMultisensorHumidity,
-								 u'Multi Sensor 6 (ZW100) Tamper': mmMultisensorVibration,
-								 u'Motion Sensor (FGMS001) Motion Sensor': mmMultisensorMotion,
-								 u'Multi Sensor 6 (ZW100) Motion Sensor': mmMultisensorMotion,
-								 u'Multi Sensor 6 (ZW100) Luminance': mmMultisensorLuminance,
-								 u'Multi Sensor 6 (ZW100) Temperature': mmMultisensorTemperature,
-								 u'Motion Sensor (FGMS001) Temperature': mmMultisensorTemperature,
-								 u'Motion Sensor (FGMS001) Tilt/Tamper': mmMultisensorVibration,
-								 u'Motion Sensor (FGMS001) Luminance': mmMultisensorLuminance,
-								 u'Multi Sensor 6 (ZW100) Ultraviolet': mmMultisensorUltraviolet}
+		supportMatrixDict = {	 'Multi Sensor 6 (ZW100) Humidity': mmMultisensorHumidity,
+								 'Multi Sensor 6 (ZW100) Tamper': mmMultisensorVibration,
+								 'Motion Sensor (FGMS001) Motion Sensor': mmMultisensorMotion,
+								 'Multi Sensor 6 (ZW100) Motion Sensor': mmMultisensorMotion,
+								 'Multi Sensor 6 (ZW100) Luminance': mmMultisensorLuminance,
+								 'Multi Sensor 6 (ZW100) Temperature': mmMultisensorTemperature,
+								 'Motion Sensor (FGMS001) Temperature': mmMultisensorTemperature,
+								 'Motion Sensor (FGMS001) Tilt/Tamper': mmMultisensorVibration,
+								 'Motion Sensor (FGMS001) Luminance': mmMultisensorLuminance,
+								 'Multi Sensor 6 (ZW100) Ultraviolet': mmMultisensorUltraviolet}
 
 		self.initResult = 0
 		mmLib_Log.logVerbose("Adding multisensor with parameters: " + str(theDeviceParameters))
@@ -103,7 +103,7 @@ class mmMultisensor(object):
 		subDeviceParameters = theDeviceParameters
 		subModelDevs = mmLib_Low.SubmodelDeviceDict[self.theIndigoAddress]
 
-		for newDevName, newDev in subModelDevs.iteritems():
+		for newDevName, newDev in subModelDevs.items():
 			try:
 				theDeviceDescriptor = str(newDev.model) + " " + str(newDev.subModel)
 				theInitProc = supportMatrixDict[theDeviceDescriptor]

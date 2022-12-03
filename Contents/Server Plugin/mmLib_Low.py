@@ -17,6 +17,7 @@ try:
 except:
 	pass
 
+import mmLib_Low
 import mmLib_Log
 import mmLib_Events
 
@@ -95,6 +96,10 @@ MMVirtualDeviceTypes = ["Scene","OccupationAction","OccupationGroup","CamMotion"
 DebugDevices = {}
 unknownAddress = {}
 
+MM_Location = "UnitializedLocation" # This is a default value. Set Indigo Variable named <MMLocation>
+MM_DEFAULT_CONFIG_FILE = "unitializedConfigFile" 	# this is reset in __Init__
+nvFileName = str("uninitializedNVFileName")
+
 ############################################################################################
 #
 # MotionMap NonVolatile Data
@@ -147,7 +152,7 @@ def	cacheNVDict():
 		os.mkdir(mmLogFolder)
 	except Exception as err:
 		if err.args[0] != 17:
-			print ("Creation of the directory %s failed" % mmLogFolder)
+			print(("Creation of the directory %s failed" % mmLogFolder))
 
 	try:
 		mmLib_Log.logForce("=== Writing MotionMap Nonvolatile File: " + ntpath.basename(mmNVFileName) )	# Only File Name
@@ -171,9 +176,9 @@ def initializeNVDict(theDevName):
 
 	if mmNVFileName == "":
 		# get Pathname parent of plugin... We dont want to replace the NV file every time we update the pugin
-		mmNVFileName = mmLogFolder + _MotionMapPlugin.nvFileName
+		mmNVFileName = mmLogFolder + nvFileName
 		#mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + mmNVFileName)	# Full Pathname
-		mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + _MotionMapPlugin.nvFileName)	# Just Filename
+		mmLib_Log.logForce("=== Loading MM NonVolatile Variables File: " + nvFileName)	# Just Filename
 
 	needsCache = 0
 
@@ -252,7 +257,7 @@ def addressTranslate(desiredAddress):
 
 	# not already in list, traverse the indigo device list add a dict entry for it
 
-	for dev in indigo.devices.itervalues():
+	for dev in indigo.devices.values():
 		if dev.address == desiredAddress:
 			unknownAddress[dev.address] = str(dev.name)
 			return (str(dev.name))
@@ -439,12 +444,14 @@ def cancelDelayedAction(theFunction):
 	global delayedFunctionKeys
 
 	try:
-	 	bisectKey = delayedFunctionKeys[theFunction]
-		if bisectKey :
+		bisectKey = delayedFunctionKeys[theFunction]
+		if bisectKey:
 			# There is a function waiting
 			delayedFunctionKeys[theFunction] = 0	# Reset delayedFunctionKeys... to no function waiting
-		else: return
-	except: return	# no function waiting
+		else:
+			return
+	except:
+		return	# no function waiting
 
 	delayQueue.pop(bisect.bisect_left(delayQueue, (bisectKey, )))
 
@@ -708,7 +715,7 @@ def processUnregistertedReport(theCommandParameters):
 
 		numberShown = 0
 
-		for devName in unknownAddress.values():
+		for devName in list(unknownAddress.values()):
 			numberShown = numberShown + 1
 			theLine = str(devName)
 			mmLib_Log.logReportLine(theLine)

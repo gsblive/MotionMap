@@ -5,7 +5,8 @@ __author__ = 'gbrewer'
 # Imported Definitions
 #
 ############################################################################################
-
+import os
+import sys
 import mmLib_Log
 import mmLib_Low
 import mmObj_Motion
@@ -44,10 +45,20 @@ def parseConfig(theFilePath):
 	#mmLib_Log.logTerse("Parsing file: " + theFilePath)			# For Full Pathname
 	mmLib_Log.logTerse("Parsing file: " + ntpath.basename(theFilePath))			# For just file name
 
+	if os.path.isfile(theFilePath):
+		mmLib_Log.logForce("verified " + theFilePath + " is a file.")
+	else:
+		mmLib_Log.logForce("Error opening Config File " + theFilePath)
 
-	f = open(theFilePath, 'r')
+	try:
+		f = open(theFilePath, 'r', encoding="utf-8")
+	except:
+		mmLib_Log.logForce("Error opening Config File " + theFilePath)
+		return -1
 
-	objectJumpTable = 	{
+	fileLines = f.readlines()
+
+	objectJumpTable = {
 						'MotionSensor':mmObj_Motion.mmMotion,
 						'IOLink':mmObj_IOLink.mmIOLink,
 						'MultisensorMotion':mmObj_Multisensor.mmMultisensorMotion,
@@ -68,7 +79,7 @@ def parseConfig(theFilePath):
 						'OccupationAction':mmObj_OccupationAction.mmOccupationAction,
 						'OccupationGroup':mmObj_OccupationGroup.mmOccupationGroup}
 
-	for line in f:
+	for line in fileLines:
 		# Filter out blank lines
 		lineList = line.strip()
 		lineList = lineList.split(",")
@@ -127,7 +138,7 @@ def parseConfig(theFilePath):
 
 			if len(currentHeader) != len(lineList):	mmLib_Log.logForce(" === WARNING ==== Missing parameter for device " + lineList[1] )
 
-			initParameters = dict(zip(currentHeader, lineList))
+			initParameters = dict(list(zip(currentHeader, lineList)))
 
 			try:
 				dispatchInit = objectJumpTable[currentmmDeviceType]

@@ -22,7 +22,7 @@ import mmLib_Events
 import mmComm_Insteon
 import mmObj_OccupationGroup
 import mmComm_Indigo
-from collections import deque
+#from collections import deque
 import mmLib_CommandQ
 import time
 import itertools
@@ -53,8 +53,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			self.specialFeatures = theDeviceParameters["specialFeatures"].split(';')			# Can be a list, split by semicolons... normalize it into a proper list
 			self.daytimeOnLevel = theDeviceParameters["daytimeOnLevel"]							# remember this is a str!
 			self.nighttimeOnLevel = theDeviceParameters["nighttimeOnLevel"]						# remember this is a str!
-			self.onControllers = filter(None, theDeviceParameters["onControllers"].split(';'))  # Can be a list, split by semicolons... normalize it into a proper list
-			self.sustainControllers = filter(None, theDeviceParameters["sustainControllers"].split(';'))
+			self.onControllers = [_f for _f in theDeviceParameters["onControllers"].split(';') if _f]  # Can be a list, split by semicolons... normalize it into a proper list
+			self.sustainControllers = [_f for _f in theDeviceParameters["sustainControllers"].split(';') if _f]
 			self.combinedControllers = self.onControllers + self.sustainControllers							# combinedControllers contain both sustainControllers and onControllers
 			if not (self.daytimeOnLevel + self.nighttimeOnLevel) or not len(self.combinedControllers): self.manualControl = 1
 			else: self.manualControl = 0

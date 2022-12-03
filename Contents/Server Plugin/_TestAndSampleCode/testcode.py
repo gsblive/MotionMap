@@ -6,6 +6,6 @@ from tkinter.filedialog import askopenfilename
 import re
 import time
 
-s = sys.version
-d = s.split(" ",1)
-print(d[0])
+print(sys.version)
+theIOnt = round(int(165757)/int(24*60*60),2)
+print("It has been off for " + str(round(int(165757)/int(24*60*60),2)) + " days. ")

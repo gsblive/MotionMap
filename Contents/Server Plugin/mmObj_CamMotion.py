@@ -85,12 +85,12 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 		super(mmCamMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 		if self.debugDevice: mmLib_Log.logForce( " === Initializing " + self.deviceName + ".")
 
-		self.influentialLights = filter(None, theDeviceParameters["influentialLights"].split(';'))
+		self.influentialLights = [_f for _f in theDeviceParameters["influentialLights"].split(';') if _f]
 		self.influentialTimeout = int(theDeviceParameters["influentialTimeout"])
 
 		self.supportedCommandsDict.update({'motionEvent': self.camMotionEvent})
 
-		self.exclusionLights = filter(None, theDeviceParameters["exclusionLights"].split(';'))
+		self.exclusionLights = [_f for _f in theDeviceParameters["exclusionLights"].split(';') if _f]
 		self.minMovementSeconds = (int(self.minMovement) * 60)
 
 		# A camera is not a true indigo device (its virtual), so we have to maintain a credible lastUpdate time ourselves...

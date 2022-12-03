@@ -1,8 +1,8 @@
 import time
 from timeit import default_timer as timer
 
-import DictionaryBasedQueueCode
-import IndexBasedQueueCode
+from . import DictionaryBasedQueueCode
+from . import IndexBasedQueueCode
 from collections import deque
 import sys
 import os.path
@@ -132,25 +132,25 @@ def runTests():
 	theStartTime = time.clock()
 	sortedList()
 	newTime = time.clock()
-	print("SortedList Time: " + str(newTime - theStartTime))
+	print(("SortedList Time: " + str(newTime - theStartTime)))
 
 	# Next Test
 	theStartTime = time.clock()
 	sortList()
 	newTime = time.clock()
-	print("SortList Time: " + str(newTime - theStartTime))
+	print(("SortList Time: " + str(newTime - theStartTime)))
 
 	# Next Test
 	theStartTime = time.clock()
 	sortedList()
 	newTime = time.clock()
-	print("SortedList Time: " + str(newTime - theStartTime))
+	print(("SortedList Time: " + str(newTime - theStartTime)))
 
 	# next Test
 	theStartTime = time.clock()
 	sortDeq()
 	newTime = time.clock()
-	print("SortDeq Time: " + str(newTime - theStartTime))
+	print(("SortDeq Time: " + str(newTime - theStartTime)))
 
 
 delayQueue = []
@@ -165,18 +165,18 @@ delayQueue.sort()
 delayQueue.append((2,'pythor'))
 delayQueue.sort()
 
-print(str(delayQueue))
+print((str(delayQueue)))
 #print(delayQueue.pop(0))
 cancelDelayedAction(delayQueue, "kc")
-print(str(delayQueue))
+print((str(delayQueue)))
 cancelDelayedAction(delayQueue, "pythor")
-print(str(delayQueue))
+print((str(delayQueue)))
 cancelDelayedAction(delayQueue, "chance")
-print(str(delayQueue))
+print((str(delayQueue)))
 cancelDelayedAction(delayQueue, "trixie")
-print(str(delayQueue))
+print((str(delayQueue)))
 cancelDelayedAction(delayQueue, "kc")
-print(str(delayQueue))
+print((str(delayQueue)))
 
 
 runTests()

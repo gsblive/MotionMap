@@ -9,7 +9,7 @@ commandQueue = deque()
 
 def qPrint(theQ):
 	for elem in theQ:                   # iterate over the deque's elements
-		print elem
+		print(elem)
 
 
 def qDelete(theQ, n):

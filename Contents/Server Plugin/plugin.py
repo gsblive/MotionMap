@@ -58,7 +58,7 @@ def mmParseConfig(theCommands):
 	savedInitValue = pluginInitialized
 	pluginInitialized = 0
 	mmLib_CommandQ.qInit()
-	mmLib_Config.init(_MotionMapPlugin.MM_DEFAULT_CONFIG_FILE)
+	mmLib_Config.init(mmLib_Low.MM_DEFAULT_CONFIG_FILE)
 	pluginInitialized = savedInitValue
 
 
@@ -135,13 +135,16 @@ class Plugin(indigo.PluginBase):
 
 		indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 
+		mmLib_Low.MM_Location = mmLib_Low.initIndigoVariable("MMLocation", mmLib_Low.defaultHostname)  # This is a default value. Set Indigo Variable named <MMLocation>
+		mmLib_Low.MM_DEFAULT_CONFIG_FILE = os.getcwd() + "/_Configurations/mmConfig." + str(mmLib_Low.MM_Location) + ".csv"  # this is reset in __Init__
+		mmLib_Low.nvFileName = str("mmNonVolatiles." + mmLib_Low.MM_Location)
 		mmLib_Low.mmLogFolder = str(os.path.expanduser("~") + "/MotionMap3 Logs/")	# moved the log folder to the user space
 
 		try:
 			os.mkdir(mmLib_Low.mmLogFolder)
 		except Exception as err:
 			if err.args[0] != 17:
-				print ("Creation of the directory %s failed" % mmLib_Low.mmLogFolder)
+				print(("Creation of the directory %s failed" % mmLib_Low.mmLogFolder))
 
 
 		self.debug = True
@@ -271,11 +274,11 @@ class Plugin(indigo.PluginBase):
 			# If processing got here, we captured a command from a device that is not listed in MM conmfig file. We want
 			# to keep a list of these devices so we can emit a warning to the log (so we can add the device to the known device list).
 
-			mmLib_Log.logWarning( "Unknown device. Please edit \'" + "mmConfig." + str(_MotionMapPlugin.MM_Location) + ".csv" + "\' to add " + str(cmd.address) + ": " + mmLib_Low.addressTranslate(str(cmd.address) + " "))
+			mmLib_Log.logWarning( "Unknown device. Please edit \'" + "mmConfig." + str(mmLib_Low.MM_Location) + ".csv" + "\' to add " + str(cmd.address) + ": " + mmLib_Low.addressTranslate(str(cmd.address) + " "))
 			return 0
 
 		try:
-			#if mmDev.debugDevice: mmLib_Log.logForce(mmDev.deviceName + " insteonCommandReceived at Plugin.py with CMD: " + str(cmd))
+			if mmDev.debugDevice: mmLib_Log.logForce(mmDev.deviceName + " insteonCommandReceived at Plugin.py with CMD: " + str(cmd))
 			mmLib_Events.distributeEvents('Indigo', ['DevRcvCmd'], mmDev.deviceName, {'cmd': cmd})		# for MM version 4
 		except:
 			mmLib_Log.logWarning( "Failed to deliver a \'DevRcvCmd\' event")
@@ -320,15 +323,15 @@ class Plugin(indigo.PluginBase):
 		if pluginInitialized == 0: return()
 		#indigo.server.log(str(cmd))
 
-		if cmd.cmdScene > 0:
+		#mmLib_Log.logForce( "###CommandComplete with COMMAND: "+ str(cmd.cmdBytes) + " for address " + str(cmd.address) + " with scene " + str(cmd.cmdScene))
+
+		if cmd.cmdScene == "None":
 			devAddress = mmLib_Low.makeSceneAddress(cmd.cmdScene)
 			#mmLib_Log.logForce("Scene " + str(cmd.cmdFunc) + " complete for: " + str(devAddress) + "\n" + str(cmd))
 		else:
-			# Note cmd does not have devID, so you have to use address
-			# however, since this is a command completion, the last command we sent out should be on the top of the queue
+			# The Command is a Scene.
+			# Since this is a command completion, the last command we sent out should be on the top of the queue
 			devAddress = str(cmd.address)
-
-		#mmLib_Log.logForce( "###CommandComplete with address: "+ str(devAddress))
 
 		theDev = mmLib_CommandQ.getQTopDev()
 
@@ -337,7 +340,7 @@ class Plugin(indigo.PluginBase):
 			#mmLib_Log.logForce("Got an Indigo Complete, but device is not ours getQDevTop = " + str(theDev) + " DevAddr = " + str(devAddress))
 			return 0
 
-		#if theDev.debugDevice: mmLib_Log.logForce( "CommandComplete at Plugin for " + theDev.deviceName + ".")
+		if theDev.debugDevice: mmLib_Log.logForce( "CommandComplete at Plugin for " + theDev.deviceName + ".")
 
 		try:
 			theCommandByte = cmd.cmdBytes[0]
@@ -503,13 +506,15 @@ class Plugin(indigo.PluginBase):
 		# indigo makes their dict, it cant convert an object... you get an error like this:
 		#   Error: No registered converter was able to produce a C + + rvalue of type CCString from this Python object of type mmScene
 
+		#for key, value in pluginAction.props.iteritems():
+			# GB Fix me We have to do a unicode test here because right now, we only support regular Str. When we go to Python 3 we will not need this code
+		#	if isinstance(value, unicode):
+		#		theCommandParameters[key] = str(value)
+		#	else:
+
 		try:
-			for key, value in pluginAction.props.iteritems():
-				# GB Fix me We have to do a unicode test here because right now, we only support regular Str. When we go to Python 3 we will not need this code
-				if isinstance(value, unicode):
-					theCommandParameters[key] = str(value)
-				else:
-					theCommandParameters[key] = value
+			for key, value in pluginAction.props.items():
+				theCommandParameters[key] = value
 		except:
 			mmLib_Log.logForce("executeMMCommand cannot copy commandParameters. Aborting.")
 			return(0)
@@ -570,7 +575,7 @@ class Plugin(indigo.PluginBase):
 		#   Error: No registered converter was able to produce a C + + rvalue of type CCString from this Python object of type mmScene
 
 		try:
-			for key, value in pluginAction.props.iteritems():
+			for key, value in pluginAction.props.items():
 				theCommandParameters[key] = value
 		except:
 			mmLib_Log.logForce("mmCommandTrigger cannot copy commandParameters. Aborting.")
@@ -613,7 +618,7 @@ class Plugin(indigo.PluginBase):
 		#   Error: No registered converter was able to produce a C + + rvalue of type CCString from this Python object of type mmScene
 
 		try:
-			for key, value in pluginAction.props.iteritems():
+			for key, value in pluginAction.props.items():
 				theCommandParameters[key] = value
 		except:
 			mmLib_Log.logForce("mmUpdateTrigger cannot copy commandParameters. Aborting.")
@@ -629,13 +634,13 @@ class Plugin(indigo.PluginBase):
 		if origDevDict == None:
 			mmLib_Log.logForce("Warning: Calling mmUpdateTrigger with no origDev")
 		else:
-			for key, value in origDevDict.iteritems():
+			for key, value in origDevDict.items():
 				setattr(origDev, key, value)
 
 		if newDevDict == None:
 			mmLib_Log.logForce("Warning: Calling mmUpdateTrigger with no newDev")
 		else:
-			for key, value in newDevDict.iteritems():
+			for key, value in newDevDict.items():
 				setattr(newDev, key, value)
 
 		if newDev.name != None:
