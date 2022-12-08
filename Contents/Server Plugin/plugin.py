@@ -274,7 +274,7 @@ class Plugin(indigo.PluginBase):
 			# If processing got here, we captured a command from a device that is not listed in MM conmfig file. We want
 			# to keep a list of these devices so we can emit a warning to the log (so we can add the device to the known device list).
 
-			mmLib_Log.logWarning( "Unknown device. Please edit \'" + "mmConfig." + str(mmLib_Low.MM_Location) + ".csv" + "\' to add " + str(cmd.address) + ": " + mmLib_Low.addressTranslate(str(cmd.address) + " "))
+			mmLib_Log.logWarning( "Unknown device. Please edit \'" + "mmConfig." + str(mmLib_Low.MM_Location) + ".csv" + "\' to add " + str(cmd.address) + ": " + mmLib_Low.addressTranslate(str(cmd.address)))
 			return 0
 
 		try:
@@ -325,20 +325,43 @@ class Plugin(indigo.PluginBase):
 
 		#mmLib_Log.logForce( "###CommandComplete with COMMAND: "+ str(cmd.cmdBytes) + " for address " + str(cmd.address) + " with scene " + str(cmd.cmdScene))
 
-		if cmd.cmdScene == "None":
+		if cmd.cmdScene is None:
+			devAddress = str(cmd.address)
+		else:
 			devAddress = mmLib_Low.makeSceneAddress(cmd.cmdScene)
 			#mmLib_Log.logForce("Scene " + str(cmd.cmdFunc) + " complete for: " + str(devAddress) + "\n" + str(cmd))
-		else:
 			# The Command is a Scene.
 			# Since this is a command completion, the last command we sent out should be on the top of the queue
-			devAddress = str(cmd.address)
 
 		theDev = mmLib_CommandQ.getQTopDev()
 
 		if not theDev or str(theDev.devIndigoAddress) != str(devAddress):
-			# Not our device, but it could be a status (we send those async and dont wait for response)
-			#mmLib_Log.logForce("Got an Indigo Complete, but device is not ours getQDevTop = " + str(theDev) + " DevAddr = " + str(devAddress))
+			# Its a completion, but not our device at the top of our queue...
+			# However, it could be a status (we send those async and dont wait for response)
+			if cmd.cmdFunc == "status request":
+				#mmLib_Log.logForce("Got a completion for status request With cmd:\n" + str(cmd))
+				# This is normal
+				return 0
+			else:
+				# It is a non-status request completion. Was it our device? Look it up by the devAddress from the cmd record
+				try:
+					theDev = mmLib_Low.MotionMapDeviceDict[str(cmd.address)]
+				except:
+					theDev = 0
+					mmLib_Log.logForce("Got an Indigo Complete (non status request), but its not our device. With cmd:\n" + str(cmd))
+
+				if theDev != 0:
+					# It was our device, but not as a result of something we did... It must have been a command sent by Indigo (or Indogo Touch)
+					# Lets handle it as a device status change event
+					mmLib_Log.logForce("Got an unexpected Indigo Complete (non status request) for device " + theDev.deviceName + ". Redistributing it to insteonCommandReceived()")
+					try:
+						self.insteonCommandReceived(cmd)
+					except:
+						mmLib_Log.logForce("Failure redistributing completion event to device " + theDev.deviceName + " with cmd:\n" + str(cmd))
+
 			return 0
+
+		# OK, it seems to be us... theDev is valid
 
 		if theDev.debugDevice: mmLib_Log.logForce( "CommandComplete at Plugin for " + theDev.deviceName + ".")
 
@@ -435,7 +458,11 @@ class Plugin(indigo.PluginBase):
 
 				else:
 					self.sleep(mmLib_Low.TIMER_QUEUE_GRANULARITY) # in seconds
-					mmLib_Low.mmRunTimer()
+					try:
+						mmLib_Low.mmRunTimer()
+					except:
+						mmLib_Log.logForce( "MotionMap Internal Error whe calling mmRunTimer.")
+
 					newDaylightValue = indigo.variables['MMDayTime'].value
 
 					# process Daytime/Nighttime Trsansitions
@@ -448,7 +475,10 @@ class Plugin(indigo.PluginBase):
 						else:
 							theEvent = 'isNightTime'
 
-						mmLib_Events.distributeEvents('MMSys', [theEvent], 0, {})
+						try:
+							mmLib_Events.distributeEvents('MMSys', [theEvent], 0, {})
+						except:
+							mmLib_Log.logForce("Failed to distribute Events in runConcurrentThread() for Event " + str(theEvent) + ".")
 
 		#		except self.StopThread:
 		except self.StopThread:
@@ -457,7 +487,7 @@ class Plugin(indigo.PluginBase):
 			pass
 
 		except:
-			mmLib_Log.mmDebugError("Exception in RunConcurrent Thread. Exiting MM")
+			mmLib_Log.logError("Exception in RunConcurrent Thread. Exiting MM")
 			pass
 
 ########################################

@@ -250,17 +250,23 @@ def resetGlobals():
 #
 ############################################################################################
 def addressTranslate(desiredAddress):
+	#mmLib_Log.logForce("####->Calling addressTranslate for " + str(desiredAddress))
 
 	# Check to see if we have captured the name before.. this is the fast way
 	lookedUp = unknownAddress.get(desiredAddress, "Unknown")
-	if lookedUp != "Unknown": return (lookedUp)
+	if lookedUp != "Unknown":
+		#mmLib_Log.logForce("####->In addressTranslate for " + str(desiredAddress) + " returning " + str(lookedUp))
+		return (lookedUp)
 
 	# not already in list, traverse the indigo device list add a dict entry for it
 
-	for dev in indigo.devices.values():
+	for dev in indigo.devices.iter():
 		if dev.address == desiredAddress:
-			unknownAddress[dev.address] = str(dev.name)
+			mmLib_Log.logForce("####->Adding " + dev.name + " to unknownList with address of " + str(desiredAddress))
+			unknownAddress[str(desiredAddress)] = str(dev.name)
 			return (str(dev.name))
+
+	mmLib_Log.logForce("####->In addressTranslate for " + str(desiredAddress) + " returning Undefined")		# This should never happen, if it does there is a serious problem
 	return ("Undefined")
 
 ############################################################################################

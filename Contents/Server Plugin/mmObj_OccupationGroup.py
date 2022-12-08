@@ -381,6 +381,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 				self.scheduledDeactivationTimeSeconds = int(time.mktime(time.localtime()) + self.unoccupiedRelayDelaySeconds)
 				ft = datetime.now() + timedelta(seconds=self.unoccupiedRelayDelaySeconds)
 				varString = mmLib_Low.getIndigoVariable(self.occupationIndigoVar, "Unknown")
+				if self.debugDevice: mmLib_Log.logForce("Occupation Group " + self.deviceName + " with indigoVarName of " + str(self.occupationIndigoVar) + " varString = " + str(varString))
 				varString = varString.partition(' ')[0] + " ( Non-Motion Timeout at " + '{:%-I:%M %p}'.format(ft) + " )"
 				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, varString)
 		return 0

@@ -6,6 +6,7 @@ from tkinter.filedialog import askopenfilename
 import re
 import time
 
-print(sys.version)
-theIOnt = round(int(165757)/int(24*60*60),2)
-print("It has been off for " + str(round(int(165757)/int(24*60*60),2)) + " days. ")
+ft = datetime.now()
+varString = "Unknown"
+varString = varString.partition(' ')[0] + " ( Non-Motion Timeout at " + '{:%-I:%M %p}'.format(ft) + " )"
+print(varString)

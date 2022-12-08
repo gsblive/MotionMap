@@ -731,7 +731,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		if self.isInsteonMotionDevice:
 			preamble = str(self.deviceName + "\'s battery Level is " + str(self.ourNonvolatileData["batteryLevel"]) + " (as of " + str(self.ourNonvolatileData["batteryQueryTimeSecondsStr"]) + "). ")
 		else:
-			preamble = self.deviceName + "Does not support Battery Level Requests. "
+			preamble = self.deviceName + " does not support Battery Level Requests. "
 
 		# Has it experienced too many missed commands
 		if self.controllerMissedCommandCount > mmLib_Low.MOTION_MAX_MISSED_COMMANDS:
