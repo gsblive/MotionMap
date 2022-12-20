@@ -354,6 +354,11 @@ class Plugin(indigo.PluginBase):
 					# It was our device, but not as a result of something we did... It must have been a command sent by Indigo (or Indogo Touch)
 					# Lets handle it as a device status change event
 					mmLib_Log.logForce("Got an unexpected Indigo Complete (non status request) for device " + theDev.deviceName + ". Redistributing it to insteonCommandReceived()")
+					if not theDev:
+						mmLib_Log.logForce("There was no device in our command queue.")
+					else:
+						mmLib_Log.logForce( "###Debugging Information... CommandComplete with COMMAND: "+ str(cmd.cmdBytes) + " for address " + str(cmd.address) + " with scene " + str(cmd.cmdScene))
+					mmLib_Log.logForce("cmd was: " + str(theDev.devIndigoAddress))
 					try:
 						self.insteonCommandReceived(cmd)
 					except:

@@ -287,25 +287,6 @@ def checkString(msg):
 ############################################################################################
 ############################################################################################
 
-#
-# trimFile
-#
-# Used to trim the logfile
-#
-def trimFile(theFilename,resetSize):
-
-	indigo.server.log("Trimming Log File to: " + str(resetSize))
-
-	f = open(theFilename, "r")
-	f.seek(-resetSize, 2)
-	for totalReads in range(1,100):
-		line = f.readline()
-		if line[:1] == '\n':break
-	fMem = f.read()
-	f = open(theFilename, "w")
-	f.write(fMem)
-	f.close()
-
 
 #
 # Write the provided log information to a file
@@ -335,9 +316,18 @@ def writeToLogFile(logType, logMessage, writeTimeStamp, writeTraceLog):
 
 		f.write('\n\n\n')
 		f.close()
-		if os.path.getsize(ourLoggerFile) > MAX_LOG_SIZE: trimFile(ourLoggerFile, RESET_LOG_SIZE)
+		if os.path.getsize(ourLoggerFile) > MAX_LOG_SIZE:
+			# Log File is becoming to big, Rename it to an archive and open a new file at next write
+			indigo.server.log("Archiving Log File @ mmLib_Log.py.writeToLogFile")
+			oldFileName = ourLoggerFile[:-4]
+			oldFileSuffix = ourLoggerFile[-4:]
+			theDateTime = datetime.datetime.now().strftime("%I:%M:%S %p")
+			newFileName = oldFileName + " Overflow Archive " + str(theDateTime) + oldFileSuffix
+			print(str(newFileName))
+			os.rename(ourLoggerFile, newFileName)
+
 	except:
-		indigo.server.log("Could not open Log file")
+		indigo.server.log("Could not open Log file @ mmLib_Log.py.writeToLogFile")
 
 	return(logMessage)
 
