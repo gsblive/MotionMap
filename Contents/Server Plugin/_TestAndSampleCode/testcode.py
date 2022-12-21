@@ -28,4 +28,4 @@ print(platform.python_version())
 fName = os.path.join(os.path.expanduser("~"), "Files/2022-12-01 Events.txt")
 print(fName)
 
-trimFile(fName, RESET_LOG_SIZE)
+#trimFile(fName, RESET_LOG_SIZE)
