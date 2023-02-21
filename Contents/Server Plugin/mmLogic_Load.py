@@ -460,7 +460,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is not the ON controller. Processing as Sustain. Event complete.")
 			return(0)
 		else:
-			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is the ON controller. Continue processing OccupationEvent.")
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is the ON controller. Continue processing OccupationEvent. Current onState is " + str(self.theIndigoDevice.onState))
 
 		if self.theIndigoDevice.onState == False:
 			# the light is off, should we turn it on? Doesnt matter if this is a sustain or ON controller. Just care about bedtime mode.
@@ -469,6 +469,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 					theLevel = self.daytimeOnLevel
 				else:
 					theLevel = self.nighttimeOnLevel
+
+				if self.debugDevice: mmLib_Log.logForce("Debugging Device " + self.deviceName + " while MMDayTime is " + str(indigo.variables['MMDayTime'].value) + ". New Level requested is " + str(theLevel))
 
 				if int(theLevel) > 0:
 					if self.debugDevice: mmLib_Log.logForce("    " + self.deviceName + " processing set brightness level to " + theLevel)
