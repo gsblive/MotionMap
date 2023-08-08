@@ -595,11 +595,14 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 					self.dispatchOnOffEvents( mmComm_Insteon.kInsteonOn )	#kInsteonOn = 17
 
 					# Check do motion sensor periodic tasks in the wake of this ON event (Insteon ONLY)
-					if self.isInsteonMotionDevice: self.insteonMotionPeriodicTasks()
+					#if self.isInsteonMotionDevice: self.insteonMotionPeriodicTasks()
 
 				else:
 					# Dispatch the Off event
 					self.dispatchOnOffEvents(mmComm_Insteon.kInsteonOff )	#kInsteonOff = 19
+
+					# Check do motion sensor periodic tasks in the wake of this OFF event (Insteon ONLY)
+					if self.isInsteonMotionDevice: self.insteonMotionPeriodicTasks()
 
 					# if we are already marked as unoccupied, debounce this event
 
