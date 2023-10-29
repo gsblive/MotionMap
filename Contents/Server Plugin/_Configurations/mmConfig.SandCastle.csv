@@ -262,7 +262,7 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
-BottomFloorStairsLightP,5,100,30,StatAsync;flash,BottomFloorStairsMotion,,2,noDebug
+BottomFloorStairsLightP,5,100,80,StatAsync;flash,BottomFloorStairsMotion,,2,noDebug
 BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
 BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
 BottomFloorBunkRightLightP,60,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
