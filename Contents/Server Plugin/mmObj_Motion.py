@@ -111,7 +111,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			try:
 				prot = self.theIndigoDevice.protocol
 				image = self.theIndigoDevice.displayStateImageSel
-				if str(prot) + " " + str(image) == "Insteon MotionSensor":
+				s1 = "Insteon MotionSensor"
+				s2 = str(prot) + " " + str(image)
+				if not s2.find(s1):
 					self.isInsteonMotionDevice = True
 					# the following is only valid for insteon motions
 					if theDeviceParameters["autoEnableActivityLight"] == "true":
@@ -120,8 +122,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 						self.LEDDaytimeMode = "Unknown"		#GB FIX ME.. Make this a nonvolitile
 					else:
 						self.autoEnableActivityLight = False
+				else:
+					mmLib_Log.logForce("###DEBUG:Not insteon Motion Sensor type for " + self.deviceName + ". Found: " + str(prot) + " " + str(image))
 
 			except:
+				mmLib_Log.logForce("###DEBUG:Failed to get device type for " + self.deviceName)
 				pass
 
 			if self.debugDevice:mmLib_Log.logForce(" ### " + self.deviceName + ".isInsteonMotionDevice: " + str(self.isInsteonMotionDevice))
