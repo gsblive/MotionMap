@@ -400,6 +400,7 @@ MasterBathroomAll,9,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloor
 MasterAll,10,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 
+
 ########################################################
 #
 # ZWaveLockMgr – ZWave Controlled Lock. Sets user codes based on schedule.
@@ -424,6 +425,9 @@ OceanViewLocks,Security_TopFloorLock;Security_BottomFloorLock,10,2,noDebug
 #   activateAction – The name of the ActionGroup to perform when this occupation becomes activated
 #	  actionController - The Motion/Multisensor or OccupationGroup that can trigger this action
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
+#
+# the UpperDoorLock and LowerDoorLock actions below were modified in Indigo to only
+# lock the respective doors if they werent already locked (to preserve door lock battery power)
 #
 ########################################################
 
