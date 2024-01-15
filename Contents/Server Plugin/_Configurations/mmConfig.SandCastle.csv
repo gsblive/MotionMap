@@ -285,7 +285,7 @@ TopFloorMasterBathLavLight,10,0,3,StatAsync;flash,TopFloorMasterBathLavMotion,,2
 TopFloorMasterBathLinenP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterBathVanityLightP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterLightsP,60,20,60,StatAsync;flash,,GregsDeskMultisensorMotion;TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
-TopFloorMasterUnderBedOutletTop,60,0,100,StatSync;flash;bedtime,TopFloorMasterMotion,TopFloorMasterBathMotion;GregsDeskMultisensorMotion,2,noDebug
+TopFloorMasterUnderBedOutletTop,60,0,100,StatSync;flash;bedtime,TopFloorMasterMotion,TopFloorMasterBathMotion;GregsDeskMultisensorMotion,2,debug
 TopFloorMasterShowerLightP,10,0,100,StatAsync;flash,TopFloorMasterBathShowerMotion,TopFloorMasterBathMotion;TopFloorMasterMotion;TopFloorMasterBathLavMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorPorchLightP,5,0,100,StatAsync;flash,,,2,noDebug
 TopFloorStairwellLightP,5,0,60,StatAsync;flash,TopFloorStairsMotion,,2,noDebug

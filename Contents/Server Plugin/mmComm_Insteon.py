@@ -137,6 +137,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 		theInsteonCommand = eventParameters['cmd']
 		theCommandByte = self.parseInsteonCommandByte(theInsteonCommand )
 		if self.debugDevice:
+			#mmLib_Log.logForce(self.deviceName + " Command Complete. Byte:" + str(theCommandByte) + " InsteonCommand:" + theInsteonCommand)
 			mmLib_Log.logForce(self.deviceName + " Command Complete. Byte:" + str(theCommandByte))
 		else:
 			mmLib_Log.logVerbose(self.deviceName + " Command Complete. Byte:" + str(theCommandByte))

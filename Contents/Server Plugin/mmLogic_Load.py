@@ -142,7 +142,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			# update commands and events
 
-			self.supportedCommandsDict.update({'bedtimeModeOn':self.bedtimeModeOn, 'devStatus':self.devStatus})
+			self.supportedCommandsDict.update({'setBedtimeMode':self.setBedtimeMode, 'devStatus':self.devStatus})
 
 			mmLib_Events.subscribeToEvents(['isNightTime','isDayTime'], ['MMSys'], self.mmDayNightTransition, {}, self.deviceName)
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.completeInit, {}, self.deviceName)
@@ -258,11 +258,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		# if this device handles bedtimemode, process it now
 
-		if self.ourNonvolatileData["bedtimeMode"] > mmLib_Low.BEDTIMEMODE_NOT_POSSIBLE:
+		if self.ourNonvolatileData["bedtimeMode"] != mmLib_Low.BEDTIMEMODE_NOT_POSSIBLE:
 
 			# look for bedtimeMode activation  (double click off)
 			# mmComm_Insteon.kInsteonOffFast = 20
-			if theCommandByte == mmComm_Insteon.kInsteonOffFast : self.bedtimeModeOn( {'theCommand':'bedtimeModeOn', 'theDevice':self.deviceName} )
+			if theCommandByte == mmComm_Insteon.kInsteonOffFast : self.setBedtimeMode( {'theCommand':'setBedtimeMode', 'theDevice':self.deviceName, 'newMode':'ON'} )
 
 		#
 		# Load devices also help the motion sensors calculate dead batteries by notifying them when a user is in a room pressing buttons
@@ -322,25 +322,29 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	######################################################################################
 
 	#
-	# bedtimeModeOn - turn bedtime mode on if its Nighttime
+	# setBedtimeMode - turn bedtime mode on or off as requested.
 	#
-	def bedtimeModeOn(self, theCommandParameters ):
+	def setBedtimeMode(self, theCommandParameters ):
+		requestedMode = theCommandParameters["newBedtimeMode"]
+
+		# Basically this routine just turns the device online or offline state. However its
+		# called BettimeMode because it has automatic features to turn set the device back to online at daybreak
 
 		theResult = 0
+		requestedMode = theCommandParameters["newBedtimeMode"]
+		if self.ourNonvolatileData["bedtimeMode"] != mmLib_Low.BEDTIMEMODE_NOT_POSSIBLE and requestedMode != self.ourNonvolatileData["bedtimeMode"]:
+			self.setBedtimeModeLow(requestedMode)
 
-		#mmLib_Log.logForce( self.deviceName + " is being called to turn on Bedtime mode. Current Mode is: " + str(self.ourNonvolatileData["bedtimeMode"]))
-
-		if self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_OFF and indigo.variables['MMDayTime'].value == 'false':
-			mmLib_Log.logReportLine("Bedtime Mode ON for device: " + self.deviceName)
-			self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_ON
-
-			self.setControllersOnOfflineState('bedtime')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
-			self.queueCommand({'theCommand':'beep', 'theDevice':self.deviceName, 'theValue':0, 'repeat':1, 'retry':2})
-			self.queueCommand({'theCommand':'brighten', 'theDevice':self.deviceName, 'theValue':0, 'retry':2})
+			if self.debugDevice: mmLib_Log.logForce("===== Issuing Single Beep Command to " + self.deviceName + ".")
+			#self.queueCommand({'theCommand':'beep', 'theDevice':self.deviceName, 'theValue':0, 'repeat':0, 'retry':2})
+			if requestedMode == mmLib_Low.BEDTIMEMODE_ON:
+				# if we are going into bedtime mode... turn off the light:
+				self.queueCommand({'theCommand':'brighten', 'theDevice':self.deviceName, 'theValue':0, 'retry':2})
 
 			# update nv file so we know we are supposed to be in bedtime mode if the server restarts during the night
-			mmLib_Low.cacheNVDict()
-
+			mmLib_Low.cacheNVDict()		# make the NV variables permanent
+		else:
+			if self.debugDevice: mmLib_Log.logForce( "=============== " + self.deviceName + "'s bedtime mode is already set to "+ self.ourNonvolatileData["bedtimeMode"] + ".")
 
 		return(theResult)
 
@@ -695,12 +699,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		if self.debugDevice: mmLib_Log.logForce( "Processing " + eventID + " for " + self.deviceName)
 
+		#
 		if self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_ON:
 			processBedtime = True
 		else:
 			processBedtime = False
 
-		processBrightness = True		# assume we are gping to process brightness (unless the logic below changes this)
+		processBrightness = True		# assume we are going to process brightness (unless the logic below changes this)
 		areaIsOccupied = self.getAreaOccupiedState(self.allControllerGroups)
 
 		if not self.manualControl:
@@ -729,7 +734,6 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		# do day/night processing
 
-
 		if eventID == 'isDayTime':
 			#
 			#  process night to day transition
@@ -746,10 +750,8 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			# do bedtimeMode reset if needed
 			if processBedtime:
-				self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_OFF
-				if self.debugDevice: mmLib_Log.logForce("Bedtime Mode OFF for device: " + self.deviceName)
-				self.setControllersOnOfflineState('on')  # we are turning badtime mode off, so start commands from our controllers again
-
+				# this will turn off bedtimeMode every morning regardless on when it was activated
+				self.setBedtimeModeLow(mmLib_Low.BEDTIMEMODE_OFF)		# Its daytime now, let the controller operate the light again
 
 		else:
 			#
@@ -760,14 +762,14 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			if processBedtime:
 				if self.debugDevice: mmLib_Log.logForce("Restoring Bedtime Mode ON for device: " + self.deviceName)
-				self.setControllersOnOfflineState('bedtime')	# its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
-			else:
-				if areaIsOccupied:
-					# special processing... skip if current brightness is already dimmer than nighttimeOnLevel level
-					if int(currentBrightness) and int(currentBrightness) < int(self.nighttimeOnLevel):
-						if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Skipping brightness adjustment because current brightness is already dimmer than nighttimeOnLevel level")
-					else:
-						newBrightnessVal = self.nighttimeOnLevel
+				self.setBedtimeModeLow(mmLib_Low.BEDTIMEMODE_ON)
+
+			if areaIsOccupied:
+				# special processing... skip if current brightness is already dimmer than nighttimeOnLevel level
+				if int(currentBrightness) and int(currentBrightness) < int(self.nighttimeOnLevel):
+					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Skipping brightness adjustment because current brightness is already dimmer than nighttimeOnLevel level")
+				else:
+					newBrightnessVal = self.nighttimeOnLevel
 
 
 		# if we are going to process brightness and the current brightness does not match the expected brightness
@@ -787,6 +789,24 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				mmLib_Low.cancelDelayedAction(self.offDelayCallback)
 				mmLib_Low.cancelDelayedAction(self.offCallback)
 
+
+		return 0
+
+	def setBedtimeModeLow(self, newBedTimeMode):
+
+		if(newBedTimeMode == mmLib_Low.BEDTIMEMODE_OFF):
+			self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_OFF
+			if self.debugDevice: mmLib_Log.logForce("Bedtime Mode OFF for device: " + self.deviceName)
+			self.setControllersOnOfflineState('on')  # we are turning bedtime mode off, so start commands from our controllers again
+		else:
+			self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_ON
+			if self.debugDevice: mmLib_Log.logForce("Bedtime Mode ON for device: " + self.deviceName)
+			self.setControllersOnOfflineState('bedtime')  # its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
+
+		# Mark our new nonvolatile state
+		self.ourNonvolatileData["bedtimeMode"] = newBedTimeMode
+
+		mmLib_Log.logForce(self.deviceName + "'s Bedtime mode to has been set to " + newBedTimeMode + ".")
 
 		return 0
 

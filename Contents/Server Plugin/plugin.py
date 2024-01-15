@@ -37,6 +37,7 @@ from collections import deque
 
 pluginInitialized = 0
 startTime = 0
+devDict = {}
 
 
 ########################################
@@ -112,6 +113,7 @@ supportedControlCommandsDict = {'resetOfflineStatistics':mmLib_Low.resetOfflineS
 class Plugin(indigo.PluginBase):
 
 	IndigoLogHandler = 0
+	devDict = {}
 
 	# Note the "indigo" module is automatically imported and made available inside
 	# our global name space by the host process.
@@ -140,6 +142,9 @@ class Plugin(indigo.PluginBase):
 		mmLib_Low.nvFileName = str("mmNonVolatiles." + mmLib_Low.MM_Location)
 		mmLib_Low.mmLogFolder = str(os.path.expanduser("~") + "/MotionMap3 Logs/")	# moved the log folder to the user space
 
+		# Make a dictionary of all Indigo devices for later reference
+
+
 		try:
 			os.mkdir(mmLib_Low.mmLogFolder)
 		except Exception as err:
@@ -158,6 +163,12 @@ class Plugin(indigo.PluginBase):
 		except Exception as err:
 			mmLib_Log.logForce( "\nPython version = Unknown")
 
+		try:
+			for dev in indigo.devices.iter():
+				if str(dev.address) != "":
+					devDict[str(dev.address)] = str(dev.name)
+		except:
+			mmLib_Log.logForce( "\nWARNING: Failure to create insteon device Dict")
 
 		mmLib_Log.logTimestamp( _MotionMapPlugin.MM_NAME + " Plugin version " + _MotionMapPlugin.MM_VERSION + ". Initialization complete. Waiting for Startup Command.")
 
@@ -348,7 +359,12 @@ class Plugin(indigo.PluginBase):
 					theDev = mmLib_Low.MotionMapDeviceDict[str(cmd.address)]
 				except:
 					theDev = 0
-					mmLib_Log.logForce("Got an Indigo Complete (non status request), but its not our device. With cmd:\n" + str(cmd))
+					# lets get the device name from out indigo device dict
+					try:
+						FoundDev = devDict[str(cmd.address)]
+						mmLib_Log.logForce("Warning: Got an Indigo Complete from " + FoundDev + " which is unregistered within our configuration file (" + str(mmLib_Low.MM_Location) + ".csv).")
+					except:
+						mmLib_Log.logForce("Got an Indigo Complete (non status request), but its not our device. With cmd:\n" + str(cmd))
 
 				if theDev != 0:
 					# It was our device, but not as a result of something we did... It must have been a command sent by Indigo (or Indogo Touch)

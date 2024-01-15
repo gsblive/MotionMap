@@ -44,9 +44,9 @@ superClass = 0
 ############################################################################################
 
 MAX_SEQUENTIAL_ERRORS_DEFAULT = 2
-BEDTIMEMODE_NOT_POSSIBLE = 0
-BEDTIMEMODE_ON = 1
-BEDTIMEMODE_OFF = 2
+BEDTIMEMODE_NOT_POSSIBLE = 'NA'
+BEDTIMEMODE_ON = 'ON'
+BEDTIMEMODE_OFF = 'OFF'
 
 # for Battery Report
 MOTION_MAX_ON_TIME = int(8*60*60)		# 8 hours in Seconds
