@@ -142,7 +142,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			# update commands and events
 
-			self.supportedCommandsDict.update({'setBedtimeMode':self.setBedtimeMode, 'devStatus':self.devStatus})
+			self.supportedCommandsDict.update({'setBedtimeMode':self.setBedtimeMode, 'devStatus':self.devStatus, 'queueBeepDevice':self.queueBeepDevice})
 
 			mmLib_Events.subscribeToEvents(['isNightTime','isDayTime'], ['MMSys'], self.mmDayNightTransition, {}, self.deviceName)
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.completeInit, {}, self.deviceName)
@@ -320,6 +320,16 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	# Externally Addessable Routines, must have a single parameter - theCommandParameters
 	#
 	######################################################################################
+
+	#
+	# queueBeepDevice - Beep the device as requested.
+	#
+	def queueBeepDevice(self, theCommandParameters ):
+
+		mmLib_Log.logForce("===== Issuing Single Beep Command to " + self.deviceName + ".")
+		self.queueCommand({'theCommand':'beep', 'theDevice':self.deviceName, 'theValue':100, 'repeat':0, 'retry':2})
+
+		return(0)
 
 	#
 	# setBedtimeMode - turn bedtime mode on or off as requested.

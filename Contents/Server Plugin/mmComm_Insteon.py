@@ -137,7 +137,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 		theInsteonCommand = eventParameters['cmd']
 		theCommandByte = self.parseInsteonCommandByte(theInsteonCommand )
 		if self.debugDevice:
-			#mmLib_Log.logForce(self.deviceName + " Command Complete. Byte:" + str(theCommandByte) + " InsteonCommand:" + theInsteonCommand)
+			#mmLib_Log.logForce(self.deviceName + " Command Complete. Byte:" + str(theCommandByte) + " InsteonCommand:" + str(theInsteonCommand))
 			mmLib_Log.logForce(self.deviceName + " Command Complete. Byte:" + str(theCommandByte))
 		else:
 			mmLib_Log.logVerbose(self.deviceName + " Command Complete. Byte:" + str(theCommandByte))
@@ -289,7 +289,7 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 
 		resultCode = 0
 
-		if self.debugDevice: mmLib_Log.logForce("sendRawInsteonCommandLow. Sending Raw command to " + self.deviceName + " command: " + str(theCommand))
+		#if self.debugDevice: mmLib_Log.logForce("sendRawInsteonCommandLow. Sending Raw command to " + self.deviceName + " command: " + str(theCommand))
 
 		if extendedCommand:
 			resultRecord = indigo.insteon.sendRawExtended(self.theIndigoDevice.address, theCommand, waitUntilAck=ackWait, waitForExtendedReply=ExtendedWaitReply)
@@ -404,20 +404,19 @@ class mmInsteon(mmComm_Indigo.mmIndigo):
 
 		if theInsteonCommand.cmdBytes:
 			theCommand = int(theInsteonCommand.cmdBytes[0])
-			if theCommand == kInsteonBeep:
-				mmLib_Log.logVerbose(self.deviceName + " received a completion (or error) on beep command, they are always async so we\'re ignoring it.")
-				return(0)
 		else:
 			#mmLog.logError( "checkForOurInsteonCommand called with no cmdBytes \n" + str(theInsteonCommand))
 			if theInsteonCommand.cmdFunc == 'on':
-				mmLib_Log.logForce(self.deviceName + " No cmdBytes found, Substituting ON command.")
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " No cmdBytes found, Substituting ON command.")
 				theCommand = kInsteonOn
 			elif theInsteonCommand.cmdFunc == 'off':
-				mmLib_Log.logForce(self.deviceName + " Substituting OFF command.")
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Substituting OFF command.")
 				theCommand = kInsteonOff
 			else:
-				mmLib_Log.logForce(self.deviceName + " Unknown command, returning Zero")
+				mmLib_Log.logForce(self.deviceName + " Unknown command, returning Zero. Command found was " + str(theInsteonCommand.cmdFunc))
 				return(0)
+
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Processing command completion. Found command byte " + str(theCommand))
 
 		return(int(theCommand))
 

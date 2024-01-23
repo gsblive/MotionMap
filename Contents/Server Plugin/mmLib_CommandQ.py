@@ -14,7 +14,6 @@ import datetime
 import indigo
 import mmLib_Log
 import mmLib_Low
-import mmLib_Low
 from collections import deque
 from timeit import default_timer as timer
 import time
@@ -201,7 +200,7 @@ def	dispatchQ():
 			#run the proc
 			try:
 				localError = theMMDevice.dispatchCommand(theCommandParameters)
-				#if theMMDevice.debugDevice: mmLib_Log.logForce("dispatchCommand result " + str(localError) + " for " + theMMDevice.deviceName + " theCommandParameters: " + str(theCommandParameters))
+				if theMMDevice.debugDevice: mmLib_Log.logForce("dispatchCommand result " + str(localError) + " for " + theMMDevice.deviceName + " theCommandParameters: " + str(theCommandParameters))
 			except:
 				mmLib_Log.logError("DispatchCommand Failed.")
 				mmLib_Log.logError("    Commmand Parameters: " + str(theCommandParameters))
@@ -322,6 +321,7 @@ def enqueQ(theTargetDevice, theCommandParameters, flushDirective):
 	# theCommandParameters is a dictionary
 
 	startTheQueue = not pendingCommands
+	savedPending = pendingCommands
 
 	timeTag = time.time()
 	CommandID = theCommandParameters['theDevice'] + "." + theCommandParameters['theCommand']
@@ -343,6 +343,7 @@ def enqueQ(theTargetDevice, theCommandParameters, flushDirective):
 
 	if startTheQueue:
 		startQ() # Start Command Queue Processing
+
 
 ############################################################################################
 #

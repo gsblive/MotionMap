@@ -684,6 +684,8 @@ class mmIndigo(object):
 	#
 	def dispatchCommand(self, theCommandParameters):
 
+		if self.debugDevice: mmLib_Log.logForce("Dispatching command for " + self.deviceName + ". theCommand Value: " + str(theCommandParameters))
+
 		if self.initResult != 0:
 			mmLib_Log.logForce(self.deviceName + "###### Is not Initialized for command " + theCommandParameters['theCommand'] + ". ######")
 			return 0

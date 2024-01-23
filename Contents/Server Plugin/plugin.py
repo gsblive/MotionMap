@@ -289,7 +289,7 @@ class Plugin(indigo.PluginBase):
 			return 0
 
 		try:
-			if mmDev.debugDevice: mmLib_Log.logForce(mmDev.deviceName + " insteonCommandReceived at Plugin.py with CMD: " + str(cmd))
+			#if mmDev.debugDevice: mmLib_Log.logForce(mmDev.deviceName + " insteonCommandReceived at Plugin.py with CMD: " + str(cmd))
 			mmLib_Events.distributeEvents('Indigo', ['DevRcvCmd'], mmDev.deviceName, {'cmd': cmd})		# for MM version 4
 		except:
 			mmLib_Log.logWarning( "Failed to deliver a \'DevRcvCmd\' event")
@@ -603,6 +603,13 @@ class Plugin(indigo.PluginBase):
 				#theMode = "QUEUE"
 				#if "theMode" in theCommandParameters: theMode = theCommandParameters['theMode']
 				theMode = theCommandParameters.get('theMode', "QUEUE")
+
+				# Be careful here... If you queue a command that has no ability to do a completion routine, it has to be forced to IMMED
+				# Otherwise it will clog the queue waiting for a completion that will not occur. Eventually it will time out, but its better to
+				# handle any non-complet-routine compatible command it with a theMode = "IMMED" in the call to executeMMCommand.
+				# int teh future, I may set up a protocol in queueCommand that responds with "error", "finished", or "queued" result so
+				# we can dequeue here as needed. But I dont feel like it right now.. there are too many instances to change.
+				# There is an example of this problem in the action group 'QueueBeepDevice' (it must be issued async).
 
 				if theMode == "IMMED":
 					return(theDevice.dispatchCommand(theCommandParameters))	# do the command now
