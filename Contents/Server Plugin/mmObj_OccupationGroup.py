@@ -186,7 +186,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def getOnState(self):
 
-		if self.onlineState != 'on': return(False)
+		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ON: return(False)
 
 		for member in self.members:
 			if not member: continue
@@ -396,7 +396,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 			if not member: break
 			memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
 			if memberDev:
-				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " sending loadDeviceNotificationOfOn to \'" + member + "\'.")
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " executing loadDeviceNotificationOfOn at controller\'" + member + "\'.")
 				memberDev.loadDeviceNotificationOfOn()
 
 		return (0)

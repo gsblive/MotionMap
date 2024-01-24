@@ -112,7 +112,7 @@ TestMultiSensor,60,1
 #	specialFeatures = A list that can contain any or the following string commands
 #						flash: flash the device 1 minute prior to turning off;
 #						beep: beep the device 1 minute prior to turning off;
-#						bedtime: beep the device 1 minute prior to turning off
+#						Automatic: beep the device 1 minute prior to turning off
 #   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
 #   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
@@ -137,7 +137,7 @@ TestMultiSensor,60,1
 #	specialFeatures = A list that can contain any or the following string commands
 #						flash: flash the device 1 minute prior to turning off;
 #						beep: beep the device 1 minute prior to turning off;
-#						bedtime: beep the device 1 minute prior to turning off
+#						Automatic: beep the device 1 minute prior to turning off
 #   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
 #   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowed before marking this device unnresponsive

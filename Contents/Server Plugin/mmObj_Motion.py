@@ -62,7 +62,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.lastOnTimeSeconds = 0
 		self.lastOffTimeSeconds = 0
 		self.blackOutTill = 0
-		self.onlineState = 'on'
+		self.onlineState = mmLib_Low.AUTOMATIC_MODE_ON
 
 		super(mmMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 		if self.initResult == 0:
@@ -221,13 +221,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 			self.onlineState = requestedState
 
-			if self.onlineState != 'on':
+			if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ON:
 				self.occupiedState = False	# if the device is offline (or bedtime mode), assume it is also unoccupied.
 				# if there are any delay procs, delete them, they are not valid anymore
 				mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
 				mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
 				mmLib_Log.logForce( "Motion sensor " + self.deviceName + " is going offline because it\'s \'onlineState\' is " + str(self.onlineState))
-				if self.onlineState == 'off':
+				if self.onlineState == mmLib_Low.AUTOMATIC_MODE_OFF:
 					mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Offline #")
 				else:
 					mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Bedtime #")
@@ -240,7 +240,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# getSecondsSinceState - how many seconds since the device was in the given on/off state
 	#
 	def getSecondsSinceState(self, theState):
-		if self.onlineState in ['off','bedtime']: return(int(60*60*24))	# default to a high number if the device is offline
+		if self.onlineState in [mmLib_Low.AUTOMATIC_MODE_ON, mmLib_Low.AUTOMATIC_MODE_OFF]: return(int(60*60*24))	# default to a high number if the device is offline
 
 		if theState == 'on':
 			theStateTime = self.lastOnTimeSeconds
@@ -252,7 +252,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	def getOnState(self):
 
-		if self.onlineState != 'on': return(False)
+		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ON: return(False)
 		return(self.theIndigoDevice.onState)
 
 
@@ -575,13 +575,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " is not processing event \'onState:" + str(newOnState) + "\' because it was receive during blackout time.")
 			return 0
 
-		if self.onlineState == 'off' and newOnState == True:
+		if self.onlineState == mmLib_Low.AUTOMATIC_MODE_OFF and newOnState == True:
 			if self.debugDevice: mmLib_Log.logForce("Bringing " + self.deviceName + " back online.")
-			self.setOnOffLine('on')
+			self.setOnOffLine(mmLib_Low.AUTOMATIC_MODE_ON)
 
-		if self.onlineState == 'on':
+		if self.onlineState == mmLib_Low.AUTOMATIC_MODE_ON:
 
-			if newOnState != 'na':
+			if newOnState != mmLib_Low.AUTOMATIC_MODE_NOT_POSSIBLE:
 				if self.debugDevice: mmLib_Log.logForce(self.deviceName + ": Motion Onstate = " + str(newOnState))
 				super(mmMotion, self).deviceUpdatedEvent(eventID, eventParameters)  # the base class just keeps track of the time since last change
 				self.controllerMissedCommandCount = 0			# Reset this because it looks like are controller is alive (battery report uses this)

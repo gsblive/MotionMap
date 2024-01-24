@@ -12,6 +12,7 @@ __author__ = 'gbrewer'
 from datetime import datetime
 
 import mmLib_Log
+import mmLib_Low
 import mmLib_Events
 import mmObj_Motion
 
@@ -66,7 +67,7 @@ class mmIOLink(mmObj_Motion.mmMotion):
 		super(mmIOLink, self).deviceUpdatedEvent(eventID, eventParameters)  # Call Base Class
 
 	def getOnState(self):
-		if self.onlineState != 'on': return(False)
+		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ON: return(False)
 		self.currentOnState = self.theIndigoDevice.states["binaryInput1"]
 		if self.debugDevice: mmLib_Log.logForce( "  === OnState for " + self.deviceName + " is " + str(self.currentOnState))
 		return(self.currentOnState)

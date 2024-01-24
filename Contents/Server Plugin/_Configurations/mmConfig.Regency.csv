@@ -81,7 +81,7 @@
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass),,,,,,,,,,
 #
 # Note: Motionsensor also maintains an indigo variable 'NameOfMotionsensor.Occupation' that contains the current occupation state,,,,,,,,,,
-#   ('OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Bedtime #'),,,,,,,,,,
+#   ('OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Automatic #'),,,,,,,,,,
 #
 #	Note2: If minMovement is 0, the load devices will not honor a debounce time (blackout time) when getting an ON event right after an OFF event.
 #        This is designed to allow rapid on/off in special cases like contact switch devices (cabinet doors)
@@ -125,7 +125,7 @@ SecretShelfSensor,20,0,false,noDebug,,,,,,,
 #   IMPORTANT – Like Motion sensors, keep IOLink above all other devices because the other devices will register with the motion sensors during initialization (one pass),,,,,,,,,,
 #
 # Note: Like Motion sensors, IOLinks also maintains an indigo variable 'NameOfMotionsensor.Occupation' that contains the current occupation state,,,,,,,,,,
-#   ('OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Bedtime #'),,,,,,,,,,
+#   ('OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Automatic #'),,,,,,,,,,
 #
 ########################################################
 -h,IOLink,,,,,,,,,
@@ -145,7 +145,7 @@ GarageControllerBarbie,480,0,noDebug,,,,,,,
 #   IMPORTANT – Keep Multi sensors Before all other devices because the other devices will register with the motion sensors during initialization (one pass),,,,,,,,,,
 #
 # Note: Multisensor also maintains an indigo variable 'NameOfMultisensor.Occupation' that contains the current occupation state,,,,,,,,,,
-#   ('OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Bedtime #'),,,,,,,,,,
+#   ('OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Automatic #'),,,,,,,,,,
 #
 # NOTE: To supress LED on Fibaro Multisensor; You just need to change the value for Parameter 80 governing the LED signaling mode from 10 (default) to a 0,,,,,,,,,,
 #
@@ -258,7 +258,7 @@ CamGarage2Motion,60,5,GarageLights,30,,noDebug,,,,
 #                    This is designed to allow rapid on/off in special cases like contact switch devices (cabinet doors)
 #
 # Note: OccupationGroup also maintains an indigo variable 'NameOfOccupationGroup.Occupation' that contains the current occupation state,,,,,,,,,,
-#   ('OccupiedPartial';'OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Bedtime #'),,,,,,,,,,
+#   ('OccupiedPartial';'OccupiedAll';'UnoccupiedAll';'# Offline #' and '# Automatic #'),,,,,,,,,,
 #
 #	Note2:
 #
@@ -294,7 +294,7 @@ GregsOffice,GregsOfficeMotion;GregsDeskMotion,1,0,noDebug,,,,,,,
 #						StatAsync: Periodic Status commands are performed asynchronously (Needed by some ZWave devices and OutletLinc),,,,,,,,,,
 #						flash: flash the device 1 mionute prior to turning off;,,,,,,,,,,
 #						beep: beep the device 1 minute prior to turning off;,,,,,,,,,,
-#						bedtime: Disable Controllers until morning,,,,,,,,,,
+#						Automatic: Disable Controllers until morning,,,,,,,,,,
 #						noMax: Disable 24 hour maximum on limit (having no controllers also does this),,,,,,,,,,
 #   onControllers* – these are the controllers (motion sensors) that will turn this device on (and sustain sustain),,,,,,,,,,
 #   sustainControllers* – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on),,,,,,,,,,

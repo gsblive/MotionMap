@@ -85,7 +85,7 @@
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass)
 #
 # Note: Motionsensor also maintains an indigo variable 'NameOfMotionsensor.Occupation' that contains the current occupation state
-#   ('OccupiedAll','UnoccupiedAll','# Offline #' and '# Bedtime #')
+#   ('OccupiedAll','UnoccupiedAll','# Offline #' and '# Automatic #')
 #
 ########################################################
 
@@ -94,7 +94,7 @@ deviceName,maxMovement,minMovement,autoEnableActivityLight,debugDeviceMode
 TopFloorMasterBathMotion,60,10,false,noDebug
 TopFloorMasterBathShowerMotion,60,10,false,noDebug
 TopFloorMasterBathLavMotion,60,10,false,noDebug
-TopFloorMasterMotion,60,10,true,noDebug
+TopFloorMasterMotion,60,2,true,noDebug
 TopFloorStairsMotion,60,5,false,noDebug
 MiddleFloorMotion,60,20,false,noDebug
 MiddleFloorBathMotion,60,10,false,noDebug
@@ -114,7 +114,7 @@ BottomFloorMotion,60,20,false,noDebug
 #   IMPORTANT – Keep Multi sensors between motion sensors and all other devices because the other devices will register with the motion sensors during initialization (one pass)
 #
 # Note: Multisensor also maintains an indigo variable 'NameOfMultisensor.Occupation' that contains the current occupation state
-#   ('OccupiedAll','UnoccupiedAll','# Offline #' and '# Bedtime #')
+#   ('OccupiedAll','UnoccupiedAll','# Offline #' and '# Automatic #')
 #
 # NOTE: To supress LED on Fibaro Multisensor, You just need to change the value for Parameter 80 governing the LED signaling mode from 10 (default) to a 0
 #
@@ -224,7 +224,7 @@ GregsDeskMultisensorTemperature,5,noDebug
 #     unnecessary event oscillation)
 #
 # Note: OccupationGroup also maintains an indigo variable 'NameOfOccupationGroup.Occupation' that contains the current occupation state
-#   ('OccupiedPartial','OccupiedAll','UnoccupiedAll','# Offline #' and '# Bedtime #')
+#   ('OccupiedPartial','OccupiedAll','UnoccupiedAll','# Offline #' and '# Automatic #')
 #
 ########################################################
 
@@ -250,7 +250,11 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 #						StatAsync: Periodic Status commands are performed asynchronously (Needed by some ZWave devices and OutletLinc)
 #						flash: flash the device 1 minute prior to turning off;
 #						beep: beep the device 1 minute prior to turning off;
-#						bedtime: beep the device 1 minute prior to turning off
+#						Automatic: device can be put online and offline (respect or ignore input from controllers)
+#								Note this only used in very special cases. Here it is used for the nightlight (aka TopFloorMasterUnderBedOutletTop) in tha master bedroom
+#								Not everyone likes the nightlight coming on when they roll arounf in bed, so we will always default it to off (and it will be restored to
+#								offline every morning (alexa can be asked to turn nightlight on when wanted). And finally, turning the light on
+#								automatically turns Automatic mode on.
 #						noMax: Disable 24 hour maximum on limit (having no controllers also does this)
 #   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
 #   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
@@ -263,33 +267,33 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
 BottomFloorStairsLightP,5,100,80,StatAsync;flash,BottomFloorStairsMotion,,2,noDebug
-BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
-BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
-BottomFloorBunkRightLightP,60,0,30,StatAsync;flash;bedtime,,BottomFloorMotion,2,noDebug
+BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
+BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
+BottomFloorBunkRightLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
+#BottomFloorHeatCutoff,720,100,100,StatAsync;flash,,House,2,noDebug (disabled because it is untested and handled by OccupationAction below)
 MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,BottomFloorStairsMotion,MiddleFloorBathMotion,2,noDebug
 MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMotion,,2,noDebug
 MiddleFloorBathLavFanP,10,0,0,StatAsync,,MiddleFloorBathToiletMotion,2,noDebug
-MiddleFloorBackDeckP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
+MiddleFloorBackDeckP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
 MiddleFloorBathShowerFanLightP,30,0,30,StatAsync;flash,,MiddleFloorBathMotion,2,noDebug
-MiddleFloorDiningLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
-MiddleFloorFamilyMainLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
-MiddleFloorFamilySpotlightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
-MiddleFloorFamilyTVLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
-MiddleFloorKitchenCabinetLeftLightSwitchP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
-MiddleFloorKitchenCabinetLightSwitchRightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
-MiddleFloorKitchenMainLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
-MiddleFloorKitchenSinkLightP,120,0,30,StatAsync;flash;bedtime,,MiddleFloorMotion,2,noDebug
+MiddleFloorDiningLightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
+MiddleFloorFamilyMainLightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
+MiddleFloorFamilySpotlightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
+MiddleFloorFamilyTVLightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
+MiddleFloorKitchenCabinetLeftLightSwitchP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
+MiddleFloorKitchenCabinetLightSwitchRightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
+MiddleFloorKitchenMainLightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
+MiddleFloorKitchenSinkLightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
 TopFloorFoyerLightP,5,0,60,StatAsync;flash,TopFloorStairsMotion,,2,noDebug
 TopFloorMasterBathLavFan,10,100,100,StatAsync,,TopFloorMasterBathLavMotion,2,noDebug
 TopFloorMasterBathLavLight,10,0,3,StatAsync;flash,TopFloorMasterBathLavMotion,,2,noDebug
 TopFloorMasterBathLinenP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterBathVanityLightP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterLightsP,60,20,60,StatAsync;flash,,GregsDeskMultisensorMotion;TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
-TopFloorMasterUnderBedOutletTop,60,0,100,StatSync;flash;bedtime,TopFloorMasterMotion,TopFloorMasterBathMotion;GregsDeskMultisensorMotion,2,debug
+TopFloorMasterUnderBedOutletTop,60,0,100,StatSync;Automatic,TopFloorMasterMotion,TopFloorMasterBathMotion;GregsDeskMultisensorMotion,2,debug
 TopFloorMasterShowerLightP,10,0,100,StatAsync;flash,TopFloorMasterBathShowerMotion,TopFloorMasterBathMotion;TopFloorMasterMotion;TopFloorMasterBathLavMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorPorchLightP,5,0,100,StatAsync;flash,,,2,noDebug
 TopFloorStairwellLightP,5,0,60,StatAsync;flash,TopFloorStairsMotion,,2,noDebug
-
 ########################################################
 #
 # Companion – Usually a Dimmer or Switch
