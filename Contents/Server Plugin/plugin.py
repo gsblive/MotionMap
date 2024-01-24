@@ -607,9 +607,33 @@ class Plugin(indigo.PluginBase):
 				# Be careful here... If you queue a command that has no ability to do a completion routine, it has to be forced to IMMED
 				# Otherwise it will clog the queue waiting for a completion that will not occur. Eventually it will time out, but its better to
 				# handle any non-complet-routine compatible command it with a theMode = "IMMED" in the call to executeMMCommand.
-				# int teh future, I may set up a protocol in queueCommand that responds with "error", "finished", or "queued" result so
-				# we can dequeue here as needed. But I dont feel like it right now.. there are too many instances to change.
-				# There is an example of this problem in the action group 'QueueBeepDevice' (it must be issued async).
+				# There is an example of this problem in the action group 'QueueBeepDevice':
+				# 	if QueueBeepDevice is called without "IMMED", it will be added to the queue (generally top of queue unles
+				# 	there is already something waiting).
+				# 	THen QueueBeepDevice will be added to the bottom of queue (usually right after QueueBeepDevice)
+				# 	However the process of executing this QueueBeepDevice without IMED will freeeze the queue
+				#   because Queueing a beep device will not perform a completion (adding the item to the queue is synchronous).
+				#   This results in the Beep becoming queued, but not happening right away because the "incomplete" QueueBeepDevice
+				#   is holding the queue until timeout...
+				#   All is not lost becaue after the timeout, things go back to normal and you get your beep..
+				#   but the timeouts are long (about 10 seconds)
+				#
+				# GB FIX ME.. like this:
+				#
+				# The probable answer is to set up a protocol in queueCommand that responds with an "error", "finished", or "waiting"
+				# result as appropriate. Any place we enqueue a process, we will look at the result to determine if we need to do the dequeue.
+				# if Result == "waiting" there is nothing to do... Ideally the process undoes itself on coplete
+				# if Result == "finished" there is also nothing to do because this command has completed its task (and dequeued itself)
+				# if Result == "error" this command may or may not be in the queue still (depending on what the error was) then we have to check to see
+				# if our requestged command is still in the queue then dequeue it.
+				# Having said all that, I dont feel like it right now.. there are too many instances to change.
+				# Just being smart and requiring for IMMED as needed is WAAAAAY easier...
+				# However, if we do it the easy way, we may want to do some error testing:
+				# 	Keep a list of commands that can legitimately do async (basically the
+				# 	indigo commmands that can be async - I think there are only a few we use)..
+				# 	commands NOT on that list that are asking for async should be flagged and a
+				# 	warning issued so that we can find this lengthy note :-)
+
 
 				if theMode == "IMMED":
 					return(theDevice.dispatchCommand(theCommandParameters))	# do the command now
