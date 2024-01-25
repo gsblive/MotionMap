@@ -338,6 +338,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def setAutomaticMode(self, theCommandParameters ):
 		requestedMode = theCommandParameters["newAutomaticMode"]
+		mmLib_Log.logForce("===== automaticmode being called for " + self.deviceName + "with requesdte mode of " + requestedMode + ".")
 
 		# Basically this routine just turns the device online or offline state. However its
 		# called BettimeMode because it has automatic features to turn set the device back to online at daybreak
@@ -479,12 +480,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is not the ON controller. Processing as Sustain. Event complete.")
 			return(0)
 		else:
-			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is the ON controller. Continue processing OccupationEvent. Current onState is " + str(self.theIndigoDevice.onState))
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is the ON controller. Continue processing OccupationEvent. Current onState is " + str(self.theIndigoDevice.onState) + " Automatic Mode is "+ str(self.ourNonvolatileData["AUTOMATICMODE"]))
 
 		if self.theIndigoDevice.onState == False:
 			# the light is off, should we turn it on? Doesnt matter if this is a sustain or ON controller. Just care about automatic mode.
 			# I'm not sure this can actually happen if our online state is false (i.e. automatic OFF mode)
-			if self.ourNonvolatileData["AUTOMATICMODE"] == mmLib_Low.AUTOMATIC_MODE_ON:
+			if self.ourNonvolatileData["AUTOMATICMODE"] != mmLib_Low.AUTOMATIC_MODE_OFF:	# this includes NA devices (its the default for load devices)
+				if self.debugDevice: mmLib_Log.logForce("Debugging Device " + self.deviceName + " while daytime level is " + str(self.daytimeOnLevel) + ". and nightime is " + str(self.nighttimeOnLevel))
 				if indigo.variables['MMDayTime'].value == 'true':
 					theLevel = self.daytimeOnLevel
 				else:

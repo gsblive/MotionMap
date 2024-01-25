@@ -98,7 +98,7 @@ TopFloorMasterMotion,60,2,true,noDebug
 TopFloorStairsMotion,60,5,false,noDebug
 MiddleFloorMotion,60,20,false,noDebug
 MiddleFloorBathMotion,60,10,false,noDebug
-MiddleFloorBathToiletMotion,60,10,false,noDebug
+MiddleFloorBathToiletMotion,60,10,false,Debug
 BottomFloorStairsMotion,60,5,false,noDebug
 BottomFloorMotion,60,20,false,noDebug
 
@@ -263,6 +263,7 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 #
 #
 ########################################################
+#BottomFloorHeatCutoff,720,100,100,StatAsync;flash,,House,2,noDebug (disabled because it is untested and handled by OccupationAction below)
 
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
@@ -270,7 +271,6 @@ BottomFloorStairsLightP,5,100,80,StatAsync;flash,BottomFloorStairsMotion,,2,noDe
 BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkRightLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
-#BottomFloorHeatCutoff,720,100,100,StatAsync;flash,,House,2,noDebug (disabled because it is untested and handled by OccupationAction below)
 MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,BottomFloorStairsMotion,MiddleFloorBathMotion,2,noDebug
 MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMotion,,2,noDebug
 MiddleFloorBathLavFanP,10,0,0,StatAsync,,MiddleFloorBathToiletMotion,2,noDebug
