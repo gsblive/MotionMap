@@ -51,6 +51,7 @@ class mmOccupationAction(mmComm_Indigo.mmIndigo):
 			#
 			# Set object variables
 			#
+			self.deviceName = theDeviceParameters["deviceName"]
 			self.occupationEvent = theDeviceParameters["occupationEvent"]		# 'on', 'off', 'OccupiedPartial', 'OccupiedAll' or 'UnoccupiedAll'
 			self.resetEvents = []
 			self.allEvents = []

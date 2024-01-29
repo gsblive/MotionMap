@@ -107,7 +107,7 @@ class mmIndigo(object):
 
 			self.lastUpdateTimeSeconds = 0
 			self.setLastUpdateTimeSeconds()
-			self.onlineState = 'on'
+			self.onlineState = mmLib_Low.AUTOMATIC_MODE_ON
 
 		self.supportedCommandsDict = {'devStatus': self.devStatus}
 
@@ -524,7 +524,7 @@ class mmIndigo(object):
 	# getSecondsSinceUpdate - how many seconds since the device has changed state
 	#
 	def getSecondsSinceUpdate(self):
-		if self.onlineState == 'off': return int(60 * 60 * 24)  # default to a high number if the device is offline
+		if self.onlineState == mmLib_Low.AUTOMATIC_MODE_OFF: return int(60 * 60 * 24)  # default to a high number if the device is offline
 		return int(time.mktime(time.localtime()) - self.lastUpdateTimeSeconds)
 
 	#

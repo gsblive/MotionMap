@@ -135,7 +135,7 @@ Office Multisensor,480,15
 #	specialFeatures = A list that can contain any or the following string commands
 #						flash: flash the device 1 mionute prior to turning off;
 #						beep: beep the device 1 minute prior to turning off;
-#						bedtime: beep the device 1 minute prior to turning off
+#						Automatic: beep the device 1 minute prior to turning off
 #   onControllers – these are the controllers (motion sensors) that will turn this device on (and sustain sustain)
 #   sustainControllers – these are the controllers (motion sensors) that can keep a device on (sustain only will not turn the device on)
 #	maxSequentialErrorsAllowed - (optional, default is 2) the maximum numbers of consecutive errors allowd before marking this device unnresponsive
@@ -222,7 +222,7 @@ Master Bedroom Fan Light,120,180,0,60,flash,,Master Multisensor,2
 Master Bedroom Globe P,120,180,0,48,flash,,Master Multisensor,2
 Master Bedroom Nightstand Left Outlet,120,180,0,100,,,Master Multisensor,2
 Master Bedroom Nightstand Right Outlet,120,180,0,100,,,Master Multisensor,2
-Master Bedroom RopeLight P,120,180,0,32,flash;bedtime,Master Multisensor,,2
+Master Bedroom RopeLight P,120,180,0,32,flash;Automatic,Master Multisensor,,2
 Master Closet Dimmer Accent P,5,60,0,70,,,Master Closet Rope P Motion,2
 Master Closet Globe P,5,60,0,70,flash,,Master Closet Rope P Motion,2
 Master Closet Left Accent,420,600,0,70,,,Master Closet Rope P Motion,2
@@ -230,7 +230,7 @@ Master Closet Mirror P,5,60,0,70,flash,,Master Closet Rope P Motion,2
 Master Closet Rope P,5,60,0,70,flash,Master Closet Rope P Motion,,2
 Master Closet Wardrobe Light P,5,60,100,100,,Master Closet Rope P Motion,,2
 Nook Semiflush P,20,120,0,60,flash,,Family Multisensor,2
-OfficeLampP,10,360,100,60,flash;bedtime,Office Multisensor,,2
+OfficeLampP,10,360,100,60,flash;Automatic,Office Multisensor,,2
 #OutdoorKitchenAwningLightP,30,480,0,100,flash,,Outdoor Kitchen Motion,,2
 #OutdoorKitchenCounterLightP,30,480,0,100,flash,,Outdoor Kitchen Motion,,2
 #OutdoorKitchenFans,30,480,0,100,flash,,Outdoor Kitchen Motion,,2

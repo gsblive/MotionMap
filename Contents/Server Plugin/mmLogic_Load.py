@@ -75,12 +75,14 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if 'noMax' in self.specialFeatures:
 				self.noMax = 1	# initialize noMax
 
-			# Initialize bedtime mode
+			# Initialize automation mode (if applicable)
 
-			if 'bedtime' in self.specialFeatures:
-				mmLib_Low.initializeNVElement(self.ourNonvolatileData, "bedtimeMode", mmLib_Low.BEDTIMEMODE_OFF)	# initialize to its possibe, but off
+			if 'Automatic' in self.specialFeatures:
+				#if it doesn't have a current state saved, initialize it to AUTOMATIC_MODE_ON
+				mmLib_Low.initializeNVElement(self.ourNonvolatileData, "AUTOMATICMODE", mmLib_Low.AUTOMATIC_MODE_ON)	# Always defaultd as ON (if possible)
 			else:
-				mmLib_Low.initializeNVElement(self.ourNonvolatileData, "bedtimeMode", mmLib_Low.BEDTIMEMODE_NOT_POSSIBLE)
+				#if it doesn't have a current state saved, initialize it to AUTOMATIC_MODE_NOT_POSSIBLE
+				mmLib_Low.initializeNVElement(self.ourNonvolatileData, "AUTOMATICMODE", mmLib_Low.AUTOMATIC_MODE_NOT_POSSIBLE)
 
 			# We obsoleted on/off motionsensor support in favor of Occupation events from occupation groups. But to do that, the motion sensors need to be in groups.
 			# This transition allows to deal with only one "MotionSensor" (real or virtual) at a time... we dont have to do check loops to see if they all agree on state
@@ -142,7 +144,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			# update commands and events
 
-			self.supportedCommandsDict.update({'setBedtimeMode':self.setBedtimeMode, 'devStatus':self.devStatus, 'queueBeepDevice':self.queueBeepDevice})
+			self.supportedCommandsDict.update({'setAutomaticMode':self.setAutomaticMode, 'devStatus':self.devStatus, 'queueBeepDevice':self.queueBeepDevice})
 
 			mmLib_Events.subscribeToEvents(['isNightTime','isDayTime'], ['MMSys'], self.mmDayNightTransition, {}, self.deviceName)
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.completeInit, {}, self.deviceName)
@@ -194,11 +196,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 					# We are not flashing (indicated by defeatTimerUpdate), an newOnState is now off, so the device was turned off, clear the off timers
 					self.forceControllerTimeouts()
 
-		# do bedtimeMode reset if needed
-		if newOnState == True and self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_ON:
-			self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_OFF
-			mmLib_Log.logReportLine("Bedtime Mode OFF for device: " + self.deviceName)
-			self.setControllersOnOfflineState('on')
+		# do automaticMode reset if needed. If a device is turned on bring it bac online (auto mode on)
+		if newOnState == True and self.ourNonvolatileData["AUTOMATICMODE"] == mmLib_Low.AUTOMATIC_MODE_OFF:
+			self.ourNonvolatileData["AUTOMATICMODE"] = mmLib_Low.AUTOMATIC_MODE_ON
+			mmLib_Log.logReportLine("Since a device has been turned on... Setting Online Mode to " + mmLib_Low.AUTOMATIC_MODE_ON + " for device: " + self.deviceName)
+			self.setControllersOnOfflineState(mmLib_Low.AUTOMATIC_MODE_ON)
 
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " checking processCompanions, OnState: " + str(newOnState) + " Brightness State: " + str(newBrightnessState) + " processCompanions: " + str(processCompanions) + " Companions: " + str(self.companions))
@@ -227,7 +229,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		super(mmLoad, self).completeCommandEvent(eventID, eventParameters)	# Nothing special here, forward to the Base class
 
 	#
-	# receivedCommand - we received a command from our device. The base object will do most of the work... we want to process special commands here, like bedtime mode
+	# receivedCommand - we received a command from our device. The base object will do most of the work... we want to process special commands here, like auto mode mode
 	#
 	def receivedCommandEvent(self, eventID, eventParameters ):
 
@@ -245,7 +247,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		# do the normal processing
 		# ========================
 		super(mmLoad, self).receivedCommandEvent(eventID, eventParameters)  			# execute Base Class
-		mmLib_Log.logVerbose("Check for bedtime mode: " + self.deviceName)
+		mmLib_Log.logVerbose("Check for Automatic mode: " + self.deviceName)
 
 		#
 		# do the special processing
@@ -256,13 +258,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		except:
 			theCommandByte = 0
 
-		# if this device handles bedtimemode, process it now
+		# if this device handles automaticMode, process it now
 
-		if self.ourNonvolatileData["bedtimeMode"] != mmLib_Low.BEDTIMEMODE_NOT_POSSIBLE:
+		if self.ourNonvolatileData["AUTOMATICMODE"] != mmLib_Low.AUTOMATIC_MODE_NOT_POSSIBLE:
 
-			# look for bedtimeMode activation  (double click off)
+			# look for automaticMode activation  (double click off)
 			# mmComm_Insteon.kInsteonOffFast = 20
-			if theCommandByte == mmComm_Insteon.kInsteonOffFast : self.setBedtimeMode( {'theCommand':'setBedtimeMode', 'theDevice':self.deviceName, 'newMode':'ON'} )
+			if theCommandByte == mmComm_Insteon.kInsteonOffFast : self.setAutomaticMode( {'theCommand':'setAutomaticMode', 'theDevice':self.deviceName, 'newMode':'ON'} )
 
 		#
 		# Load devices also help the motion sensors calculate dead batteries by notifying them when a user is in a room pressing buttons
@@ -327,34 +329,38 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	def queueBeepDevice(self, theCommandParameters ):
 
 		mmLib_Log.logForce("===== Issuing Single Beep Command to " + self.deviceName + ".")
-		self.queueCommand({'theCommand':'beep', 'theDevice':self.deviceName, 'theValue':100, 'repeat':0, 'retry':2})
+		self.queueCommand({'theCommand':'beep', 'theDevice':self.deviceName, 'theValue':100, 'repeat':0, 'retry':0})
 
 		return(0)
 
 	#
-	# setBedtimeMode - turn bedtime mode on or off as requested.
+	# setAutomaticMode - set automation mode Auto or Manual as requested.
 	#
-	def setBedtimeMode(self, theCommandParameters ):
-		requestedMode = theCommandParameters["newBedtimeMode"]
+	def setAutomaticMode(self, theCommandParameters ):
+		requestedMode = theCommandParameters["newAutomaticMode"]
+		mmLib_Log.logForce("===== automaticmode being called for " + self.deviceName + "with requesdte mode of " + requestedMode + ".")
 
 		# Basically this routine just turns the device online or offline state. However its
 		# called BettimeMode because it has automatic features to turn set the device back to online at daybreak
 
 		theResult = 0
-		requestedMode = theCommandParameters["newBedtimeMode"]
-		if self.ourNonvolatileData["bedtimeMode"] != mmLib_Low.BEDTIMEMODE_NOT_POSSIBLE and requestedMode != self.ourNonvolatileData["bedtimeMode"]:
-			self.setBedtimeModeLow(requestedMode)
+		requestedMode = theCommandParameters["newAutomaticMode"]
+		if self.ourNonvolatileData["AUTOMATICMODE"] != mmLib_Low.AUTOMATIC_MODE_NOT_POSSIBLE and requestedMode != self.ourNonvolatileData["AUTOMATICMODE"]:
+			self.setAutomaticModeLow(requestedMode)
 
-			if self.debugDevice: mmLib_Log.logForce("===== Issuing Single Beep Command to " + self.deviceName + ".")
-			#self.queueCommand({'theCommand':'beep', 'theDevice':self.deviceName, 'theValue':0, 'repeat':0, 'retry':2})
-			if requestedMode == mmLib_Low.BEDTIMEMODE_ON:
-				# if we are going into bedtime mode... turn off the light:
+			if requestedMode == mmLib_Low.AUTOMATIC_MODE_OFF:
+				# dont do the courtesy beep when turning automatic off (because it will happen at dawn and it mioght wake people)
+				#self.queueCommand({'theCommand': 'beep', 'theDevice': self.deviceName, 'theValue': 0, 'repeat': 1, 'retry': 0})
+				# if we are going into automaticMode mode... turn off the light:
 				self.queueCommand({'theCommand':'brighten', 'theDevice':self.deviceName, 'theValue':0, 'retry':2})
+			else:
+				# its going ON
+				self.queueCommand({'theCommand': 'beep', 'theDevice': self.deviceName, 'theValue': 0, 'repeat': 0, 'retry': 0})
 
-			# update nv file so we know we are supposed to be in bedtime mode if the server restarts during the night
+			# update nv file so we know we are supposed to be in automatic mode if the server restarts during the night
 			mmLib_Low.cacheNVDict()		# make the NV variables permanent
 		else:
-			if self.debugDevice: mmLib_Log.logForce( "=============== " + self.deviceName + "'s bedtime mode is already set to "+ self.ourNonvolatileData["bedtimeMode"] + ".")
+			if self.debugDevice: mmLib_Log.logForce( "=============== " + self.deviceName + "'s automatic mode is already set to "+ self.ourNonvolatileData["AUTOMATICMODE"] + ".")
 
 		return(theResult)
 
@@ -379,7 +385,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def completeInit(self,eventID, eventParameters):
 
-		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " completeInit. bedtimeMode NV Value is " + str(self.ourNonvolatileData["bedtimeMode"]))
+		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " completeInit. automaticMode NV Value is " + str(self.ourNonvolatileData["AUTOMATICMODE"]))
 
 		# If the device is ON, but the associated Motion Sensors say it should be off, turn it off.
 		# But, do it in a few seconds to give the motion sensors and groups a chance to settle
@@ -474,11 +480,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is not the ON controller. Processing as Sustain. Event complete.")
 			return(0)
 		else:
-			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is the ON controller. Continue processing OccupationEvent. Current onState is " + str(self.theIndigoDevice.onState))
+			if self.debugDevice: mmLib_Log.logForce("    " + eventParameters['publisher'] + " is the ON controller. Continue processing OccupationEvent. Current onState is " + str(self.theIndigoDevice.onState) + " Automatic Mode is "+ str(self.ourNonvolatileData["AUTOMATICMODE"]))
 
 		if self.theIndigoDevice.onState == False:
-			# the light is off, should we turn it on? Doesnt matter if this is a sustain or ON controller. Just care about bedtime mode.
-			if self.ourNonvolatileData["bedtimeMode"] != mmLib_Low.BEDTIMEMODE_ON:
+			# the light is off, should we turn it on? Doesnt matter if this is a sustain or ON controller. Just care about automatic mode.
+			# I'm not sure this can actually happen if our online state is false (i.e. automatic OFF mode)
+			if self.ourNonvolatileData["AUTOMATICMODE"] != mmLib_Low.AUTOMATIC_MODE_OFF:	# this includes NA devices (its the default for load devices)
+				if self.debugDevice: mmLib_Log.logForce("Debugging Device " + self.deviceName + " while daytime level is " + str(self.daytimeOnLevel) + ". and nightime is " + str(self.nighttimeOnLevel))
 				if indigo.variables['MMDayTime'].value == 'true':
 					theLevel = self.daytimeOnLevel
 				else:
@@ -589,7 +597,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			for devName in checkControllers:
 				theController = mmLib_Low.MotionMapDeviceDict.get(devName, 0)
-				if theController and theController.onlineState == 'on' and theController.occupiedState == True:
+				if theController and theController.onlineState == mmLib_Low.AUTOMATIC_MODE_ON and theController.occupiedState == True:
 					if full:
 						theList.append(str(theController.deviceName + " - " + mmLib_Low.getIndigoVariable(theController.occupationIndigoVar, "unknown reason")))
 					else:
@@ -605,15 +613,20 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 	def setControllersOnOfflineState(self,requestedState):
 
-		if requestedState == 'bedtime':
-			theist = [self.onControllerName]
+		if requestedState == mmLib_Low.AUTOMATIC_MODE_OFF:
+			# we dont support bringing everything offline at once
+			theList = [self.onControllerName]
 		else:
-			theist = self.allControllerGroups
+			# we do support bringing everything onine at once
+			theList = self.allControllerGroups
 
-		for member in theist:
+		for member in theList:
 			if not member: break
 			memberDev = mmLib_Low.MotionMapDeviceDict.get(member,0)
-			if memberDev: memberDev.setOnOffLine(requestedState)
+			if memberDev:
+				if self.debugDevice: mmLib_Log.logForce( "#### " + self.deviceName + " is asking "+ str(memberDev.deviceName) + " to adopt an onoffline state of " + requestedState + ".")
+				memberDev.setOnOffLine(requestedState)
+
 		return(0)
 
 	#
@@ -650,7 +663,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if not otherControllerName: break
 			theController = mmLib_Low.MotionMapDeviceDict.get(otherControllerName,0)
 			if theController:
-				if theController.onlineState == 'on' and theController.occupiedState == True:
+				if theController.onlineState == mmLib_Low.AUTOMATIC_MODE_ON and theController.occupiedState == True:
 					mmLib_Log.logVerbose(otherControllerName + " is is keeping device " + self.deviceName + " on")
 					try:
 						resultMessage = mmLib_Low.readIndigoVariable(theController.occupationIndigoVar)
@@ -688,12 +701,12 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				if onGroup: theMessage = theMessage + str("  Related Controllers Reporting Occupied: " + str(onGroup) + "\n")
 		else:
 
-			if self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_ON:
-				bedtimeMessage = " Bedtime Mode Active."
+			if self.ourNonvolatileData["AUTOMATICMODE"] == mmLib_Low.AUTOMATIC_MODE_ON:
+				onlineMessage = " Online Mode Active."
 			else:
-				bedtimeMessage = ""
+				onlineMessage = ""
 
-			theMessage = theMessage + str("\'" + self.deviceName + "\'" + " is not on." + bedtimeMessage + "\n")
+			theMessage = theMessage + str("\'" + self.deviceName + "\'" + " is not on." + onlineMessage + "\n")
 
 		theMessage = theMessage + mmLib_Low.mmGetDelayedProcsList({'theDevice':self.deviceName})
 		theMessage = theMessage + "\n==== DeviceStatus End ====\n"
@@ -710,11 +723,13 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		if self.debugDevice: mmLib_Log.logForce( "Processing " + eventID + " for " + self.deviceName)
 
 		#
-		if self.ourNonvolatileData["bedtimeMode"] == mmLib_Low.BEDTIMEMODE_ON:
-			processBedtime = True
+		if self.ourNonvolatileData["AUTOMATICMODE"] != mmLib_Low.AUTOMATIC_MODE_NOT_POSSIBLE:
+			# Note what the last setting was
+			restoreAutomaticMode = self.ourNonvolatileData["AUTOMATICMODE"]
 		else:
-			processBedtime = False
-
+			# automatic mde not possible, dont do anything with this
+			restoreAutomaticMode = 0
+			
 		processBrightness = True		# assume we are going to process brightness (unless the logic below changes this)
 		areaIsOccupied = self.getAreaOccupiedState(self.allControllerGroups)
 
@@ -736,7 +751,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		newBrightnessVal = currentBrightness		# assume no change
 
 		if areaIsOccupied:
-			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " is processing mmDayNightTransition of " + str(eventID) + ". BedtimeMode NV Value is " + str(self.ourNonvolatileData["bedtimeMode"]))
+			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " is processing mmDayNightTransition of " + str(eventID) + ". AutomaticMode NV Value is " + str(self.ourNonvolatileData["AUTOMATICMODE"]))
 			if areaIsOccupied:
 				if self.debugDevice: mmLib_Log.logForce("       processBrightness is " + str(processBrightness) + ". area is occupied according to " + str(areaIsOccupied) + ". currentBrightness is " + str(currentBrightness))
 			else:
@@ -748,7 +763,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			#
 			#  process night to day transition
 			#
-
+			
+			# If the device supports automaticmode settings. Its a new day now, so we re-enable automatic
+			if restoreAutomaticMode: 
+				restoreAutomaticMode = mmLib_Low.AUTOMATIC_MODE_ON
+				
 			# special processing... skip if current brightness is already brighter than daytime level
 
 			if areaIsOccupied:
@@ -758,21 +777,10 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 				else:
 					newBrightnessVal = self.daytimeOnLevel		# If daytime level is 0, this will force the load device off
 
-			# do bedtimeMode reset if needed
-			if processBedtime:
-				# this will turn off bedtimeMode every morning regardless on when it was activated
-				self.setBedtimeModeLow(mmLib_Low.BEDTIMEMODE_OFF)		# Its daytime now, let the controller operate the light again
-
 		else:
 			#
 			#  process day to night transition
 			#
-			# if we are supposed to be in bedtime mode (based on NV variable) and we are transitioning into night, we might have restarted
-			# put us back into bedtime mode
-
-			if processBedtime:
-				if self.debugDevice: mmLib_Log.logForce("Restoring Bedtime Mode ON for device: " + self.deviceName)
-				self.setBedtimeModeLow(mmLib_Low.BEDTIMEMODE_ON)
 
 			if areaIsOccupied:
 				# special processing... skip if current brightness is already dimmer than nighttimeOnLevel level
@@ -780,6 +788,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Skipping brightness adjustment because current brightness is already dimmer than nighttimeOnLevel level")
 				else:
 					newBrightnessVal = self.nighttimeOnLevel
+
+		# do automaticMode reset if needed
+		if restoreAutomaticMode:
+			# this will turn the device automatic regardless of when it was put offline
+			self.setAutomaticModeLow(restoreAutomaticMode)		# Its daytime now, let the controller operate the light again
 
 
 		# if we are going to process brightness and the current brightness does not match the expected brightness
@@ -802,21 +815,14 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 		return 0
 
-	def setBedtimeModeLow(self, newBedTimeMode):
-
-		if(newBedTimeMode == mmLib_Low.BEDTIMEMODE_OFF):
-			self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_OFF
-			if self.debugDevice: mmLib_Log.logForce("Bedtime Mode OFF for device: " + self.deviceName)
-			self.setControllersOnOfflineState('on')  # we are turning bedtime mode off, so start commands from our controllers again
-		else:
-			self.ourNonvolatileData["bedtimeMode"] = mmLib_Low.BEDTIMEMODE_ON
-			if self.debugDevice: mmLib_Log.logForce("Bedtime Mode ON for device: " + self.deviceName)
-			self.setControllersOnOfflineState('bedtime')  # its ok that this command isn't queued, it doesnt send a message just updates state in Indigo
-
+	def setAutomaticModeLow(self, newAutomaticMode):
+		
+		if self.debugDevice: mmLib_Log.logForce("Requesting Offline Mode of " +  newAutomaticMode + " for device: " + self.deviceName)
+		self.setControllersOnOfflineState(newAutomaticMode)  # we are turning automatic mode on or off
 		# Mark our new nonvolatile state
-		self.ourNonvolatileData["bedtimeMode"] = newBedTimeMode
+		self.ourNonvolatileData["AUTOMATICMODE"] = newAutomaticMode
 
-		mmLib_Log.logForce(self.deviceName + "'s Bedtime mode to has been set to " + newBedTimeMode + ".")
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + "'s Automatic mode has been set to " + newAutomaticMode + ".")
 
 		return 0
 

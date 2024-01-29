@@ -1,0 +1,25 @@
+   MotionMap3 [||....................] 04:39:17 PM [mmForce] MiddleFloorBathToiletMotion deviceUpdatedEvent EventParameters:{'publisher': 'Indigo', 'timestamp': 1706143157.0, 'theEvent': 'AttributeUpdate', 'onState': True}. newOnState is True : mmForce @ mmObj_Motion.py.deviceUpdatedEvent:570.
+   MotionMap3 [||....................] 04:39:17 PM [mmForce] MiddleFloorBathToiletMotion: Motion Onstate = True : mmForce @ mmObj_Motion.py.deviceUpdatedEvent:585.
+   MotionMap3 [|||...................] 04:39:17 PM [mmForce] MiddleFloorBathToiletMotion deviceUpdatedEvent. : mmForce @ mmComm_Insteon.py.deviceUpdatedEvent:127.
+   MotionMap3 [||....................] 04:39:17 PM [mmForce] Motion Sensor MiddleFloorBathToiletMotion received update event: ON : mmForce @ mmObj_Motion.py.deviceUpdatedEvent:595.
+   MotionMap3 [|||...................] 04:39:17 PM [mmForce] ProcessOccuption for MiddleFloorBathToiletMotion. onLineState = ON. onState = True : mmForce @ mmObj_Motion.py.processOccupation:344.
+   MotionMap3 [||||..................] 04:39:17 PM [mmForce] Occupied State for MiddleFloorBathToiletMotion has changed to OccupiedAll : mmForce @ mmObj_Motion.py.distributeOccupation:514.
+   MotionMap3 [||||||................] 04:39:17 PM [mmForce] MiddleFloorBathLavLightP received 'OccupiedAll' Event: {'theEvent': 'OccupiedAll', 'publisher': 'MiddleFloorBathToiletMotion', 'timestamp': 1706143157.0} : mmForce @ mmLogic_Load.py.processOccupationEvent:451.
+   MotionMap3 [||||||................] 04:39:17 PM [mmForce] MiddleFloorBathLavLightP ****** DefeatBlackout is 0 : mmForce @ mmLogic_Load.py.processOccupationEvent:464.
+   MotionMap3 [||||||................] 04:39:17 PM [mmForce]     MiddleFloorBathToiletMotion is the ON controller. Continue processing OccupationEvent. Current onState is False Automatic Mode is NA : mmForce @ mmLogic_Load.py.processOccupationEvent:483.
+   Received INSTEON                "MiddleFloorBathMotion" off (button 1)
+   Received INSTEON                "BottomFloorStairsMotion" off (button 1)
+   Received INSTEON                "TopFloorStairsMotion" off (button 1)
+   Received INSTEON                "TopFloorMasterMotion" off (button 1)
+   Received INSTEON                "TopFloorMasterMotion" off (button 1)
+   Sent INSTEON                    "TopFloorMasterMotion" raw insteon command (20 03   00 00 00 00 00 00 00 00 00 00 00 00 00 DD; ack: 03)
+   Sent INSTEON                    "MiddleFloorKitchenCabinetLeftLightSwitchP" status request (received: 0)
+   Sent INSTEON                    "TopFloorMasterShowerLightP" status request (received: 0)
+   Received INSTEON                "MiddleFloorBathToiletMotion" off (button 1)
+   MotionMap3 [||....................] 04:39:54 PM [mmForce] MiddleFloorBathToiletMotion deviceUpdatedEvent EventParameters:{'publisher': 'Indigo', 'timestamp': 1706143194.0, 'theEvent': 'AttributeUpdate', 'onState': False}. newOnState is False : mmForce @ mmObj_Motion.py.deviceUpdatedEvent:570.
+   MotionMap3 [||....................] 04:39:54 PM [mmForce] MiddleFloorBathToiletMotion: Motion Onstate = False : mmForce @ mmObj_Motion.py.deviceUpdatedEvent:585.
+   MotionMap3 [|||...................] 04:39:54 PM [mmForce] MiddleFloorBathToiletMotion deviceUpdatedEvent. : mmForce @ mmComm_Insteon.py.deviceUpdatedEvent:127.
+   MotionMap3 [|||...................] 04:39:54 PM [mmForce] MiddleFloorBathToiletMotion: checking autoEnableActivityLight : mmForce @ mmObj_Motion.py.insteonMotionPeriodicTasks:435.
+   MotionMap3 [||....................] 04:39:54 PM [mmForce] Motion Sensor MiddleFloorBathToiletMotion received update event: OFF : mmForce @ mmObj_Motion.py.deviceUpdatedEvent:620.
+   MotionMap3 [|||...................] 04:39:54 PM [mmForce] ProcessOccuption for MiddleFloorBathToiletMotion. onLineState = ON. onState = False : mmForce @ mmObj_Motion.py.processOccupation:344.
+   MotionMap3 [|||...................] 04:39:54 PM [mmForce] Processing OnState False for MiddleFloorBathToiletMotion with timeDeltaSeconds of 600 : mmForce @ mmObj_Motion.py.processOccupation:383.
