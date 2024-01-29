@@ -399,6 +399,7 @@ deviceName,sceneNumber,members,debugDeviceMode
 MasterBathroomAll,9,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 MasterAll,10,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
+MiddleFloorHallGroup,12,MiddleFloorBathVanityLightP;BottomFloorStairsLightP,noDebug
 
 
 ########################################################
