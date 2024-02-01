@@ -11,7 +11,7 @@ import os
 import traceback
 import datetime
 
-import indigo
+#import indigo
 import mmLib_Log
 import mmLib_Low
 from collections import deque
@@ -303,6 +303,20 @@ def getQTopDev():
 			pass
 
 	return theDev
+
+
+def getQTopCmd():
+
+	global pendingCommands
+
+	theDev = 0
+
+	if pendingCommands:
+		qEntry = pendingCommands[0]
+		theName = qEntry['theCommand']
+	else:
+		theName = ""
+	return theName
 
 ############################################################################################
 #

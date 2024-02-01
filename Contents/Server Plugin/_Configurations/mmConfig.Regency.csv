@@ -1,4 +1,5 @@
 #
+#
 # MotionMap.config,,,,,,,,,,
 #
 #   Version             Comment,,,,,,,,,,
@@ -486,19 +487,28 @@ KitchenBookshelfLight2,KitchenBookShelfLights(Hidden) Top,2,noDebug,,,,,,,
 #WHVACCompanionMaster,HvacAutoMode,Hallway Thermostat,76,30,66,30,Master Multisensor,0,noDebug,
 ########################################################
 #
-# Scene – What devices are associated with a scene,,,,,,,,,,
+# Scene –  	A virtual device that ddescribes a collection of Load devices are associated with a
+#			particular scene as defined in indigo (where a single command effects more than 1 load device)
+#			Setup: Scenes must be set up in the interface module (using indigo)
+#			and are assigned a discreet number which must be reflected in the sceneNumber here.
 #
-#   deviceName – The English name of the device,,,,,,,,,,
-#   sceneNumber -  The number of the PowerLink (scene),,,,,,,,,,
-#			members - the devices that belong to this scene,,,,,,,,,,
-#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent,anything else for verbose),,,,,,,,,
+#			Note: MotionMap Scenes are limited to ON/OFF commands only (because of the nature of how scene commands work in Indgo),
+#			so to support multiple brightnesses, you must have a scene for each brightness level desired.
+#
+#			IMPORTANT: If you change interface module, You NEED to re-Add the scenes into the module within Indigo
+#
+#   deviceName – The English name of the device
+#   sceneNumber -  The number of the PowerLink (scene) Each scene supports sceneOn and sceneOff commands.
+#	dayNightActive - List of timeframes this scene is obeys controllers [Day;Night]
+#	members - List of devices that belong to this scene
+#   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent, anything else for verbose)
 #
 ########################################################
-,,,,,,,,,,
--h,Scene,,,,,,,,,
-deviceName,sceneNumber,members,debugDeviceMode,,,,,,,
-AllKitchenCabinetTopLights,1,Pantry Rope;KitchenTableLights(Hidden) - Top;KitchenBookShelfLights(Hidden) - Top;KitchenBookShelfLight2;KitchenBookShelfLight;KitchenAccentLight3 - Top;KitchenAccentLight2 - Bottom;KitchenAccentLight1 - Top,noDebug,,,,,,,
-,,,,,,,,,,
+
+-h,Scene
+deviceName,sceneNumber,DayNightActive,members,onControllers,sustainControllers,debugDeviceMode
+AllKitchenCabinetTopLights,1,Night,Pantry Rope;KitchenTableLights(Hidden) - Top;KitchenBookShelfLights(Hidden) - Top;KitchenBookShelfLight2;KitchenBookShelfLight;KitchenAccentLight3 - Top;KitchenAccentLight2 - Bottom;KitchenAccentLight1 - Top,,,noDebug
+
 ########################################################
 #
 # ZWaveLockMgr – ZWave Controlled Lock. Sets user codes based on schedule.

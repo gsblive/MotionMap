@@ -86,7 +86,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 
 			# We obsoleted on/off motionsensor support in favor of Occupation events from occupation groups. But to do that, the motion sensors need to be in groups.
 			# This transition allows to deal with only one "MotionSensor" (real or virtual) at a time... we dont have to do check loops to see if they all agree on state
-			# If there are multiple sensors, thie groups will hide that complexity from the Load device, reducing messages and improving performance.
+			# If there are multiple sensors, the groups will hide that complexity from the Load device, reducing messages and improving performance.
 			# However, we dont want to have to clutter up the config file with a bunch of very specific motion sensor groups, so we make them on the fly here.
 			#
 			# Make OccupationGroup (self.deviceName'_OG') and SustainGroup (self.deviceName'_SG') as necessary

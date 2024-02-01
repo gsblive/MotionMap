@@ -22,6 +22,7 @@ import mmLib_Log
 import mmLib_Low
 import mmLib_Events
 import mmComm_Insteon
+import mmObj_OccupationGroup
 from collections import deque
 import mmLib_CommandQ
 import time
@@ -39,8 +40,14 @@ class mmScene(mmComm_Insteon.mmInsteon):
 
 	def __init__(self, theDeviceParameters):
 		super(mmScene, self).__init__(theDeviceParameters)
-		mmLib_Log.logForce(self.deviceName + " processing initialization 1.")
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " processing initialization.")
+
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " theDeviceParameters are: " + str(theDeviceParameters))
+
+		self.onControllers = [_f for _f in theDeviceParameters["onControllers"].split(';') if _f]  # Can be a list, split by semicolons... normalize it into a proper list
+		self.sustainControllers = [_f for _f in theDeviceParameters["sustainControllers"].split(';') if _f]
+		self.combinedControllers = self.onControllers + self.sustainControllers							# combinedControllers contain both sustainControllers and onControllers
+		self.allControllerGroups = []
 
 		if self.initResult == 0:
 
@@ -48,9 +55,11 @@ class mmScene(mmComm_Insteon.mmInsteon):
 			# Set object variables
 			#
 
-			self.sceneNumber = int(theDeviceParameters["sceneNumber"])
-			self.devIndigoAddress = mmLib_Low.makeSceneAddress(self.sceneNumber)
-			mmLib_Log.logVerbose("Initializing Scene " + str(self.sceneNumber) + ": " + self.deviceName + ", " + self.devIndigoAddress + ", " + self.devIndigoID)
+			self.sceneNumberDay = str(theDeviceParameters["sceneNumberDay"])
+			self.sceneNumberNight = str(theDeviceParameters["sceneNumberNight"])
+
+			self.devIndigoAddress = mmLib_Low.makeSceneAddress(self.sceneNumberDay + "/" + self.sceneNumberNight)
+			mmLib_Log.logVerbose("Initializing Scene " + str(self.devIndigoAddress) + ": " + self.deviceName + ", " + self.devIndigoAddress + ", " + self.devIndigoID)
 			self.members = theDeviceParameters["members"].split(';')  # Can be a list, split by semicolons... normalize it into a proper list
 			self.expectedOnState = False
 
@@ -61,6 +70,41 @@ class mmScene(mmComm_Insteon.mmInsteon):
 			mmLib_Events.subscribeToEvents(['DevRcvCmd'], ['Indigo'], self.receivedCommandEvent, {} , self.deviceName)
 			mmLib_Events.subscribeToEvents(['DevCmdComplete'], ['Indigo'], self.completeCommandEvent, {} , self.deviceName)
 			mmLib_Events.subscribeToEvents(['DevCmdErr'], ['Indigo'], self.errorCommandEvent, {} , self.deviceName)
+
+			# We obsoleted on/off motionsensor support in favor of Occupation events from occupation groups. But to do that, the motion sensors need to be in groups.
+			# This transition allows to deal with only one "MotionSensor" (real or virtual) at a time... we dont have to do check loops to see if they all agree on state
+			# If there are multiple sensors, the groups will hide that complexity from the Load device, reducing messages and improving performance.
+			# However, we dont want to have to clutter up the config file with a bunch of very specific motion sensor groups, so we make them on the fly here.
+			#
+			# Make OccupationGroup (self.deviceName'_OG') and SustainGroup (self.deviceName'_SG') as necessary
+			#
+
+			if theDeviceParameters["onControllers"]:
+				if len(self.onControllers) > 1:
+					self.onControllerName = 'OG_' + self.deviceName
+					mmObj_OccupationGroup.mmOccupationGroup({'deviceType': 'OccupationGroup', 'deviceName': self.onControllerName, 'members': theDeviceParameters["onControllers"],'unoccupiedRelayDelayMinutes': 0, 'debugDeviceMode': theDeviceParameters["debugDeviceMode"]})
+				else:
+					self.onControllerName = theDeviceParameters["onControllers"]				# This could be null, thats why we have the 'if' below
+
+				if self.onControllerName: self.allControllerGroups.append(self.onControllerName)	# we dont want to append a null
+
+			if theDeviceParameters["sustainControllers"]:
+				if len(self.sustainControllers) > 1:
+					self.sustainControllerName = 'SG_' + self.deviceName
+					mmObj_OccupationGroup.mmOccupationGroup({'deviceType': 'OccupationGroup', 'deviceName': self.sustainControllerName, 'members': theDeviceParameters["sustainControllers"],'unoccupiedRelayDelayMinutes': 0, 'debugDeviceMode': theDeviceParameters["debugDeviceMode"]})
+				else:
+					self.sustainControllerName = theDeviceParameters["sustainControllers"]				# This could be null, thats why we have the 'if' below
+
+				if self.sustainControllerName: self.allControllerGroups.append(self.sustainControllerName)	# we dont want to append a null
+
+			# All controllers must subscribe to both occupied events and unoccupied.
+			# Sustain/On controller differentiation happens inside processOccupationEvent
+
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'OccupiedAll\', \'OccupiedPartial\']" + " from " + str(self.allControllerGroups))
+			mmLib_Events.subscribeToEvents(['OccupiedAll', 'OccupiedPartial'], self.allControllerGroups, self.processOccupationEvent, {}, self.deviceName)
+
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'UnoccupiedAll\']" + " from " + str(self.allControllerGroups))
+			mmLib_Events.subscribeToEvents(['UnoccupiedAll'], self.allControllerGroups, self.processUnoccupationEvent, {}, self.deviceName)
 
 
 	######################################################################################
@@ -82,13 +126,8 @@ class mmScene(mmComm_Insteon.mmInsteon):
 	#
 	def sendSceneOff(self, theCommandParameters):
 
-		# force scene commands to happen twice (they frequently dont complete on the first pass)
-		try:
-			nTimes = theCommandParameters['repeat']
-		except:
-			theCommandParameters['repeat'] = 1
-
-		indigo.insteon.sendSceneOff(self.sceneNumber, sendCleanUps=False)	# does not honor unresponsive because this is not really a device
+		mmLib_Log.logVerbose("Issuing SceneOn " + self.deviceName)
+		indigo.insteon.sendSceneOff(int(self.sceneNumberDay), sendCleanUps=False)	# does not honor unresponsive because this is not really a device
 		self.expectedOnState = False
 
 		return(0)
@@ -99,13 +138,12 @@ class mmScene(mmComm_Insteon.mmInsteon):
 	def sendSceneOn(self, theCommandParameters):
 
 		mmLib_Log.logVerbose("Issuing SceneOn " + self.deviceName)
-		# force scene commands to happen twice (they frequently dont complete on the first pass)
-		try:
-			nTimes = theCommandParameters['repeat']
-		except:
-			theCommandParameters['repeat'] = 1
+		if indigo.variables["isDaylight"].value == 'true':
+			indigo.insteon.sendSceneOn(int(self.sceneNumberDay), sendCleanUps=False) # does not honor unresponsive because this isnt really a device
+		else:
+			if self.sceneNumberNight:
+				indigo.insteon.sendSceneOn(int(self.sceneNumberNight),sendCleanUps=False)  # does not honor unresponsive because this isnt really a device
 
-		indigo.insteon.sendSceneOn(self.sceneNumber, sendCleanUps=False) # does not honor unresponsive because this isnt really a device
 		self.expectedOnState = True
 
 		return(0)
@@ -141,3 +179,49 @@ class mmScene(mmComm_Insteon.mmInsteon):
 
 		return(0)
 
+	#
+	#	processOccupationEvent(theEvent, eventParameters) - when a controller, (usually a motion sensor) has an event, it sends the event to a loaddevice through this routine
+	#
+	#	theHandler format must be
+	#		theHandler(theEvent, eventParameters) where:
+	#
+	#		theEvent is the text representation of a single event type listed above: we handle ['OccupiedAll', 'OccupiedPartial'] here only
+	#		eventParameters is a Dict with the following:
+	#
+	# thePublisher				The name of the Registered publisher (see above) who is sending the event
+	# theEvent					The text name of the event to be sent (see subscribeToEvents below)
+	# theSubscriber				The Text Name of the Subscriber to receive the event
+	# publisherDefinedData		Any data the publisher chooses to include with the event (for example, if it
+	# 								is an indigo command event, we might include the whole indigo command record here)
+	# timestamp					The time (in seconds) the event is being published/distributed
+	#
+	def processOccupationEvent(self, theEvent, eventParameters):
+
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " received \'" + theEvent + "\' Event: " + str(eventParameters))
+		self.sendSceneOn({})
+		return 0
+
+
+	#
+	#	processUnoccupationEvent(theEvent, eventParameters) - when a controller, (usually a motion sensor) has an event, it sends the event to a loaddevice through this routine
+	#
+	#	theHandler format must be
+	#		theHandler(theEvent, eventParameters) where:
+	#
+	#		theEvent is the text representation of a single event type listed above: we handle ['UnoccupiedAll'] here only
+	#		eventParameters is a Dict with the following:
+	#
+	# thePublisher				The name of the Registered publisher (see above) who is sending the event
+	# theEvent					The text name of the event to be sent (see subscribeToEvents below)
+	# theSubscriber				The Text Name of the Subscriber to receive the event
+	# publisherDefinedData		Any data the publisher chooses to include with the event (for example, if it
+	# 								is an indigo command event, we might include the whole indigo command record here)
+	# timestamp					The time (in seconds) the event is being published/distributed
+	#
+	def processUnoccupationEvent(self, theEvent, eventParameters):
+
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " received \'" + theEvent + "\' Event: " + str(eventParameters))
+
+		self.sendSceneOff({})
+
+		return 0

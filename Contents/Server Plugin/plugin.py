@@ -332,21 +332,28 @@ class Plugin(indigo.PluginBase):
 
 		global pluginInitialized
 		if pluginInitialized == 0: return()
-		#indigo.server.log(str(cmd))
 
 		#mmLib_Log.logForce( "###CommandComplete with COMMAND: "+ str(cmd.cmdBytes) + " for address " + str(cmd.address) + " with scene " + str(cmd.cmdScene))
 
 		if cmd.cmdScene is None:
 			devAddress = str(cmd.address)
+			theDev = mmLib_CommandQ.getQTopDev()
 		else:
-			devAddress = mmLib_Low.makeSceneAddress(cmd.cmdScene)
-			#mmLib_Log.logForce("Scene " + str(cmd.cmdFunc) + " complete for: " + str(devAddress) + "\n" + str(cmd))
-			# The Command is a Scene.
-			# Since this is a command completion, the last command we sent out should be on the top of the queue
+			# its a scene Command... The address wil be funny Did we send one?
+			theCmd = mmLib_CommandQ.getQTopCmd()
+			mmLib_Log.logForce( "###Scene Command Complete with COMMAND: "+ str(cmd.cmdBytes) + " and scene address " + str(cmd.cmdScene) + ". Command in Queue = " +str(theCmd))
+			if theCmd in ["sceneOn","sceneOff"]:
+				# It was likely us... go ahead and process the completion
+				# if this proves to be a problem (doubtful), we can add code to add scene number to command queue for a more complete check
+				theDev = mmLib_CommandQ.getQTopDev()
+			else:
+				mmLib_Log.logForce("==== Warning Unexpected Scene command (likely sent inline, outside the command queue): Scene " + str(cmd.cmdScene) )
+				# This is normal... we send scene commands from outside the command queue (because they are rare. this helps reduce queue congestion)
+				# no further processing is necessary
+				return 0
 
-		theDev = mmLib_CommandQ.getQTopDev()
+		if not theDev:
 
-		if not theDev or str(theDev.devIndigoAddress) != str(devAddress):
 			# Its a completion, but not our device at the top of our queue...
 			# However, it could be a status (we send those async and dont wait for response)
 			if cmd.cmdFunc == "status request":
@@ -382,6 +389,7 @@ class Plugin(indigo.PluginBase):
 
 			return 0
 
+		# the code below is legacy and not used
 		# OK, it seems to be us... theDev is valid
 
 		if theDev.debugDevice: mmLib_Log.logForce( "CommandComplete at Plugin for " + theDev.deviceName + ".")
