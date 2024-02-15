@@ -397,7 +397,7 @@ deviceName,sceneNumberDay,sceneNumberNight,members,onControllers,sustainControll
 #MasterAll,10,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 #TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 MiddleFloorHallGroup,12,13,MiddleFloorBathVanityLightP;BottomFloorStairsLightP,MiddlefloorHall,,Debug
-UpperStairsGroup,11,14,TopFloorFoyerLightP;TopFloorStairwellLightP,TopFloorStairsMotion,,Debug
+UpperStairsGroup,0,14,TopFloorFoyerLightP;TopFloorStairwellLightP,TopFloorStairsMotion,,Debug
 
 
 ########################################################
