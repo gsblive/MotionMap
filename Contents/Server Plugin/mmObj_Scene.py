@@ -126,7 +126,7 @@ class mmScene(mmComm_Insteon.mmInsteon):
 	#
 	def sendSceneOff(self, theCommandParameters):
 
-		mmLib_Log.logVerbose("Issuing SceneOn " + self.deviceName)
+		mmLib_Log.logVerbose("Issuing SceneOff " + self.deviceName)
 		indigo.insteon.sendSceneOff(int(self.sceneNumberDay), sendCleanUps=False)	# does not honor unresponsive because this is not really a device
 		self.expectedOnState = False
 
@@ -139,7 +139,8 @@ class mmScene(mmComm_Insteon.mmInsteon):
 
 		mmLib_Log.logVerbose("Issuing SceneOn " + self.deviceName)
 		if indigo.variables["isDaylight"].value == 'true':
-			indigo.insteon.sendSceneOn(int(self.sceneNumberDay), sendCleanUps=False) # does not honor unresponsive because this isnt really a device
+			if self.sceneNumberDay:
+				indigo.insteon.sendSceneOn(int(self.sceneNumberDay), sendCleanUps=False) # does not honor unresponsive because this isnt really a device
 		else:
 			if self.sceneNumberNight:
 				indigo.insteon.sendSceneOn(int(self.sceneNumberNight),sendCleanUps=False)  # does not honor unresponsive because this isnt really a device

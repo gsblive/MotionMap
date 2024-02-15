@@ -251,7 +251,7 @@ deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onC
 #BottomFloorStairsLightP,5,100,80,StatAsync;flash,BottomFloorStairsMotion,,2,noDebug
 # Note next 2 are controlled by Scenes processing (MiddleFloorHallGroupDay and MiddleFloorHallGroupNight) because overlapping motion sensors have been causing missed commands (now both lights are being turned on with a single scene command)
 BottomFloorStairsLightP,5,100,80,StatAsync;flash,,,2,noDebug
-MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,,,2,noDebug
+MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,MiddleFloorBathMotion,MiddleFloorBathToiletMotion,2,noDebug
 BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkRightLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
@@ -397,6 +397,7 @@ deviceName,sceneNumberDay,sceneNumberNight,members,onControllers,sustainControll
 #MasterAll,10,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 #TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 MiddleFloorHallGroup,12,13,MiddleFloorBathVanityLightP;BottomFloorStairsLightP,MiddlefloorHall,,Debug
+UpperStairsGroup,11,14,TopFloorFoyerLightP;TopFloorStairwellLightP,TopFloorStairsMotion,,Debug
 
 
 ########################################################

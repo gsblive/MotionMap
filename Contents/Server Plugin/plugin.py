@@ -204,11 +204,26 @@ class Plugin(indigo.PluginBase):
 		indigo.insteon.subscribeToOutgoing()
 		indigo.devices.subscribeToChanges()
 
-
+	########################################
+	#
+	#		InitComplete	The plugin is Up and running
+	#
+	#		This ois a replacement for InitComplete() Below. The idea is to delay the initialization of MM until the Insteon controller is fully awake
+	#		However, it needs to be debugged because it causes an endless loop (the delay function never gets dequeued. It
+	#		wasnt worth trying to figure it out - this is only a corner case that happens on first initialization when Indigo starts up.
+	# 		and it really has no ill effects except a warning that a command was sent but the controller wasn't available.
+	#
+	#	If you want to look into it to fix it... change this routine name to initComplete and the following routine to initCompleteLow
+	#
+	########################################
+	def initCompleteDelay(self):
+		mmLib_Log.logForce("  System Initialization completed. Delay startup of device processing for 30 seconds to give the controller time to come online.")
+		mmLib_Low.registerDelayedAction({'theFunction': self.initCompleteLow, 'timeDeltaSeconds': int(30), 'theDevice': "System", 'timerMessage': "wait for Interface init."})
+		return
 
 	########################################
 	#
-	#		InitComplete	The plugin is Up and runningn
+	#		InitComplete	The plugin is Up and running
 	#
 	########################################
 	def initComplete(self):

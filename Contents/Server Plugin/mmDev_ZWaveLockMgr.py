@@ -192,10 +192,18 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 			# Process this line. If it is the first line, its the header
 			if not self.currentHeader:
 				self.currentHeader = lineList
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Have Header")
 				continue
 			else:
-				dictEntry = dict(list(zip(self.currentHeader, lineList)))
+				try:
+					dictEntry = dict(list(zip(self.currentHeader, lineList)))
+				except Exception as e:
+					mmLib_Log.logForce(self.deviceName + " Failure to make dictionary")
+					mmLib_Log.logForceAndMail(
+						self.deviceName + "Processing Schedule Failure to make dictionary: " + str(e) + " Terminating session.")
+					return (-1)
 
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Have dict entry: " + str(dictEntry))
 				lPin = len(dictEntry['Code'])
 
 				if lPin < 4:
@@ -213,14 +221,29 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 				if lPin != 4:
 					mmLib_Log.logForceAndMail(self.deviceName + "WARNING This plugin only supports 4 digit DoorCodes. Please manually change this value for entry " + dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.", "SandCastle Automation Message", "9258727124@vtext.com")
 
-				arrivalTimeISO = dt.isoformat(dt.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
-				departureTimeISO = dt.isoformat(dt.strptime(dictEntry["DepartureDate"], "%m/%d/%y"))
+				try:
+					arrivalTimeISO = dt.isoformat(dt.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
+				except Exception as e:
+					mmLib_Log.logForce(self.deviceName + "Arrival Time format Error")
+					return (-1)
 
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + "Arrival TimeISO = " + str(arrivalTimeISO))
+
+				try:
+					departureTimeISO = dt.isoformat(dt.strptime(dictEntry["DepartureDate"], "%m/%d/%y"))
+				except Exception as e:
+					#mmLib_Log.logForce(self.deviceName + "Departure Time format Error")
+					mmLib_Log.logForceAndMail(self.deviceName + " WARNING: Departure Time format Error.", "SandCastle Automation Message", "9258727124@vtext.com")
+					return (-1)
+
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + "Departure TimeISO = " + str(departureTimeISO))
 
 				if arrivalTimeISO == departureTimeISO:
 					mmLib_Log.logForceAndMail(self.deviceName + " WARNING: ArrivalDate and Departure Date are the same for entry " + dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.", "SandCastle Automation Message", "9258727124@vtext.com")
+					return (-1)
 				elif arrivalTimeISO > departureTimeISO:
 					mmLib_Log.logForceAndMail( self.deviceName + " WARNING: ArrivalDate is after Departure Date for entry " + dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.", "SandCastle Automation Message", "9258727124@vtext.com")
+					return (-1)
 
 				if todayISO > arrivalTimeISO:
 					# Tennent arrived 1 or more days ago, but may be due to leave today
@@ -233,6 +256,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 						if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Preserving current tennent\'s entry \'" + dictEntry['GuestName'] + " " + dictEntry['ArrivalDate'] + "\'")
 						self.scheduleDict[arrivalTimeISO] = dictEntry
 				else:
+					if dictEntry['GuestName'] == "": mmLib_Log.logForceAndMail( self.deviceName + " WARNING: No GuestName for arrival Date: " + " \'" + dictEntry["ArrivalDate"] + "\'.", "SandCastle Automation Message", "9258727124@vtext.com")
 					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Adding entry \'" + dictEntry['GuestName'] + " " + dictEntry['ArrivalDate'] + "\'")
 					self.scheduleDict[arrivalTimeISO] = dictEntry
 		f.close()
@@ -364,9 +388,22 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 
 		#Hardware supports supports 4,6,8,32 digit codes, but we only support 4 digits here.
 
-		if len(userPin) not in [4,6,8,32]:
+		#if len(userPin) not in [4,6,8,32]:  # commented out.. we only support 4 digit pins
+		if len(userPin) !=4:
 			mmLib_Log.logForceAndMail(self.deviceName + "WARNING This plugin only supports 4 digit DoorCodes. Please manually change this value.", "SandCastle Automation Message", "9258727124@vtext.com")
 			return
+
+		newPin = ""
+		for c in userPin:
+			if c in "0123456789":
+				newPin = newPin + c
+			else:
+				newPin = newPin + '0'
+
+		if userPin != newPin:
+			mmLib_Log.logForce(self.deviceName + " WARNING new User Pin contained non-numeric digits. Substituting " + newPin + " for " + userPin + ".")
+			mmLib_Log.logForceAndMail(self.deviceName + " WARNING new User Pin contained non-numeric digits. Substituting 0 for each.", "SandCastle Automation Message", "9258727124@vtext.com")
+			userPin = newPin
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Setting PIN for user " + str(userNo) + " to: " + str(userPin))
 
@@ -420,9 +457,20 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		todayString = dt.strftime(dateToday, "%m/%d/%y")
 		todayISO = dt.isoformat(dt.strptime(todayString, "%m/%d/%y"))
 
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Making Arrival Dict.")
+
 		localError = self.makeScheduleDict(self.ArrivalSchedule, todayISO)
 		if not localError:
+			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Finished Arrival Dict. OK")
 			localError = self.makeScheduleDict(self.NewArrivals, todayISO)
+			if not localError:
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Finished NewArrival Dict. OK")
+			else:
+				mmLib_Log.logForceAndMail( self.deviceName + " ERROR: Cannot Parse NewArrival Dict", "SandCastle Automation Message","9258727124@vtext.com")
+				return (-1)
+		else:
+			mmLib_Log.logForceAndMail(self.deviceName + " ERROR: Cannot Parse ArrivalSchedule Dict", "SandCastle Automation Message", "9258727124@vtext.com")
+			return(-1)
 
 		deleteDict = self.scheduleDict.get("Delete",0)
 		if deleteDict != 0:

@@ -8,13 +8,12 @@ import time
 import platform
 import datetime
 
-print("Starting test")
-String1 = "Insteon Motion"
-String2 = "Insteon Motions"
-print("'"+String1 + "' and '" + String2 + "' are ")
-num = String2.find(String1)
-if num == 0: print("Equal")
-else:
-	if(num == 1): print("similar")
+userPin = "84 8"
+newPin = ""
+
+for c in userPin:
+	if c in "0123456789":
+		newPin = newPin+c
 	else:
-		print("Different")
+		newPin = newPin + '0'
+print(newPin)
