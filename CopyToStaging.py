@@ -22,15 +22,14 @@ class bcolors:
 #
 
 def	doCopy(targetVolName, pluginName):
+	#print("volName = " + targetVolName)
+	#print("pluginName = " + pluginName)
 
-	if not os.access(targetVolName, os.W_OK):
-		print("### Volume " + targetVolName + " does not exist or have write access ###")
-		return 1
-
-	print(str("### Copying " + pluginName + " to " + targetVolName))
+	#print(str("### Copying " + pluginName + " to " + targetVolName))
 
 	theCommand = "rsync -av --exclude .git --exclude Contents/.idea --exclude venv --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + str(pluginName) + " " + targetVolName + " 2>/dev/null"
-	#print str(theCommand)
+
+	print(str(theCommand))
 	#subprocess.call([theCommand])		# this is preferable (with try/except), but I couldnt get it to work right away... revisit.
 	result = os.system(theCommand)
 	if result:
@@ -43,11 +42,7 @@ def	doCopy(targetVolName, pluginName):
 	return result
 
 
-def copyToStaging(volList):
-	myPath = os.path.realpath(__file__)
-	indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
-	#print str(indigoPlugin)
-	indigoPlugin = indigoPlugin.replace(' ', '\\ ')
+def copyToVolList(volList):
 	for theVol in volList:
 		print(str(""))
 		# print str("### Attempting to copy to " + theVol)
@@ -60,4 +55,34 @@ def copyToStaging(volList):
 			print(str("**********************************"))
 			break
 
+
+print("*** CopyToStaging ***")
+myPath = os.path.realpath(__file__)
+
+
+theStatDir = os.path.expanduser(str("~/Library/Mobile Documents/com~apple~CloudDocs/Documents/MotionMapStaging/Current/"))
+theCopyDir = theStatDir.replace(" ","\ ")	# because os.access doesnt like escape characters before spaces
+
+indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
+indigoPlugin = indigoPlugin.replace(' ', '\\ ')
+
+theResult = os.access(theStatDir, os.W_OK)
+if not theResult:
+	print("### Volume " + theStatDir + " does not exist or have write access ###")
+	exit()
+
+#print(" Plugin Name: " + indigoPlugin)
+#print(" theCopyDir Name: " + theCopyDir)
+
+if not doCopy(theCopyDir, indigoPlugin):
+	print(str(""))
+	print(str("**********************************"))
+	print(str("****       Copy Success       ****"))
+	theTimeString = time.strftime("%m/%d/%Y %I:%M:%S %p")
+	print(str("****  " + theTimeString + "  ****"))
+	print(str("**********************************"))
+
+
+
+quit()
 

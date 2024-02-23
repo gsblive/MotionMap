@@ -449,7 +449,8 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 
 		self.ArrivalSchedule = theCommandParameters['ArrivalSchedule']
 		self.NewArrivals = theCommandParameters['NewArrivals']
-		
+		self.HistoricalArrivals = theCommandParameters['HistoricalArrivals']
+
 		self.scheduleDict = {}
 		self.currentHeader = 0
 		dateToday = dt.today()
@@ -458,7 +459,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		todayISO = dt.isoformat(dt.strptime(todayString, "%m/%d/%y"))
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Making Arrival Dict.")
-
+		# this is a test
 		localError = self.makeScheduleDict(self.ArrivalSchedule, todayISO)
 		if not localError:
 			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Finished Arrival Dict. OK")
@@ -495,9 +496,32 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 				self.setUserPin(aLock, self.userNo, changeDict["Code"])
 
 		# either way, rewrite the arrival schedule file
-		if not localError: localError = self.writeScheduleDict(self.ArrivalSchedule)
+		localError = self.writeScheduleDict(self.ArrivalSchedule)
 
-		# Truncate the new arrivals file... We dont need to ptocess it again.
-		if not localError: localError = self.resetArrivalFile(self.NewArrivals)
+		if localError:
+			mmLib_Log.logForce(self.deviceName + "### Warning ###: Failure writing ArrivalSchedule. Not processing History File.")
+		else:
+			# Note History, then Truncate the newArrivals file... We don't need to process it again.
+			# Add NewArrivals to ArrivalHistory
+			self.scheduleDict = {}
+			self.currentHeader = 0
+			localError = self.makeScheduleDict(self.HistoricalArrivals, todayISO)
+			if localError:
+				mmLib_Log.logForce(self.deviceName + "### Warning ###: Cannot access History File.")
+				localError = self.makeScheduleDict(self.HistoricalArrivals, todayISO)
+			else:
+				localError = self.makeScheduleDict(self.NewArrivals, todayISO)
+				if localError:
+					mmLib_Log.logForce(self.deviceName + "### Warning ###: Cannot add newArrivals to History File.")
+				else:
+					localError = self.writeScheduleDict(self.HistoricalArrivals)
+					if localError:
+						mmLib_Log.logForce(self.deviceName + "### Warning ###: Cannot Write HistoricalArrivals file.")
+
+		if not localError:
+			# And Finally delete info from newArrivals
+			localError = self.resetArrivalFile(self.NewArrivals)
+		else:
+			mmLib_Log.logForce(self.deviceName + "### Warning ###: Errors resulted in not resetting Arrival file.")
 
 		return(localError)

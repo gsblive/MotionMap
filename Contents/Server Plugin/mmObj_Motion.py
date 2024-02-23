@@ -504,15 +504,71 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		return 0
 
 	#
+	# processSwitchOff - A switch was turned off in this domain. Treat it like an immediate unoccupation
+	#
+	def processSwitchOff(self):
+		if self.debugDevice: mmLib_Log.logForce("### Motion sensor " + self.deviceName + " received an OFF event from a subscriber switch." )
+		'UnoccupiedAll', 'OccupiedAll'
+		return 0
+
+	#
 	# distributeOccupation - Distribute Occupation Events and set the indigo occupation variable.
 	#
 	def distributeOccupation(self,newOccupiedState,timeDeltaSeconds,stringExtension):
 
 		# update self.occupiedState accordingly and distribute the event if occupiedState changed
 
+		# GB Fix me 2/17/24
+		#
+		# All of this in invalid... processing works as-is. I'm leaving the comments in case I run accross the symptoms again and feel the urge to fix it again.
+		# This is already covered by the fact that the load devices call forceTimeout() in this object.I beleive the fire drill of fixing this problem was caused
+		# by a low battery in the motion sensor. I cannot reproduce the problem. The symptom is that in some cases we get the message below that states
+		# "NOT DISTRIBUTED. Motion Sensor already in " + str(newOccupiedState) + " state."... So how can that happen?
+		#
+		# Either 	A) the forceTimeout event never got delivered, or
+		#			B) there is a very specific timing overlap where forceTimeout did get called, but was immediately superceeded by a new motion event during blackout time that isn't peocessed.
+		#				in this case, the light may no longer respond to motion at least until the Motion handler (this object) circulates through its internal timeout...
+		#				In any case, sometimes it appears that the event processing gets disabled (or delayed) and the most reasonable reason is that because it receives an ON or Off event while
+		#				already, or still, in the proper requested on/off state somehow causing a full timeout sequence to be necessary before the light will automatically go off again. I have not taken the time
+		#				to investigate further and will refrain until the problem becomes more easily reproducible. Once I have a reproducible case, I will just TURN ON DEBUGGHING for this motion
+		#				sensor and watch the log for sequencing information.
+		#
+		# Obsoleted diagnostic below for future diagnostic and informational purposes only...
+		#
+		# Eliminated the IF statement below. Occupancy events are now already delivered even if they are unnecessary.
+		#
+		# The problem this solves is when the user turnes off a light (typically when leaving a room) in which case, MM doesnt know the user's intent, so the light doesn't
+		# go on again with motion events until the full occupation timeout occurred (which finally resets the occupancyState).
+		#
+		# Here is repair plan in process:
+		# When the Load device is sent the occupation event will now receive a proc pointer ('NoticeOfUserTurningLoadDeviceOff':self.processSwitchOff) in "publisherDeficedData".
+		# The Load device will note this proc and if it detects a user turning the load switch off (not a state change, literally turning the switch OFF), the new proc
+		# pointer will be called which will record an occupiedState of 'UnoccupiedAll' (which will cause the if statement below to work properly).
+		#
+		# NOTE: GB Fix Me: TBD: The proc pointer described above may need to propagate through occupantionGroups. This is a much thornier problem because when someone turns off a switch
+		# does that automatically mean the whole occupation group is unoccupied? Do ALL the lights controlled by the group need to go off now? I will think about and test this (I'm
+		# not sure if there is even an occupationgroup scenario defined that has this issue currently)... and if so, have we realy ever seen this as a weakness in occupationgroups in the last decade?
+		#
+		# So then the next issue...
+		# if the user turns off the light but stays in the room... eventually the light will turn on again (possibly an unwanted behavior).
+		# The solution is adding a process for the user to choose to disable local motion detection. This will only be done if testing determines it's a necessary feature (face it,
+		# the user will never know about this feature so wil likely enable it by accident then wonder why motion detection doesn't work.- MotionMap has been running without this feature for
+		# a decade without this feature (and adding the feature will uncover new problems).
+		# If we choose to do this feature... The plan for this is to enable a new command.. Double tap off to disable motion detection until morning. We would need to do the analogous feature of double-tap-on
+		# re-enables motion sensing.
+
+		# Obsoleted code here:
+		#	if self.debugDevice: mmLib_Log.logForce("Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
+		#	mmLib_Events.distributeEvents(self.deviceName, [OccupiedStateList[newOccupiedState]], 0,{})  # dispatch to everyone who cares
+		#	self.occupiedState = newOccupiedState
+
+		# Original (and reactivated) code here:
+
 		if self.occupiedState != newOccupiedState:
 			if self.debugDevice: mmLib_Log.logForce( "Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
-			mmLib_Events.distributeEvents(self.deviceName, [OccupiedStateList[newOccupiedState]], 0,{})  # dispatch to everyone who cares
+			# If this is some kind of occupation event (partial or full), put a notification proc pointer into PublisherDefinedData, just in case someone turns
+			# off a switch (implying unoccupation event). In that case the proc pointer will be called which will reset the occupationState to reflect current new state.
+			mmLib_Events.distributeEvents(self.deviceName, [OccupiedStateList[newOccupiedState]], 0,{'NoticeOfUserTurningLoadDeviceOff': self.processSwitchOff})  # dispatch to everyone who cares
 			self.occupiedState = newOccupiedState
 		else:
 			if self.debugDevice: mmLib_Log.logForce("Occupation state change for " + self.deviceName + " NOT DISTRIBUTED. Motion Sensor already in " + str(newOccupiedState) + " state.")
