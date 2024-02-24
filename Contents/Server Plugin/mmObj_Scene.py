@@ -127,7 +127,7 @@ class mmScene(mmComm_Insteon.mmInsteon):
 	def sendSceneOff(self, theCommandParameters):
 
 		mmLib_Log.logVerbose("Issuing SceneOff " + self.deviceName)
-		indigo.insteon.sendSceneOff(int(self.sceneNumberDay), sendCleanUps=False)	# does not honor unresponsive because this is not really a device
+		indigo.insteon.sendSceneOff(int(self.sceneNumberNight), sendCleanUps=False)	# does not honor unresponsive because this is not really a device
 		self.expectedOnState = False
 
 		return(0)
@@ -199,7 +199,7 @@ class mmScene(mmComm_Insteon.mmInsteon):
 	def processOccupationEvent(self, theEvent, eventParameters):
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " received \'" + theEvent + "\' Event: " + str(eventParameters))
-		self.sendSceneOn({})
+		self.sendSceneOn({int(self.sceneNumberDay)})
 		return 0
 
 

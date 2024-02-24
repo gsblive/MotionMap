@@ -7,3 +7,4 @@
    MotionMap3 [|||...................] 04:13:26 PM [mmForce] OceanViewLocks WARNING: Departure Time format Error. : mmForce @ mmDev_ZWaveLockMgr.py.makeScheduleDict:235.
    MotionMap3 [||....................] 04:13:26 PM [mmForce] OceanViewLocks ERROR: Cannot Parse ArrivalSchedule Dict : mmForce @ mmDev_ZWaveLockMgr.py.processSchedule:470.
    Email+                          sending email 'SandCastle Automation Message' to '9258727124@vtext.com' using Email+ SMTP Server
+/Users/gbrewer/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/MotionMapStaging/Current/MotionMap\ 3.IndigoPlugin/RunReplaceMotionMap.txt

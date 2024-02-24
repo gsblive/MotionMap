@@ -26,3 +26,8 @@ print(indigoPlugin)
 targetDir = os.path.expanduser("~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/MotionMapStaging/Current")
 theCommand = "rsync -av --exclude .git --exclude Contents/.idea --exclude venv --exclude Contents/Server\ Plugin/_TestAndSampleCode --exclude Contents/Server\ Plugin/_Documentation " + sourceFile + " " + targetDir
 result = os.system(theCommand)
+
+
+exit(0)
+
+

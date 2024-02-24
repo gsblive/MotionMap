@@ -94,7 +94,7 @@ deviceName,maxMovement,minMovement,autoEnableActivityLight,debugDeviceMode
 TopFloorMasterBathMotion,60,10,false,noDebug
 TopFloorMasterBathShowerMotion,60,10,false,noDebug
 TopFloorMasterBathLavMotion,60,10,false,noDebug
-TopFloorMasterMotion,60,2,true,noDebug
+TopFloorMasterMotion,60,10,true,noDebug
 TopFloorStairsMotion,60,5,false,noDebug
 MiddleFloorMotion,60,20,false,noDebug
 MiddleFloorBathMotion,60,10,false,noDebug
@@ -212,7 +212,6 @@ GregsDeskMultisensorTemperature,5,noDebug
 deviceName,members,unoccupiedRelayDelayMinutes,debugDeviceMode
 DeskArea,GregsDeskMultisensorMotion,0,noDebug
 TopFloor,TopFloorMasterBathMotion;TopFloorMasterMotion;TopFloorStairsMotion;TopFloorMasterBathLavMotion;TopFloorMasterBathShowerMotion;GregsDeskMultisensorMotion,30,noDebug
-MiddlefloorHall,BottomFloorStairsMotion;MiddleFloorBathMotion,0,noDebug
 MiddleFloor,MiddleFloorBathToiletMotion;MiddleFloorBathMotion;MiddleFloorMotion,0,noDebug
 BottomFloor,BottomFloorMotion;BottomFloorStairsMotion,0,noDebug
 House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
@@ -248,14 +247,14 @@ House,TopFloor;MiddleFloor;BottomFloor,120,noDebug
 
 -h,LoadDevice
 deviceName,unoccupationDelay,daytimeOnLevel,nighttimeOnLevel,specialFeatures,onControllers,sustainControllers,maxSequentialErrorsAllowed,debugDeviceMode
+# the following was deleted in favor of the otion sensot dontrolling the light directly for BottomFloorStairsMotion
 #BottomFloorStairsLightP,5,100,80,StatAsync;flash,BottomFloorStairsMotion,,2,noDebug
-# Note next 2 are controlled by Scenes processing (MiddleFloorHallGroupDay and MiddleFloorHallGroupNight) because overlapping motion sensors have been causing missed commands (now both lights are being turned on with a single scene command)
-BottomFloorStairsLightP,5,100,80,StatAsync;flash,,,2,noDebug
 MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,MiddleFloorBathMotion,MiddleFloorBathToiletMotion,2,noDebug
 BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkRightLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
-MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMotion,,2,noDebug
+# thefollowing was deleted in favor of motion sensor automatically turning on light for responsiveness
+#MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMotion,,2,noDebug
 MiddleFloorBathLavFanP,10,0,0,StatAsync,,MiddleFloorBathToiletMotion,2,noDebug
 MiddleFloorBackDeckP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
 MiddleFloorBathShowerFanLightP,30,0,30,StatAsync;flash,,MiddleFloorBathMotion,2,noDebug
@@ -267,16 +266,19 @@ MiddleFloorKitchenCabinetLeftLightSwitchP,120,0,30,StatAsync;flash,,MiddleFloorM
 MiddleFloorKitchenCabinetLightSwitchRightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
 MiddleFloorKitchenMainLightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
 MiddleFloorKitchenSinkLightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
-TopFloorFoyerLightP,5,0,60,StatAsync;flash,TopFloorStairsMotion,,2,noDebug
+# thefollowing was deleted in favor of motion sensor automatically turning on light for responsiveness
+#TopFloorFoyerLightP,5,0,60,StatAsync;flash,TopFloorStairsMotion,,2,noDebug
 TopFloorMasterBathLavFan,10,100,100,StatAsync,,TopFloorMasterBathLavMotion,2,noDebug
-TopFloorMasterBathLavLight,10,0,3,StatAsync;flash,TopFloorMasterBathLavMotion,,2,noDebug
+# thefollowing was deleted in favor of motion sensor automatically turning on light for responsiveness
+#TopFloorMasterBathLavLight,10,0,3,StatAsync;flash,TopFloorMasterBathLavMotion,,2,noDebug
 TopFloorMasterBathLinenP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterBathVanityLightP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterLightsP,60,20,60,StatAsync;flash,,GregsDeskMultisensorMotion;TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterUnderBedOutletTop,60,0,100,StatSync;Automatic,TopFloorMasterMotion,TopFloorMasterBathMotion;GregsDeskMultisensorMotion,2,debug
 TopFloorMasterShowerLightP,10,0,100,StatAsync;flash,TopFloorMasterBathShowerMotion,TopFloorMasterBathMotion;TopFloorMasterMotion;TopFloorMasterBathLavMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorPorchLightP,5,0,100,StatAsync;flash,,,2,noDebug
-TopFloorStairwellLightP,5,0,60,StatAsync;flash,TopFloorStairsMotion,,2,noDebug
+# thefollowing was deleted in favor of motion sensor automatically turning on light for responsiveness
+#TopFloorStairwellLightP,5,0,60,StatAsync;flash,TopFloorStairsMotion,,2,noDebug
 ########################################################
 #
 # Companion – Usually a Dimmer or Switch
@@ -396,8 +398,8 @@ deviceName,sceneNumberDay,sceneNumberNight,members,onControllers,sustainControll
 #MasterBathroomAll,9,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 #MasterAll,10,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
 #TopFloorStairsAll,11,TopFloorMasterBathLavFan;TopFloorMasterShowerLightP;TopFloorMasterBathVanityLightP;TopFloorMasterBathLinenP;TopFloorMasterBathLavFan,noDebug
-MiddleFloorHallGroup,12,13,MiddleFloorBathVanityLightP;BottomFloorStairsLightP,MiddlefloorHall,,Debug
-UpperStairsGroup,0,14,TopFloorFoyerLightP;TopFloorStairwellLightP,TopFloorStairsMotion,,Debug
+#MiddleFloorHallGroup,12,13,MiddleFloorBathVanityLightP;BottomFloorStairsLightP,MiddlefloorHall,,Debug
+UpperStairsGroup,11,14,TopFloorFoyerLightP;TopFloorStairwellLightP,TopFloorStairsMotion,,Debug
 
 
 ########################################################

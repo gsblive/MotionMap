@@ -248,7 +248,7 @@ class Plugin(indigo.PluginBase):
 			mmLib_Log.logError( "MMSys Distributing \'initComplete\' failed. Exception: " + str(exception))
 
 		mmLib_Log.logForceGray("### " + _MotionMapPlugin.MM_NAME + " plugin: startup completed in " + str(round(time.time() - startTime, 2)) + " seconds. ")
-		mmLib_Log.logTimestamp( _MotionMapPlugin.MM_NAME + " Startup complete. " + _MotionMapPlugin.MM_NAME + " is now running.")
+		mmLib_Log.logTimestamp( _MotionMapPlugin.MM_NAME + " Startup complete. " + _MotionMapPlugin.MM_NAME + " is now running. ### Current Install iCloud Version ###")
 
 		return
 

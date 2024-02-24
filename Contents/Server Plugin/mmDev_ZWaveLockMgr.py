@@ -172,7 +172,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 	# makeScheduleDict - We manage the schedule through two files. We make a dict from those files for easy processing.
 	# This routine is called twice... once for the primary schedule, and once for the new arrival additions
 	#
-	def makeScheduleDict(self, theFilePath, todayISO):
+	def makeScheduleDict(self, theFilePath, todayISO, ignoreDates):
 
 		self.currentHeader = 0
 
@@ -247,7 +247,7 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 
 				if todayISO > arrivalTimeISO:
 					# Tennent arrived 1 or more days ago, but may be due to leave today
-					if todayISO >= departureTimeISO:
+					if not ignoreDates and todayISO >= departureTimeISO:
 						# Departure time is today, or in the past. Mark the code for deletion,
 						self.scheduleDict["Delete"] = dictEntry
 						if self.debugDevice: mmLib_Log.logForce(self.deviceName + " self.deviceName + Stay is over, marking entry \'" + dictEntry['GuestName'] + " " + dictEntry['ArrivalDate'] + "\' for deletion.")
@@ -460,10 +460,10 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Making Arrival Dict.")
 		# this is a test
-		localError = self.makeScheduleDict(self.ArrivalSchedule, todayISO)
+		localError = self.makeScheduleDict(self.ArrivalSchedule, todayISO, 0)
 		if not localError:
 			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Finished Arrival Dict. OK")
-			localError = self.makeScheduleDict(self.NewArrivals, todayISO)
+			localError = self.makeScheduleDict(self.NewArrivals, todayISO, 0)
 			if not localError:
 				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Finished NewArrival Dict. OK")
 			else:
@@ -505,12 +505,12 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 			# Add NewArrivals to ArrivalHistory
 			self.scheduleDict = {}
 			self.currentHeader = 0
-			localError = self.makeScheduleDict(self.HistoricalArrivals, todayISO)
+			localError = self.makeScheduleDict(self.HistoricalArrivals, todayISO, 1)
 			if localError:
 				mmLib_Log.logForce(self.deviceName + "### Warning ###: Cannot access History File.")
-				localError = self.makeScheduleDict(self.HistoricalArrivals, todayISO)
+				localError = self.makeScheduleDict(self.HistoricalArrivals, todayISO, 0)
 			else:
-				localError = self.makeScheduleDict(self.NewArrivals, todayISO)
+				localError = self.makeScheduleDict(self.NewArrivals, todayISO, 0)
 				if localError:
 					mmLib_Log.logForce(self.deviceName + "### Warning ###: Cannot add newArrivals to History File.")
 				else:
