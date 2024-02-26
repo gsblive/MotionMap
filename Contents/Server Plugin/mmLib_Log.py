@@ -3,8 +3,7 @@
 # mmLib_Log.py (Version 2.0)
 #		This version uses an object for the logger based loosely on python login functionality
 #		This replaces all functionality for  mmLib_Log.py maintaining all command compability
-#		This version is slightly more performance enhanced, however if you need to look at
-#		earlier code, the original is called mmLib_LogOld.py
+#		This version is slightly more performance enhanced
 #
 # Error Log processing for MotionMap3
 #

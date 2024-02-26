@@ -338,7 +338,7 @@ GregsOfficeWallOutletSwitch,1,0,0,StatAsync;flash,,GregsOfficeMotion;GregsDeskMo
 GuestHallLight,1,100,100,StatAsync;flash,,GuestRoomMotion,2,noDebug,,
 GuestLight,600,100,100,StatAsync;flash,,GuestRoomMotion,2,noDebug,,
 GuestFan,600,100,100,StatAsync;flash,,GuestRoomMotion,2,noDebug,,
-GuestBathMainLight,1,100,37,StatAsync;flash,GuestBathMotion,,2,noDebug,,
+GuestBathMainLight,1,100,37,StatAsync;flash,GuestBathMotion,,2,Debug,,
 GuestBathVanityLight,30,100,37,StatAsync;flash,,GuestBathMotion,2,noDebug,,
 GuestBathFan,30,100,37,StatAsync;flash,,GuestBathMotion,2,noDebug,,
 HalfBathMainLight,1,100,100,StatAsync;flash,HalfBathMotion,,2,Debug,,

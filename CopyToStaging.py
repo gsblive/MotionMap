@@ -2,6 +2,7 @@ import distutils.core
 import os
 import subprocess
 import os
+import datetime
 import time
 
 #
@@ -94,6 +95,28 @@ theCopyDir = theStatDir.replace(" ","\ ")	# because os.access doesnt like escape
 
 indigoPlugin = os.path.abspath(os.path.join(myPath, os.pardir))
 indigoPlugin = indigoPlugin.replace(' ', '\\ ')
+
+################# Update the MM_VersionInfo.py file
+#
+# Should initially read:
+#
+# MM_UploadTime = "currentTime"
+# MM_UploadTime above must be first line as it is processed during upload routine (CopyToStaging)
+# Etc...
+# MM_Name =
+#####################################
+
+# First update the upload time field in MM_VersionInfo
+
+VIFile = os.path.abspath(os.path.join(myPath, os.pardir) + "/Contents/Server Plugin/MM_VersionInfo.py")
+theTimeString = time.strftime("%m/%d/%Y %I:%M:%S %p")
+newFirstLine = "MM_UploadTime = " + '\"' + theTimeString + '\"'	# Inject the necessary quotes around the date/time assignment
+newFirstLine = newFirstLine.replace('/', '\/')		# excape the date slashes
+print("#### Updating first line of MM_VersionInfo to: " + "'" + newFirstLine + "'")
+cmd = ['sed', '-i', '-e', '1,1s/.*/' + newFirstLine + '/g', VIFile]
+subprocess.call(cmd)
+quit()
+###########################################################
 
 theResult = os.access(theStatDir, os.W_OK)
 if not theResult:

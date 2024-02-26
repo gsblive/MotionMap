@@ -80,9 +80,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 			if 'Automatic' in self.specialFeatures:
 				#if it doesn't have a current state saved, initialize it to AUTOMATIC_MODE_ON
 				mmLib_Low.initializeNVElement(self.ourNonvolatileData, "AUTOMATICMODE", mmLib_Low.AUTOMATIC_MODE_ON)	# Always defaultd as ON (if possible)
+				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " states that AutomaticMode IS present in special featuers")
 			else:
 				#if it doesn't have a current state saved, initialize it to AUTOMATIC_MODE_NOT_POSSIBLE
 				mmLib_Low.initializeNVElement(self.ourNonvolatileData, "AUTOMATICMODE", mmLib_Low.AUTOMATIC_MODE_NOT_POSSIBLE)
+				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " states that AutomaticMode IS NOT present in special featuers")
 
 			# We obsoleted on/off motionsensor support in favor of Occupation events from occupation groups. But to do that, the motion sensors need to be in groups.
 			# This transition allows to deal with only one "MotionSensor" (real or virtual) at a time... we dont have to do check loops to see if they all agree on state
