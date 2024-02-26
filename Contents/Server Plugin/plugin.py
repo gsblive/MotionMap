@@ -24,6 +24,7 @@ except:
 import mmLib_Log
 import mmLib_Low
 import mmLib_Events
+import MM_VersionInfo
 
 import mmLib_CommandQ
 import mmLib_Config
@@ -155,6 +156,7 @@ class Plugin(indigo.PluginBase):
 		self.debug = True
 
 		mmLib_Log.init("MotionMap.log", self)
+		MM_VersionInfo
 
 		try:
 			s = sys.version
@@ -195,7 +197,10 @@ class Plugin(indigo.PluginBase):
 
 		startTime = time.time()
 
-		mmLib_Log.logForceGray("### " + _MotionMapPlugin.MM_NAME + " plugin version " + _MotionMapPlugin.MM_VERSION + ". Startup called")
+
+		mmLib_Log.logForceGray("#####################################################################################")
+		mmLib_Log.logForceGray("### " + _MotionMapPlugin.MM_NAME + " plugin version " + _MotionMapPlugin.MM_VERSION + " Uploaded: " + MM_VersionInfo.MM_UploadTime + ". Startup called")
+		mmLib_Log.logForceGray("#####################################################################################")
 
 		mmLib_Log.start()
 		mmLib_Low.init()
