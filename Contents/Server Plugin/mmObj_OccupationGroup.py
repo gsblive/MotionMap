@@ -186,7 +186,7 @@ class mmOccupationGroup(mmComm_Indigo.mmIndigo):
 	#
 	def getOnState(self):
 
-		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ON: return(False)
+		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ACTIVE: return(False)
 
 		for member in self.members:
 			if not member: continue

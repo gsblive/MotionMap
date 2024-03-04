@@ -67,7 +67,7 @@ class mmIOLink(mmObj_Motion.mmMotion):
 		super(mmIOLink, self).deviceUpdatedEvent(eventID, eventParameters)  # Call Base Class
 
 	def getOnState(self):
-		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ON: return(False)
+		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ACTIVE: return(False)
 		self.currentOnState = self.theIndigoDevice.states["binaryInput1"]
 		if self.debugDevice: mmLib_Log.logForce( "  === OnState for " + self.deviceName + " is " + str(self.currentOnState))
 		return(self.currentOnState)

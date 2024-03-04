@@ -3,20 +3,6 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="/Contents/Server Plugin/_Configurations/mmConfig.Engineering.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Contents/Server Plugin/_Configurations/mmConfig.Gamay.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="/Contents/Server Plugin/_Configurations/mmConfig.Regency.csv">
           <value>
             <Attribute>
@@ -25,13 +11,6 @@
           </value>
         </entry>
         <entry key="/Contents/Server Plugin/_Configurations/mmConfig.SandCastle.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Contents/Server Plugin/_Configurations/mmConfig.SkyCastle.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

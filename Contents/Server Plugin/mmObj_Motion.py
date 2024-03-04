@@ -62,7 +62,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		self.lastOnTimeSeconds = 0
 		self.lastOffTimeSeconds = 0
 		self.blackOutTill = 0
-		self.onlineState = mmLib_Low.AUTOMATIC_MODE_ON
+		self.onlineState = mmLib_Low.AUTOMATIC_MODE_ACTIVE
 
 		super(mmMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 		if self.initResult == 0:
@@ -211,27 +211,32 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	#	we support the following requestedStates:
 	#
-	#	'on'			The motion sensor received an on signal
-	#	'off'			The motion sensor received an off signal
-	#	'bedtime'		The motion sensor is sleeping till morning
+	#	'ON'			The motion sensor is to be put online and activated (mmLib_Low.AUTOMATIC_MODE_ACTIVE)
+	#	'SLEEP'			The motion sensor is sleeping till morning (mmLib_Low.AUTOMATIC_MODE_SLEEP)
+	#	'OFF'			The motion sensor to be put offline (mmLib_Low.AUTOMATIC_MODE_OFFLINE)
 	def setOnOffLine(self, requestedState):
+		if self.debugDevice: mmLib_Log.logForce("Setting " + self.deviceName + "'s onOfflineState to \'" + requestedState + "\'. Current State is: " + self.onlineState)
 
 		if self.onlineState != requestedState:
 			if self.debugDevice: mmLib_Log.logForce("Setting " + self.deviceName + " onOfflineState to \'" + requestedState + "\'.")
 
 			self.onlineState = requestedState
 
-			if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ON:
+			if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ACTIVE:
 				self.occupiedState = False	# if the device is offline (or bedtime mode), assume it is also unoccupied.
 				# if there are any delay procs, delete them, they are not valid anymore
 				mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
 				mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
 				mmLib_Log.logForce( "Motion sensor " + self.deviceName + " is going offline because it\'s \'onlineState\' is " + str(self.onlineState))
-				if self.onlineState == mmLib_Low.AUTOMATIC_MODE_OFF:
-					mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Offline #")
+				if self.onlineState == mmLib_Low.AUTOMATIC_MODE_SLEEP:
+					mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Sleeping #")
 				else:
-					mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Bedtime #")
+					# the only other option is offline
+					mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Offline #")
 				mmLib_Events.distributeEvents(self.deviceName, ['UnoccupiedAll'], 0, {})  # dispatch to everyone who cares
+			else:
+				# going active
+				mmLib_Low.setIndigoVariable(self.occupationIndigoVar, "# Awake, no motion yet. #")
 
 		return(0)
 
@@ -240,7 +245,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# getSecondsSinceState - how many seconds since the device was in the given on/off state
 	#
 	def getSecondsSinceState(self, theState):
-		if self.onlineState in [mmLib_Low.AUTOMATIC_MODE_ON, mmLib_Low.AUTOMATIC_MODE_OFF]: return(int(60*60*24))	# default to a high number if the device is offline
+		if self.onlineState in [mmLib_Low.AUTOMATIC_MODE_ACTIVE, mmLib_Low.AUTOMATIC_MODE_SLEEP]: return(int(60*60*24))	# default to a high number if the device is offline
 
 		if theState == 'on':
 			theStateTime = self.lastOnTimeSeconds
@@ -252,7 +257,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	def getOnState(self):
 
-		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ON: return(False)
+		if self.onlineState != mmLib_Low.AUTOMATIC_MODE_ACTIVE: return(False)
 		return(self.theIndigoDevice.onState)
 
 
@@ -631,11 +636,17 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " is not processing event \'onState:" + str(newOnState) + "\' because it was receive during blackout time.")
 			return 0
 
-		if self.onlineState == mmLib_Low.AUTOMATIC_MODE_OFF and newOnState == True:
-			if self.debugDevice: mmLib_Log.logForce("Bringing " + self.deviceName + " back online.")
-			self.setOnOffLine(mmLib_Low.AUTOMATIC_MODE_ON)
+		if 0:
+			if self.onlineState == mmLib_Low.AUTOMATIC_MODE_SLEEP and newOnState == True:
+				if self.debugDevice: mmLib_Log.logForce("Bringing " + self.deviceName + " back online.")
+				self.setOnOffLine(mmLib_Low.AUTOMATIC_MODE_ACTIVE)
+		else:
+			# Similarly, if we are offline or sleeping, dont process the event.
+			if self.onlineState == mmLib_Low.AUTOMATIC_MODE_SLEEP or self.onlineState == mmLib_Low.AUTOMATIC_MODE_OFFLINE:
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Motion Skipped because Offline state is: " + self.onlineState)
+				return 0
 
-		if self.onlineState == mmLib_Low.AUTOMATIC_MODE_ON:
+		if self.onlineState == mmLib_Low.AUTOMATIC_MODE_ACTIVE:
 
 			if newOnState != mmLib_Low.AUTOMATIC_MODE_NOT_POSSIBLE:
 				if self.debugDevice: mmLib_Log.logForce(self.deviceName + ": Motion Onstate = " + str(newOnState))
