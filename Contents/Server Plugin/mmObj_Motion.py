@@ -164,6 +164,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			if commandParameters.cmdSuccess == True:
 				self.LEDDaytimeMode = indigo.variables['isDaylight'].value  # str("true") means enable LED, str("false") means disable
 				if self.debugDevice: mmLib_Log.logForce("LEDDaytimeMode for " + self.deviceName + " Successfully set to:" + str(self.LEDDaytimeMode))
+
+		elif theCommandByte == mmComm_Insteon.kInsteonStatusRequest:
+			if self.debugDevice: mmLib_Log.logForce(
+				"Status for " + self.deviceName + " Successfully received from:" + str(self.LEDDaytimeMode) + " " + str(commandParameters.replyBytes))
+
 		else:
 			mmLib_Log.logForce( "###Unknown complete event type " + str(theCommandByte) + " for " + self.deviceName + " during command completion.")
 

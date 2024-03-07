@@ -274,7 +274,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		#
 		#		mmLib_Low.AUTOMATIC_MODE_NOT_POSSIBLE = this device does not support Auto Mode selection (this is the normal case for all load devices)
 		#		mmLib_Low.AUTOMATIC_MODE_ACTIVE = this device supports automatic mode selection but is currently behaving in the standard sense
-		#		mmLib_Low.AUTOMATIC_MODE_SLEEP = this device is currently sleepint (offline) until morning or user interaction with the switch
+		#		mmLib_Low.AUTOMATIC_MODE_SLEEP = this device is currently sleping (offline) until morning or user interaction with the switch
 		#		mmLib_Low.AUTOMATIC_MODE_OFFLINE = this device is offline and will remain so until manually brought online (does not react to dawn)
 		#
 		########################################################

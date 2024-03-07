@@ -17,16 +17,242 @@ https://www.indigodomo.com/
 
 A few things you can do with this plugin...
 
-Associate Master (load) light switches with companion (noload) switches. Usage would include a load switch at the end of a hall and a
+Associate Primary Load Devices (LoadDevice) light switches/dimmers with companion (Companion) switches/dimmers. Usage would include a load switch at the end of a hall and a
 companion at the other end. Instead of linking both switches through Insteon protocol, link one-way companion to master so the master
 has high response rate. The problem this solves is that you are not linking two way (which causes communication collisions in busy insteon
 deployments). THe MotionMap plugin will take care of making the companion switch match the Master's settings (i.e. the indicator LEDs will
 match on both ends of the hall - a pet peeve of mine
 
-Associate master (load) switch with motion activity. Upon entering a room, the light will come on (and you will ge the benefit above if you
+Note that the master
+
+Also Associate any LoadDevice switch or dimmer with motion activity. Upon entering a room, the light will come on (and you will ge the benefit above if you
 have companion switches). Also, you can specify (in the configuration file) a separate daytime and nighttime brightness setting for the
 switch (which means you can enjoy automatic nughtlight illumination upon entering a dark room instead of full-on brightness that you might
 want in daytime).
+
+Note about dimmer/switch linking with and without MotionMap...
+The usual way to associate a load device to a motion sensor in this environment is to link the loadDevice and companion through a comprehensive
+event structure in Indigo UI itself. MotionMap just allows you to do it in a single CSV file for all of your devices, saving many steps and creation of many
+ActionItems + Triggers in the Indigo UI... All without adding any measurable processing overhead.
+
+Note about dimmer/switch linking with motion sensors with and without MotionMap...
+Similar to load to companion device linking, with MotionMap you can associate one or more Motion sensors to one or more load devices (one-to-one and many-to-many).
+Again, with MotionMap, you get the advantage of setting this in a configuration file instead of creating a trigger and/or action item for each instance of
+association. Also note that in MotionMap, Insteon devices and ZWave devices are interchangeable... You can have a zwave multisensor conteol an insteon Light or dimmer
+and vice-versa.
+
+Note about motionMap vs Insteon (non Indigo) intregrated linkage between motion sensor and Insteon switch/dimmer...
+Making a manual linkage between an insteon motion sensor and an insteon dimmer/switch has an advantage of muchhigher response time... at a cost...
+If you manually link your motion sensors to switch/dimmers, the response time is much faster than using Indigo or MotionMap because the motion sensor
+sends a direct command to the presumably nearby switch/dimmer without server intervention.
+
+However...
+
+Making such a manual link has its limitations that once the motion sensor stops detecting motion, it will turn off the light. You have to move again to
+restore the light to its ON position. But the limitation is that you cant easily diferentiate what brightness to set for Daytime and Nighttime
+
+MotionMap configurator (CSV file) allows you to set independant daytime brightness levels form nighttime brightness levels for all dimmers and
+switches... Here's why this is important:
+
+Not all rooms are created equal. In a room like a family room, chances are you have multiple windows that bring in plenty of light and you generally dont
+turn on the light when you are in said room, until at night. Conversely, for an interior hallway, stairway, or powder room, its not atypical for those
+locations to not have any windows at all so you want to have the automatic light come on automatically when entering those locations. The fact is that
+each room in each house has different requirements and desired behaviors. Though you can address this through Indigo with Indigo schedules, and triggers -
+There is no solution if you use insteon direct Insteon linking because you dont have independent control of day/night brightness, but MotionMap
+offers you the following control:
+
+Independent daytime and nighttime light Levels of 0-100% (note that the insteon dimmers only support maybe 32 light levels, but we use percentage
+because future or other platforms may offer percentage based control. Also note that switches (as opposed to dimmers) only respond to Brightness level
+0 = Off and NonZero = On
+
+
+Here are some use cases...
+
+Interior Hallway/stairs Case:
+You will want to set Daytime Brightness and Nighttime brightness to your liking. In the daytime, you are OK with 100% light when you enter these
+areas because you probably just left a well-lit area. However at night, you may not want to have a bit lower setting so as not to shock your eyes
+with an abrupt change in light. The lower light at night is also handy if the hallway is adjacent to bedrooms for when sleepers have to
+go from sleeping to a nearby bathroom in the middle of the night.
+
+Bathrooms/Powder rooms:
+If interior with no windows you would set it up similar to Hals and Stairs above. But if it has a lot of natural light, you may prefer to add light only at night.
+
+Kitchen:
+These in many cases are Well-lit with natural light but may want to set brightness of 100/100 because
+its always a good idea to cook with a good amount of light, but, hey MotionMap makes that your call.
+
+Bedrooms:
+You want control of light levels based on your need and how the bedroom is used. For example if there is a desk in the bedroom (typical for a teen in the house),
+you want a fairly bright environment while occupied... If its a naturally well lit room, you can get away with no light at all in the daytime (setting of 0%), but at dusk
+you will probably want a middle level of light until going to sleep for the night (we will get to that later).
+
+OK Light levels are great, but how long do you want the light to stay on?
+
+Again this is not something you can easily control on direct linking or Indigo schedules, triggers, and action items. But with MotionMap you set independant values for
+uniquely describing occupied vs vacant areas of your home. When motion is detected, the area near the motion sensor is considered occupied, but when the motion is no longer detected
+it doesnt necessarily mean the room became unoccupied, instead it has to assumed that a person may have stopped moving... possibly reading, watching tv or sleeping. So for each room
+you set up some specific time limits to help tell MotionMap how each area is used again we do this in the MotionMap config file (again, you could do it with schedule,
+triggers, and actionitems in Indigo) - but in MotionMap its just two fields (per motion sensor) in the config file...
+
+In each motion sensor description in a MotionMap config file, you control:
+   maxMovement:
+            How long (in minutes) the sensor is allowed to stay on before it is assumed to actually be off. This tends to be a very large number because it only is relevant if the motion sensor
+            fails to deliver an off command... This can happen in cases of severe communication collisions, power failures, dead motion sensor battery. You want generally want a number in that
+            is greater than the worst-case scenario for the amount of time you expect to stay in this room.
+
+   minMovement
+            How long (in minutes) that non-motion is allowed before non-occupancy is assumed. This tends to be a much smaller number (but is in fact more important than maxMovemenr above) that
+            generally reflects how long you would expect be moving around in any given area. You make this assessment when setting this value based on your activity in a certain area.
+
+   Examples:
+
+            Laundry room.
+
+            maxMovement -   If you stay in your laundry room to just move clothes from the washer to the dryer.. you are probably fine with setting a number in the 15 minute range, but set
+                            it up to an hour in case you spill detergent and have to clean it up (so the light isnt forced off while you are cleaning). Or if you also fold clothes in this
+                            room... set this nuber higher than the average time... maybe 2 hours
+
+            minMovement -   You probably dont hang out in the laundry room much, and you will probably be moving the whole time you are there (moving cloe from machine to machine) which will keep
+                            the motion sensor satisfied you are there. But you may stop moving a bit while trying to open the child-safe detergent container. A good bet would be like 15 minutes
+                            for this value.
+
+
+            Hallway or Stairs.
+
+            maxMovement -   You are usually in and out so a low setting like 5 minutes will usually suffice. But there are there longer (moving furnature, painting, etc) when you will be moving
+                            while you are there. Remember, given that this is really a fall-back nunmber in case a vacancy message form the motion sensor is not received for some reason You can
+                            set this number pretty high without concern, say 15 minutes, even an hour it... usually wont have any effect on your day to day experience (unless your motion sensor
+                            battery is getting low and you ar missing some commands).
+
+            minMovement -   You probably hang out in the hall (stationary) even less than the laundry room. You can easily set this low (like 5 minutes). If you guess wrong, dont worry because
+                            MotionMap will flash the light before it turns it off. If you see the light flash, just wave your arms around so the motion sensor sees you and resets the movement
+                            timer (then edit this number when you are back at your computer).
+
+
+            Home Theater.
+
+
+            maxMovement -   You commonly are stationary in this room for an extended period of time. It is possible (depending how far away you are from the motion sensoe) that
+                            it may not detect your motion for the duration of the whole movie... set this real high in that case because it may only be detecting you when you come and go
+                            from this room. maybe 4 hours
+
+            minMovement -   This number is more important in a theater because you may not move very much here. Set this number pretty high too say the length of an average movie 2-3 hours.
+                            Again remember, the light wil flash off and on again 1 minute before it turns off, at which time standing (which you probably should do after 2 or 3 hours)
+                            or moving your arms will reset the clock.
+
+            Office/bedroom
+            with a desk.
+
+            maxMovement -   You will be in this room a lot either sleeping or typing/reading the computer. So the max amount of time may be up to 10 hours or more you are in the room.
+
+            minMovement -   You commonly are stationary in this room in front of a computer for an extended period of time. In these scenarios, I recommend using 2 motion sensors... One for
+                            detecting moving around the room that is centrally located, and another at the desk (I have mine on my keyboard tray so it can see me typing). This is set up as
+                            an occupation group described below. If you dont set it up this way, its likely the room will think its vacant while you are working on your computer. dont worry,
+                            just use the whole-room sensor and wave your arms as necessary. Use an hour or two depending on how often you want to flap your wings.
+
+            Bedroom.
+
+            maxMovement -   You will be moving in this room getting ready for bed or preparing for the day, but then you will be sleeping and probably dont want the light to come on during sleep.
+                            Because having lights turn automatically and sleeping are mutually exclusive, there is a special provision for this case called sleep-mode detailed below. Assuming
+                            you are using sleep mode, set max motion very high like 10 hours because it wont matter in sleep mode. It is common that this high number may be reached
+                            but that is OK because the only thing it will do is turn off the light (you are sleeping it will be OK).
+
+            minMovement -   This is only important when you are getting ready for bed, or ready for the day. Set this number to the worst case amount of time you are stationary
+                            while doing this, say an hour?
+
+Occupation Groups
+Combine motion sensors or additional ocupation groups together to work as one. As mentioned above, I use this for a simple case mentioned above. In my office, I have a motion sensor
+that detects me entering or moving around the office, but while using my computer I am hardly moving aside from my fingers). So, I have an additonal sensor on my keybpard tray that
+specifically looks for movement near my keyboard and the trackpad - even the slightest movement results in refreshing the notion of occupation.
+
+An occupation group is specified in the motionmap config file much like a motion sensor (with the maxMovement and minMovement settings), but it contains a list of motions sensors
+or other occupation groups that feed it information (constituent members). It combines all occupied/unoccupied data from all of its constituent members that collectively (a sum of
+all member's input), then applies its own maxMovement and minMovement settings to determine if the related area should be considered occupied or vacant. If there is a change to its calculated
+state, then an event will be delivered to any device subscribing to the group.
+
+How does it work, in detail.
+When you define a motion sensor in MotionMap, it publishes "occupation" and "unoccupation" events (occupation state) for any interested subscribers (Load device [switch or dimmer]  or any
+other device that cares [Occupation Group or Occupation Action]). When the motion sensor's occupation state changes, motionmap pushes the appropriate new state to anything that subscribe
+to the event. In my sample case (my office):
+
+"OfficeLight", a load device subscribes to occupation events from "Office", an occupation group, which subscribes to occupation events from "OfficeMotion" and "DeskMotion", motion sensors.
+Given this hierarchy (multiple motion sensors), we have to add a new type of occupation event... "OccupiedPartial".
+
+So where a single motion sensor is limited to "OccupiedAll", and "UnoccupiedAll"... An occupation group has a third state "OccupiedPartial". Effectively we only internally care about
+"UnoccupiedAll" vs anything else because occupation is binary as far as motionmap is concerned (for now).
+
+So, if OfficeLight gets an event called "UnoccupiedAll", it applies its min and max timing values to determine if it wants to extend a bit more time, or immediately turn the light off.
+
+So, why have an additional timer in OfficeLight?
+This is because I could have an overall officeLight that cares about officeoccupation as described here, but I may also have an additional accentLight, or desklight that I may want
+to stay on longer for ambience reasons.
+
+This is where it really gets fun.
+
+OccupationActions
+
+You can define OccupationActions that is a scriptable programming construct within Indigo that unlocks more potential for MotionMap that extend the power of occupationgroups further.
+
+An OccupationAction will subscribe to any occupationgroup and react to the occupation events by executing Indigo ActionItems (see indigo docs for actionitems capabilities).
+This opens up a whole world of additional things occupation can control in your home.
+
+Example...
+
+At one of my houses, The house has an occupation group for the whole house... It subscribes to three occupation groups that correspond each of the 3 floors. Each floor subscribes
+to occupation groups representing all its constituent rooms on that floor. Each room subscribes to its motion sensors that are contained in the room, like this...
+
+                                                      [House]
+                                                         |
+        __________________________________________________________________________________________________
+        |                                                |                                               |
+      [Floor 1]                                      [Floor 2]                                       [Floor 3]
+[Bedroom] [Stairway]            [LivingRoom] [DiningRoom] [Bathroom] [Stairway]    [Primary Bedroom] [Primary Bathroom] [Stairway]
+
+
+If "Floor1" becomes occupied, there is an occupationAction that tells MotionMap to turn on the heater for Floor 1. Similarly, for "Floor2" qnd "Floor3" with their
+associated heating sources (Fireplaces and Furnaces).
+
+
+If "House" becomes Unoccupied, All lights in the house are extinguished, all Blinds are closed, all heating sources are turned off, and all Home Locks are locked.
+
+
+
+Sleep mode
+
+If, in your MotionMap config file, you set a device to have a "Automatic" feature set in "specialFeatures" flags for any Dimmer/switch,
+it will have the following behavior...
+
+Double-clicking the switch or dimmer to the off position (issuing a double-beep sound from the switch) which will bring the associated motion sensor offline, meaning
+the motion sensor will no longer deliver on or off events to that load device - keeping the light off. This can be undone by clicking the switch back on, which will
+bring the motion sensor back online, thereby resuming deliveries of motion detection activity. Also built-in is a morning feature that brings the motion sensor back
+online at dawn + 30 mminutes (or something like that).
+
+But wait.. Thats not all!
+If you directly link motion sensors and load devices (for responsiveness), you dont have control of daytime and nighttime behaviors.. all motion will turn on the light
+and lack of motion will turn off the light. Again, this is circumventable in Indigo with the use of Triggers, schedules, and ActionItems.
+
+With MotionMap however, you set a daytime AND nighttime brightness value as described above and the lights will transition to their respective values based on whether
+its daytime or nighttime (or transitiong from one tho the other)
+
+So lets examine the betdime case above when we control the bedtime and nighttime brightness levels...
+
+Sometimes, late sleepers will not want the light to start coming on at dawn+30... Understandable, so here's the fix:
+Set the daytime light value to 0%.. now the light wont come on in the daytime at all. So in practice, you would turn the light on
+manually at some point during the day if you want and it will happily stay on while you are in the room (but will go off while out of the room - this is a common setting
+for rooms that have light coming in from windows). At dusk, MotionMap will start using the nighttime value for brightness, so when you walk into the room for any
+reason the light will turn - It is Night afterall.
+
+But what if you dont want the light to come on?
+When you go to bed (or any time you like), simply double click the light switch to the off position (a double beep will be issued from
+the swich indicating the commencement of bedtime mode)... the light wil stay off till dawn, then go into daytime mode (automatically canceling bedtime mode feature)
+and daytime light values will become active (which in this example are 0) - so no light will come on for the rest of the day until dusk.
+
+Once activated Bedtime mode will remain active until Dawn, or if you deactivate it by clicking the light-in-question to the ON position (and a single beep will occur
+to indicate that you are now out of bedtime mode.
+
+Side note about dimming daytime vs nighttime... If your light is ON at the transition of day->night or night-> day, the light does not simply change brightness, it instead
+gradually increases or decreases the brightness over server minutes (to not shock your eyes). All courtesy of MotionMap.
+
 
 Automatic light off in the absense of motion (or after a specified duration of on-time)
 
@@ -37,7 +263,7 @@ temp settings based on whole-house room-occupation knowledge.
 
 Much more reliable system. MotionMap controls all devices in your house while minimizing uncrolled traffic in the insteon/zwave networks. You can delay
 commands to devices till after the network settles, plus all commands that MotionMap sends can be queued (i.e. a new command wont be dispatched until
-the preceeding cmoand is complete). Motionmap is aware of command failures and does retries as needed for mission critical commands.
+the preceding command is complete). Motionmap is aware of command failures and does retries as needed for mission critical commands.
 
 One-shot or recurring actions. For example MotionMap is programmed to status request sequentially to all the devices in the house to insure they
 are in their expected states (only when the network is idle)
