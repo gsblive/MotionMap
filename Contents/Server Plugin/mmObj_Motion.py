@@ -514,12 +514,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 		return 0
 
 	#
+	# Obsolete
 	# processSwitchOff - A switch was turned off in this domain. Treat it like an immediate unoccupation
 	#
-	def processSwitchOff(self):
-		if self.debugDevice: mmLib_Log.logForce("### Motion sensor " + self.deviceName + " received an OFF event from a subscriber switch." )
-		'UnoccupiedAll', 'OccupiedAll'
-		return 0
+	#def processSwitchOff(self):
+	#	if self.debugDevice: mmLib_Log.logForce("### Motion sensor " + self.deviceName + " received an OFF event from a subscriber switch." )
+	#	'UnoccupiedAll', 'OccupiedAll'
+	#	return 0
 
 	#
 	# distributeOccupation - Distribute Occupation Events and set the indigo occupation variable.
@@ -578,7 +579,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			if self.debugDevice: mmLib_Log.logForce( "Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 			# If this is some kind of occupation event (partial or full), put a notification proc pointer into PublisherDefinedData, just in case someone turns
 			# off a switch (implying unoccupation event). In that case the proc pointer will be called which will reset the occupationState to reflect current new state.
-			mmLib_Events.distributeEvents(self.deviceName, [OccupiedStateList[newOccupiedState]], 0,{'NoticeOfUserTurningLoadDeviceOff': self.processSwitchOff})  # dispatch to everyone who cares
+			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " is sending " + str([OccupiedStateList[newOccupiedState]]) + " event to all registered recipients. ")
+			mmLib_Events.distributeEvents(self.deviceName, [OccupiedStateList[newOccupiedState]], 0,{})  # dispatch to everyone who cares
 			self.occupiedState = newOccupiedState
 		else:
 			if self.debugDevice: mmLib_Log.logForce("Occupation state change for " + self.deviceName + " NOT DISTRIBUTED. Motion Sensor already in " + str(newOccupiedState) + " state.")

@@ -271,7 +271,7 @@ def unsubscribeFromEvents(theEvents, thePublisher, requestedHandler, subscriberN
 #
 # thePublisher				The name of the Registered publisher (see above) who is sending the event
 # theEvent					The text name of the event to be sent (see subscribeToEvents below)
-# theSubscriber				The Text Name of the Subscriber to receive the event
+# theSubscriber				The Text Name of the Subscriber to receive the event, or 0 to indicate send to all subscribers who are registered
 # publisherDefinedData		Any data the publisher chooses to include with the event (for example, if it
 # 								is an indigo command event, we might include the whole indigo command record here)
 # timestamp					The time (in seconds) the event is being published/distributed
@@ -291,6 +291,7 @@ def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedDat
 			try:
 				theQueue = eventPublishers[thePublisher][theEvent]
 			except:
+				mmLib_Log.logForce("#### Debugging Info... There were no subscibers for Event: " + str(theEvent) + ", initiating from Device: "+ thePublisher + ".")
 				theQueue = 0
 
 		if not theQueue or len(theQueue) == 0:
