@@ -77,6 +77,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			self.supportedCommandsDict = {}
 			self.controllerMissedCommandCount = 0
 			self.previousMotionOff = 0
+			self.previousMotionOn = 0
 
 			mmLib_Events.registerPublisher(['on', 'off', 'OccupiedAll', 'UnoccupiedAll'], self.deviceName)
 
@@ -575,7 +576,11 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 		# Original (and reactivated) code here:
 
-		if self.occupiedState != newOccupiedState:
+		# process the event if the occupation state changes from on to off, or any on command received (so we can reset our off timers downstream at the load devices).
+		# we put in that newOccupiedState == True part of the if because sometimes in somewhat rare cases we would not receive an off event, therefore the device would never turn on
+		# again (because the occupied state was always in the True state)
+
+		if self.occupiedState != newOccupiedState or newOccupiedState == True:
 			if self.debugDevice: mmLib_Log.logForce( "Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 			# If this is some kind of occupation event (partial or full), put a notification proc pointer into PublisherDefinedData, just in case someone turns
 			# off a switch (implying unoccupation event). In that case the proc pointer will be called which will reset the occupationState to reflect current new state.
