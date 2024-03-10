@@ -6,17 +6,13 @@ __author__ = 'gbrewer'
 #
 ############################################################################################
 
-# import json
-#import os
-#import traceback
-#import datetime
 
 kMotionDevTolerableMotionBounceTime = 2	#if off/on transition time is > 2 seconds, the device is not bouncing
 kMotionDevMaxSequentialBounces = 50	# if there are more than 50 bounces in a row, there may be a problem (usually requires a battery replacement or reset of parameters)
 OccupiedStateList = ['UnoccupiedAll', 'OccupiedAll', 'Unknown']
 
 try:
-	import indigo
+	import indigo	# needed in runtime
 except:
 	pass
 
@@ -24,16 +20,12 @@ import mmLib_Log
 import mmLib_Low
 import mmLib_Events
 import mmComm_Insteon
-from collections import deque
 import mmLib_CommandQ
 import time
-import itertools
-import pickle
-import collections
 import random
 from datetime import datetime, timedelta
 
-# How many ON transitions will resuklt in a bettery level test
+# How many ON transitions will result in a bettery level test
 BAT_LEVEL_ON_FACTOR = 100
 BAT_LEVEL_CHECK_INTERVAL_SECONDS = 24*3600		# 1 Day
 
@@ -519,7 +511,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# processSwitchOff - A switch was turned off in this domain. Treat it like an immediate unoccupation
 	#
 	#def processSwitchOff(self):
-	#	if self.debugDevice: mmLib_Log.logForce("### Motion sensor " + self.deviceName + " received an OFF event from a subscriber switch." )
+	#	if self.debugDevice: mmLib_Log.logForce("### Motion sensor " + self.deviceName + " received an OFF event from a subscriber switch.")
 	#	'UnoccupiedAll', 'OccupiedAll'
 	#	return 0
 
