@@ -452,29 +452,30 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 	#
 	def completeInit2(self, parameters):
 
-		# If the device is ON, but the associated Motion Sensors say it should be off, turn it off.
+		if not self.manualControl:
+			# Do this only if it's an automatic load device (has motion sensors)
+			# If the device is ON, but the associated Motion Sensors say it should be off, turn it off.
+			try:
+				for member in self.allControllerGroups:
+					if not member: return 0
+					memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
+					if memberDev:
+						occupiedStateResult = memberDev.getOccupiedState()
+						if self.debugDevice: mmLib_Log.logForce( self.deviceName + " called " + member + ".getOccupiedState with a result of " + str(occupiedStateResult))
+						if memberDev.getOccupiedState() != 'UnoccupiedAll': return 0	# at least one member is occupied, so being ON now is fine
+					else:
+						mmLib_Log.logWarning(self.deviceName + " found no mmDevice called " + member + " while trying to access getOccupiedState")
+						return(0)
 
-		try:
-			for member in self.allControllerGroups:
-				if not member: return 0
-				memberDev = mmLib_Low.MotionMapDeviceDict.get(member, 0)
-				if memberDev:
-					occupiedStateResult = memberDev.getOccupiedState()
-					if self.debugDevice: mmLib_Log.logForce( self.deviceName + " called " + member + ".getOccupiedState with a result of " + str(occupiedStateResult))
-					if memberDev.getOccupiedState() != 'UnoccupiedAll': return 0	# at least one member is occupied, so being ON now is fine
-				else:
-					mmLib_Log.logWarning(self.deviceName + " found no mmDevice called " + member + " while trying to access getOccupiedState")
-					return(0)
+					# if we got here all members are showing unoccupied, turn off our device
 
-				# if we got here all members are showing unoccupied, turn off our device
+				if self.debugDevice: mmLib_Log.logForce( "Turning deivce " + self.deviceName + " off as all controllers are reporting Unoccupied")
+				self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
 
-			if self.debugDevice: mmLib_Log.logForce( "Turning deivce " + self.deviceName + " off as all controllers are reporting Unoccupied")
-			self.queueCommand({'theCommand': 'brighten', 'theDevice': self.deviceName, 'theValue': 0, 'retry': 2})
+		# GB Fix me... If the motions say 'ON' and we are 'OFF' then what?
 
-	# GB Fix me... If the motions say 'ON' and we are 'OFF' then what?
-
-		except Exception as exception:
-			mmLib_Log.logWarning( self.deviceName + " Error: " + str(exception))
+			except Exception as exception:
+				mmLib_Log.logWarning( self.deviceName + " Error: " + str(exception))
 
 		return 0
 
@@ -781,10 +782,11 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		processBrightness = True		# assume we are going to process brightness (unless the logic below changes this)
 		areaIsOccupied = self.getAreaOccupiedState(self.allControllerGroups)
 
-		if not self.manualControl:
-			# If a device is off, and the ONController says unoccupied, leave it off
-			if self.theIndigoDevice.onState == False and not self.getAreaOnState([self.onControllerName]):
-				processBrightness = False
+		# If its a manual control device, leave it alone. If the device is off, and the ONController says unoccupied, leave it off
+		# In all other cases, process the brightness as indicated above
+		if self.manualControl or (self.theIndigoDevice.onState == False and not self.getAreaOnState([self.onControllerName])):
+			processBrightness = False
+		if self.debugDevice: mmLib_Log.logForce("#######" + self.deviceName + " has processBrightness variable set to " +str(processBrightness) + " at startup.")
 
 		# now get the current Brightness
 		try:

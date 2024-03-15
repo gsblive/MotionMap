@@ -632,7 +632,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	def	deviceUpdatedEvent(self, eventID, eventParameters):
 
 		newOnState = eventParameters.get('onState', 'na')
-		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " deviceUpdatedEvent EventParameters:" + str(eventParameters) + ". newOnState is " + str(newOnState))
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " deviceUpdatedEvent EventParameters:" + str(eventParameters) + ". newOnState is " + str(newOnState) + ". OnlineState is " + str(self.onlineState) + ".")
 
 		# If we are blacked out, dont process the event.
 
