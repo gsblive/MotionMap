@@ -951,13 +951,12 @@ def batteryReport(theCommandParameters):
 ############################################################################################
 def refreshControllers():
 
-	mmLib_Log.logForce("Resetting mmInsteons to current system status.")
 
 	for mmDev in controllerDeque:
 		try:
-			mmLib_Log.logDebug("Initializing occupancy for " + mmDev.deviceName)
+			if mmDev.debugDevice: mmLib_Log.logForce("Initializing occupancy for " + mmDev.deviceName)
 			mmDev.deviceTime()
-			mmLib_Log.logDebug("Occupancy initialized for " + mmDev.deviceName)
+			if mmDev.debugDevice: mmLib_Log.logForce("Occupancy initialized for " + mmDev.deviceName)
 		except:
 			mmLib_Log.logForce("Failure to initialize occupancy for " + mmDev.deviceName)
 

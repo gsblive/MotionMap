@@ -801,7 +801,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		newBrightnessVal = currentBrightness		# assume no change
 
 		if areaIsOccupied:
-			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " is processing mmDayNightTransition of " + str(eventID) + ". AutomaticMode NV Value is " + str(self.ourNonvolatileData["AUTOMATICMODE"]))
+			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " is processing mmDayNightTransition of " + str(eventID) + ". AutomaticMode NonVolitile Value is " + str(self.ourNonvolatileData["AUTOMATICMODE"]))
 			if areaIsOccupied:
 				if self.debugDevice: mmLib_Log.logForce("       processBrightness is " + str(processBrightness) + ". area is occupied according to " + str(areaIsOccupied) + ". currentBrightness is " + str(currentBrightness))
 			else:

@@ -312,7 +312,7 @@ def distributeEvents(thePublisher, theEvents, theSubscriber, publisherDefinedDat
 			try:
 				theHandler(theEvent, eventParameters)
 			except:
-				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + theEvent + " to " + aSubscriber)
+				mmLib_Log.logError("Publisher " + str(thePublisher) + ". Distribution failure for event " + str(theEvent) + " to " + str(aSubscriber))
 				pass
 
 	return (0)
@@ -418,6 +418,7 @@ def deliverFilteredEvents(object1, object2, theSubscriber):
 				# and mark the events delivered
 				deliveredEventsDict.update(defaultAttributeUpdateHandlerDict)	# All changed attributes get populated here
 			except Exception as exception:
+				mmLib_Log.logWarning( "Event Delivery Failure #1. Event Type \'defaultAttributeUpdateHandlerDict\': " + str(defaultAttributeUpdateHandlerDict) + ". ")
 				mmLib_Log.logWarning( "Event Delivery Failure. Event Type \'AttributeUpdate\' failed to be delivered to " + theSubscriber + ". Exception: " + str(exception))
 				pass
 		else:

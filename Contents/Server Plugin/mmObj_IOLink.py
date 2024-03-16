@@ -39,10 +39,14 @@ class mmIOLink(mmObj_Motion.mmMotion):
 		# We call initLow in favor of calling super(mmIOLink, self).__init__()
 		# so we can override subscribeToEvents, normally done in __init__()
 		# this is all because we are monitoring different update events (self.theIndigoDevice.states["binaryInput1"] instead of self.theIndigoDevice.onState
-
+		self.setDeviceType()
 		self.initLow(theDeviceParameters)
 		if self.debugDevice: mmLib_Log.logForce( " =***= Initializing (Completed BaseClass mmMotion) " + self.deviceName)
 		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'states': 0}}, self.deviceName)
+
+	def	setDeviceType(self):
+		#This is overridden it superclasses
+		self.MotionType = "IOLink"
 
 	#
 	# deviceUpdated

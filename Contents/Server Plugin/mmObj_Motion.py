@@ -39,11 +39,18 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	def __init__(self, theDeviceParameters):
 
+		self.setDeviceType()
+		#mmLib_Log.logForce("###MotionType for " + self.deviceName + " is " + str(self.MotionType) + ". ")
+
 		# We added initLow so it can get called from child classes thereby overriding subscribeToEvents (iOLink device specifically)
 
 		self.initLow(theDeviceParameters)
 
 		mmLib_Events.subscribeToEvents(['AttributeUpdate'], ['Indigo'], self.deviceUpdatedEvent, {'monitoredAttributes': {'onState': 0}}, self.deviceName)
+
+	def	setDeviceType(self):
+		#This is overridden it subclasses
+		self.MotionType = "Motion"
 
 
 	def initLow(self, theDeviceParameters):
@@ -98,29 +105,32 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			# register for the indigo events we want
 
 			mmLib_Events.subscribeToEvents(['initComplete'], ['MMSys'], self.initializationComplete, {}, self.deviceName)
+			self.isInsteonMotionDevice = False
 
 			# The two procedures below are for Battery level process ing for Indigo Motion Sensors only
-			self.isInsteonMotionDevice = False
-			try:
-				prot = self.theIndigoDevice.protocol
-				image = self.theIndigoDevice.displayStateImageSel
-				s1 = "Insteon MotionSensor"
-				s2 = str(prot) + " " + str(image)
-				if not s2.find(s1):
-					self.isInsteonMotionDevice = True
-					# the following is only valid for insteon motions
-					if theDeviceParameters["autoEnableActivityLight"] == "true":
-						self.autoEnableActivityLight = True
-						mmLib_Log.logForce("###DEBUG:Forcing LEDDaytimeMode to Unknown")
-						self.LEDDaytimeMode = "Unknown"		#GB FIX ME.. Make this a nonvolitile
+			if self.MotionType == "Motion":
+				try:
+					prot = self.theIndigoDevice.protocol
+					image = self.theIndigoDevice.displayStateImageSel
+					s1 = "Insteon MotionSensor"
+					s2 = str(prot) + " " + str(image)
+					if not s2.find(s1):
+						self.isInsteonMotionDevice = True
+						# the following is only valid for insteon motions
+						if theDeviceParameters["autoEnableActivityLight"] == "true":
+							self.autoEnableActivityLight = True
+							if self.debugDevice:mmLib_Log.logForce("###DEBUG:Forcing LEDDaytimeMode to Unknown")
+							self.LEDDaytimeMode = "Unknown"		#GB FIX ME.. Make this a nonvolitile
+						else:
+							self.autoEnableActivityLight = False
 					else:
-						self.autoEnableActivityLight = False
-				else:
-					mmLib_Log.logForce("###DEBUG:Not insteon Motion Sensor type for " + self.deviceName + ". Found: " + str(prot) + " " + str(image))
+						if self.debugDevice: mmLib_Log.logForce("###DEBUG:Not insteon Motion Sensor type for " + self.deviceName + ". Found: " + str(prot) + " " + str(image))
 
-			except:
-				mmLib_Log.logForce("###DEBUG:Failed to get device type for " + self.deviceName)
-				pass
+				except:
+					mmLib_Log.logForce("###DEBUG:Failed to get device type for " + self.deviceName)
+					pass
+			else:
+				mmLib_Log.logForce("Device: " + self.deviceName + " is a type: " + str(self.MotionType))
 
 			if self.debugDevice:mmLib_Log.logForce(" ### " + self.deviceName + ".isInsteonMotionDevice: " + str(self.isInsteonMotionDevice))
 
@@ -269,7 +279,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 
 	def setLastUpdateTimeSeconds(self):
 
+		if self.debugDevice: mmLib_Log.logForce("Calling Super setLastUpdateTimeSeconds for " + self.deviceName)
 		super(mmMotion, self).setLastUpdateTimeSeconds()  # Call Base Class
+		if self.debugDevice: mmLib_Log.logForce("Done Super setLastUpdateTimeSeconds for " + self.deviceName)
 
 		if self.getOnState() == True:
 			self.lastOnTimeSeconds = self.lastUpdateTimeSeconds
@@ -330,7 +342,9 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	def initializationComplete(self,eventID, eventParameters):
 
 		# lest start with a clean slate
-
+		#if self.debugDevice: mmLib_Log.logForce("Calling setLastUpdateTimeSeconds for " + self.deviceName)
+		self.setLastUpdateTimeSeconds()
+		#if self.debugDevice: mmLib_Log.logForce("### initializationComplete for " + self.deviceName + ". lastUpdateTimeSeconds = " + str(self.lastUpdateTimeSeconds) + ". ")
 		mmLib_Low.cancelDelayedAction(self.delayProcForNonOccupancy)
 		mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
 		self.processOccupation(1)
@@ -344,9 +358,8 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	#
 	def processOccupation(self, startup):
 
-		if self.debugDevice: mmLib_Log.logForce("ProcessOccuption for " + self.deviceName + ". onLineState = " + str(self.onlineState) + ". onState = " + str(self.getOnState()))
-
 		currentOnState = self.getOnState()
+		if self.debugDevice: mmLib_Log.logForce("ProcessOccuption for " + self.deviceName + ". onLineState = " + str(self.onlineState) + ". onState = " + str(currentOnState) + ". occupiedState = " + OccupiedStateList[self.occupiedState] + " lastUpdateTimeSeconds = " + str(self.lastUpdateTimeSeconds) + ".")
 
 		# Its possible, especially during startup, the time the motion sensor made its last change was some amount of timeback. We account for that
 		# by correcting min and max timeouts by lastUpdateTimeSeconds below
@@ -383,7 +396,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			# device is NOT indicating motion, so set timeout to the minimum. We will still claim occupied until the timer expires
 
 			timeDeltaSeconds = int(self.minMovement) * 60	# do delayProcForNonOccupancy later
-			if self.debugDevice: mmLib_Log.logForce( "Processing OnState False for " + self.deviceName + " with timeDeltaSeconds of " + str(timeDeltaSeconds))
+			#if self.debugDevice: mmLib_Log.logForce( "Processing OnState False for " + self.deviceName + " with timeDeltaSeconds of " + str(timeDeltaSeconds))
 
 			if self.occupiedState == 2:  # startup time?
 				# since we are not calling distributeOccupation, we have to set occupiedState
@@ -405,7 +418,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 												 'timerMessage': "Motion Sensor NonOccupancy Timer"})
 			else:
 				mmLib_Low.cancelDelayedAction(self.delayProcForMaxOccupancy)
-				if self.debugDevice: mmLib_Log.logForce( "Distribute nonOccupancy events for " + self.deviceName + ". Skipping timer because minMovement is 0")
+				#if self.debugDevice: mmLib_Log.logForce( "Distribute nonOccupancy events for " + self.deviceName + ". Skipping timer because minMovement is 0")
 				self.delayProcForNonOccupancy({})  # dispatch to everyone who cares
 
 			# We dont distribute unoccupied events here, but we want to update the indigo variable in all cases
@@ -576,7 +589,7 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 			if self.debugDevice: mmLib_Log.logForce( "Occupied State for " + self.deviceName + " has changed to " + str(OccupiedStateList[newOccupiedState]))
 			# If this is some kind of occupation event (partial or full), put a notification proc pointer into PublisherDefinedData, just in case someone turns
 			# off a switch (implying unoccupation event). In that case the proc pointer will be called which will reset the occupationState to reflect current new state.
-			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " is sending " + str([OccupiedStateList[newOccupiedState]]) + " event to all registered recipients. ")
+			#if self.debugDevice: mmLib_Log.logForce( self.deviceName + " is sending " + str([OccupiedStateList[newOccupiedState]]) + " event to all registered recipients. ")
 			mmLib_Events.distributeEvents(self.deviceName, [OccupiedStateList[newOccupiedState]], 0,{})  # dispatch to everyone who cares
 			self.occupiedState = newOccupiedState
 		else:

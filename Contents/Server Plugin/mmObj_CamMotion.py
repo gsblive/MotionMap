@@ -81,6 +81,7 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 	def __init__(self, theDeviceParameters):
 
 		self.currentOnState = False	# we have to assume we have no motion to start with (cameras dont save a motion state)
+		self.setDeviceType()
 
 		super(mmCamMotion, self).__init__(theDeviceParameters)  # Initialize Base Class
 		if self.debugDevice: mmLib_Log.logForce( " === Initializing " + self.deviceName + ".")
@@ -115,6 +116,11 @@ class mmCamMotion(mmObj_Motion.mmMotion):
 	# End Externally Addessable Routines
 	#
 	######################################################################################
+
+	def	setDeviceType(self):
+		#This is overridden it subclasses
+		self.MotionType = "Camera"
+
 
 	#
 	# setInitialOccupiedState - check to see if the area is occupied or not, dispatch events accordingly
