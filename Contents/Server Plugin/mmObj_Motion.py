@@ -293,8 +293,13 @@ class mmMotion(mmComm_Insteon.mmInsteon):
 	# delayProcForOnStateTimeout - if the device went ON 24 hours ago and never went off... it must be offline
 	#
 	def delayProcForOnStateTimeout(self, theParameters):
-		mmLib_Log.logWarning(self.deviceName + " received \'on\' command 24 hours ago and never received off... changing onOffline state to \'off\'.")
-		self.setOnOffLine('off')
+		if 0:
+			mmLib_Log.logWarning(self.deviceName + " received \'on\' command 24 hours ago and never received off... changing onOffline state to \'off\'.")
+			self.setOnOffLine('off')
+		#Turn it off, not offline
+		mmLib_Log.logWarning(self.deviceName + " received \'on\' command 24 hours ago and never received off... Turning it off now.")
+		indigo.device.turnOff( self.devIndigoID)
+
 		return 0
 
 
