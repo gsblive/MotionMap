@@ -269,7 +269,8 @@ MiddleFloorKitchenSinkLightP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDeb
 # thefollowing was deleted in favor of motion sensor automatically turning on light for responsiveness
 #TopFloorFoyerLightP,5,0,60,StatAsync;flash,TopFloorStairsMotion,,2,noDebug
 TopFloorMasterBathLavFan,10,100,100,StatAsync,,TopFloorMasterBathLavMotion,2,noDebug
-# thefollowing was deleted in favor of motion sensor automatically turning on light for responsiveness
+# thefollowing was deleted in favor of linking the light with the motion sensor directly, thus automatically turning on light for responsiveness.
+# The side effect is that the onboard motoin sensor timer is very quick to turn off when no motion is detected :-(
 #TopFloorMasterBathLavLight,10,0,3,StatAsync;flash,TopFloorMasterBathLavMotion,,2,noDebug
 TopFloorMasterBathLinenP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterBathVanityLightP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
