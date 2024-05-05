@@ -387,7 +387,7 @@ class mmLoad(mmComm_Insteon.mmInsteon):
 		except Exception as exception:
 			silent = 'yes'		#default - no noise
 
-		mmLib_Log.logForce("===== setAutomaticMode being called for " + self.deviceName + "with request mode of " + requestedMode + ".")
+		mmLib_Log.logForce("===== setAutomaticMode being called for " + self.deviceName + "with request mode of " + requestedMode + ", NonVolatile AUTOMATICMODE is: " + self.ourNonvolatileData["AUTOMATICMODE"] + ".")
 
 		# Basically this routine just turns the device online or offline state. However, it's
 		# called BedtimeMode because it has automatic features to turn set the device back to online at daybreak

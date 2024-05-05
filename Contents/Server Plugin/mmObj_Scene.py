@@ -105,6 +105,9 @@ class mmScene(mmComm_Insteon.mmInsteon):
 
 			if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Subscribing to [\'UnoccupiedAll\']" + " from " + str(self.allControllerGroups))
 			mmLib_Events.subscribeToEvents(['UnoccupiedAll'], self.allControllerGroups, self.processUnoccupationEvent, {}, self.deviceName)
+		else:
+			mmLib_Log.logForce( self.deviceName + " ### Failed to Initialize with InitResult of: " + str(self.initResult))
+
 
 
 	######################################################################################
@@ -127,7 +130,19 @@ class mmScene(mmComm_Insteon.mmInsteon):
 	def sendSceneOff(self, theCommandParameters):
 
 		mmLib_Log.logVerbose("Issuing SceneOff " + self.deviceName)
-		indigo.insteon.sendSceneOff(int(self.sceneNumberNight), sendCleanUps=False)	# does not honor unresponsive because this is not really a device
+		### There is always a daytime scene number, but sometimes No Nighttime Scene number
+		#There may be a scene number for day and/or night... they will controll the same devices (brightness may differ)... For Off, we just need to find the nonzero one.
+		#Just to make sure, look for either one being non-zero
+		if int(self.sceneNumberDay) > int(self.sceneNumberNight):
+			theNumber = int(self.sceneNumberDay)
+		else:
+			theNumber = int(self.sceneNumberNight)
+
+		if theNumber != 0:
+			indigo.insteon.sendSceneOff(theNumber, sendCleanUps=False)	# does not honor unresponsive because this is not really a device
+		else:
+			mmLib_Log.logForce("Received a sceneOff command but scene number is 0 (both Day and Night)." + self.deviceName + " ### No sceneOff command issued.")
+
 		self.expectedOnState = False
 
 		return(0)

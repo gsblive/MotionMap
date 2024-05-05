@@ -1,10 +1,6 @@
-   MotionMap3 [||....................] 04:13:25 PM [mmForce] Skipping Daytime reports due to recent report presentation 8:46:05 ago. : mmForce @ mmLib_Low.py.daytimeTransition:359.
-   Action Group                       _Security  ProcessDoorCodes
-   MotionMap3 [||....................] 04:13:26 PM [mmForce] OceanViewLocks Making Arrival Dict. : mmForce @ mmDev_ZWaveLockMgr.py.processSchedule:458.
-   MotionMap3 [|||...................] 04:13:26 PM [mmForce] OceanViewLocks Have Header : mmForce @ mmDev_ZWaveLockMgr.py.makeScheduleDict:195.
-   MotionMap3 [|||...................] 04:13:26 PM [mmForce] OceanViewLockshave dict entry: {'ArrivalDate': '02/14/24', 'DepartureDate': '', 'GuestName': 'Maintenance', 'Code': '8428'} : mmForce @ mmDev_ZWaveLockMgr.py.makeScheduleDict:205.
-   MotionMap3 [|||...................] 04:13:26 PM [mmForce] OceanViewLocksArrival TimeISO = 2024-02-14T00:00:00 : mmForce @ mmDev_ZWaveLockMgr.py.makeScheduleDict:229.
-   MotionMap3 [|||...................] 04:13:26 PM [mmForce] OceanViewLocks WARNING: Departure Time format Error. : mmForce @ mmDev_ZWaveLockMgr.py.makeScheduleDict:235.
-   MotionMap3 [||....................] 04:13:26 PM [mmForce] OceanViewLocks ERROR: Cannot Parse ArrivalSchedule Dict : mmForce @ mmDev_ZWaveLockMgr.py.processSchedule:470.
-   Email+                          sending email 'SandCastle Automation Message' to '9258727124@vtext.com' using Email+ SMTP Server
-/Users/gbrewer/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/MotionMapStaging/Current/MotionMap\ 3.IndigoPlugin/RunReplaceMotionMap.txt
+   MotionMap3 [......................] 08:57:52 AM [mmForce] ###Debugging Information... CommandComplete with COMMAND: [19, 0] for address 3D.BF.24 with scene None : mmForce @ plugin.py.insteonCommandSent:403.
+   MotionMap3 [......................] 08:57:52 AM [mmForce] cmd was: 3D.BF.24 : mmForce @ plugin.py.insteonCommandSent:404.
+   MotionMap3 [|||...................] 08:57:52 AM [mmForce] TopFloorMasterUnderBedOutletTop received command event from 'Indigo'. : mmForce @ mmLogic_Load.py.receivedCommandEvent:242.
+   MotionMap3 [||||..................] 08:57:52 AM [mmForce] TopFloorMasterUnderBedOutletTop receivedCommandEvent. : mmForce @ mmComm_Insteon.py.receivedCommandEvent:155.
+   MotionMap3 [|||...................] 08:57:52 AM [mmForce] ### TopFloorMasterUnderBedOutletTop Automatic Mode is: OFF  ### : mmForce @ mmLogic_Load.py.receivedCommandEvent:281.
+   MotionMap3 [|||...................] 08:57:52 AM [mmForce] ### TopFloorMasterUnderBedOutletTop Processing Automatic Mode. Current Mode is: OFF. Command Byte is: 19 ### : mmForce @ mmLogic_Load.py.receivedCommandEvent:284.

@@ -44,10 +44,10 @@ superClass = 0
 ############################################################################################
 
 MAX_SEQUENTIAL_ERRORS_DEFAULT = 2
-AUTOMATIC_MODE_NOT_POSSIBLE = 'NA'
-AUTOMATIC_MODE_ACTIVE = 'ON'
-AUTOMATIC_MODE_SLEEP = 'SLEEP'
-AUTOMATIC_MODE_OFFLINE = 'OFF'
+AUTOMATIC_MODE_NOT_POSSIBLE = 'NA'	# Load Device Doesnt support Automatic Mode
+AUTOMATIC_MODE_ACTIVE = 'ON'		# Load Device supports Automatic Mode and its currently active
+AUTOMATIC_MODE_SLEEP = 'SLEEP'		# Load Device supports Automatic Mode and its currently de-activated till morning
+AUTOMATIC_MODE_OFFLINE = 'OFF'		# Load Device supports Automatic Mode and its currently turned Off (no automatic actions will take place)
 
 # for Battery Report
 MOTION_MAX_ON_TIME = int(8*60*60)		# 8 hours in Seconds
