@@ -280,7 +280,7 @@ TopFloorMasterBathLinenP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;Top
 TopFloorMasterBathVanityLightP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterLightsP,60,20,60,StatAsync;flash,,GregsDeskMultisensorMotion;TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 # GB Fix Me - Removed ";Automatic" from specialfeatures (orange) below temporarialy until it's debugged for Outlets
-TopFloorMasterUnderBedOutletTop,60,100,100,StatSync;Automatic,TopFloorMasterMotion,TopFloorMasterBathMotion;GregsDeskMultisensorMotion,2,Debug
+TopFloorMasterUnderBedOutletTop,60,0,100,StatSync;Automatic,TopFloorMasterMotion,TopFloorMasterBathMotion;GregsDeskMultisensorMotion,2,Debug
 TopFloorMasterShowerLightP,10,0,100,StatAsync;flash,TopFloorMasterBathShowerMotion,TopFloorMasterBathMotion;TopFloorMasterMotion;TopFloorMasterBathLavMotion;GregsDeskMultisensorMotion,2,noDebug
 TopFloorPorchLightP,5,0,100,StatAsync;flash,,,2,noDebug
 # thefollowing was deleted in favor of motion sensor automatically turning on light for responsiveness (keep a copy with no ON motion Sensor though - For Companions)
