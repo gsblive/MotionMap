@@ -1,6 +1,1 @@
-   MotionMap3 [......................] 08:57:52 AM [mmForce] ###Debugging Information... CommandComplete with COMMAND: [19, 0] for address 3D.BF.24 with scene None : mmForce @ plugin.py.insteonCommandSent:403.
-   MotionMap3 [......................] 08:57:52 AM [mmForce] cmd was: 3D.BF.24 : mmForce @ plugin.py.insteonCommandSent:404.
-   MotionMap3 [|||...................] 08:57:52 AM [mmForce] TopFloorMasterUnderBedOutletTop received command event from 'Indigo'. : mmForce @ mmLogic_Load.py.receivedCommandEvent:242.
-   MotionMap3 [||||..................] 08:57:52 AM [mmForce] TopFloorMasterUnderBedOutletTop receivedCommandEvent. : mmForce @ mmComm_Insteon.py.receivedCommandEvent:155.
-   MotionMap3 [|||...................] 08:57:52 AM [mmForce] ### TopFloorMasterUnderBedOutletTop Automatic Mode is: OFF  ### : mmForce @ mmLogic_Load.py.receivedCommandEvent:281.
-   MotionMap3 [|||...................] 08:57:52 AM [mmForce] ### TopFloorMasterUnderBedOutletTop Processing Automatic Mode. Current Mode is: OFF. Command Byte is: 19 ### : mmForce @ mmLogic_Load.py.receivedCommandEvent:284.
+ /Users/gbrewer/Library/Mobile Documents/com~apple~CloudDocs/Documents/_Short Term Rentals/SandCastle/ArrivalSchedule.csv

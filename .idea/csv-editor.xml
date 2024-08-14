@@ -17,6 +17,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="$USER_HOME$/Documents/_Short Term Rentals/SandCastle/ArrivalSchedule copy.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/Documents/_Short Term Rentals/SandCastle/ArrivalSchedule.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../mmConfig.Regency.csv">
           <value>
             <Attribute>
