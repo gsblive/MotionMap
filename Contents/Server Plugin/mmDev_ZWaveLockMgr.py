@@ -13,12 +13,13 @@ except:
 
 import ntpath
 import re
-from datetime import datetime as dt
+from datetime import datetime, timedelta
 from tkinter.filedialog import askopenfilename
 
 import mmComm_Indigo
 import mmLib_Log
 import mmLib_Low
+import shutil
 
 kLoadDeviceTimeSeconds = 60
 kBlackOutTimeSecondsAfterOff = 10
@@ -61,92 +62,70 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 					if self.debugDevice: mmLib_Log.logForce(
 						self.deviceName + " ### Could not find Lock Device \'" + str(aLock) + "\'.")
 					continue
-
 				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Found Lock Device \'" + str(aLock) + "\'.")
 
-
-######################################################################################
-#
-#
-#	Plugin Entry points
-#
-#
-######################################################################################
-
-	#
-	# deviceUpdatedEvent -
-	#
-	#
-	# deviceUpdatedEvent - tell the companions what to do
-
+		return
 
 	def deviceUpdatedEvent(self, eventID, eventParameters):
-
-		return (0)
-
-	#
-	# completeCommand - we received a commandSent completion message from the server for this device.
-	#
+		#
+		# deviceUpdatedEvent - we received a commandSent completion message from the server for this device.
+		#
+		return 0
 
 	def completeCommandEvent(self, eventID, eventParameters):
+		#
+		# completeCommand - we received a commandSent completion message from the server for this device.
+		#
 		if self.debugDevice: mmLib_Log.logForce(
-			self.deviceName + " received complete Command Event from \'" + eventParameters['publisher'] + "\'.")
+			self.deviceName + " complete command event from \'" + eventParameters['publisher'] + "\'.")
+
 		return (0)
 
-	#
-	# receivedCommand - we received a command from our device. The base object will do most of the work... we want to process special commands here, like bedtime mode
-	#
-
 	def receivedCommandEvent(self, eventID, eventParameters):
+		#
+		# receivedCommand - we received a command from our device. The base object will do most of the work... we want to process special commands here, like bedtime mode
+		#
 
 		if self.debugDevice: mmLib_Log.logForce(
 			self.deviceName + " received command event from \'" + eventParameters['publisher'] + "\'.")
 
 		return (0)
 
-	#
-	# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
-	#
-
 	def errorCommandEvent(self, eventID, eventParameters):
+		#
+		# errorCommand - we received a commandSent completion message from the server for this device, but it is flagged with an error.
+		#
 		if self.debugDevice: mmLib_Log.logForce(
 			self.deviceName + " received error command event from \'" + eventParameters['publisher'] + "\'.")
+
 		return (0)
 
-######################################################################################
-#
-# Externally Addessable Routines, must have a single parameter - theCommandParameters
-#
-######################################################################################
-
-#
-# printLockInfo - turn bedtime mode on if its Nighttime
-#
+	######################################################################################
+	#
+	# Externally Addessable Routines, must have a single parameter - theCommandParameters
+	#
+	######################################################################################
 
 	def printLockInfo(self, theCommandParameters):
+		#
+		# printLockInfo - turn bedtime mode on if its Nighttime
+		#
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Entering printLockInfo")
 		return (0)
 
+	def devStatus(self, theCommandParameters):
 		#
 		# 	devStatus - print the status of the device
 		#
-
-	def devStatus(self, theCommandParameters):
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Entering devStatus")
 
 		return (0)
 
-		######################################################################################
-		#
-		# End Externally Addessable Routines
-		#
-		######################################################################################
-
+	def completeInit(self, eventID, eventParameters):
 		#
 		# completeInit - Complete the initialization process for this device
 		#
-
-	def completeInit(self, eventID, eventParameters):
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Entering completeInit.")
 
@@ -157,63 +136,182 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 
 		return 0
 
+	def PeriodicTime(self, eventID, eventParameters):
 		#
 		# PeriodicTime - we get called every once in a while for maintenance
 		#
-
-	def PeriodicTime(self, eventID, eventParameters):
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Entering PeriodicTime.")
 
 		return 0
 
+	def selectArrivalFile(self):
 		#
 		# selectArrivalFile - Show a dialog box to find the file we want (if its not included in the command line)
 		#
 		# If we cant find the files, we may be able to ask the user to find them.
 		# we will have to store the file path to a variable in indigo
 		#
-
-	def selectArrivalFile(self):
 		self.ArrivalSchedule = askopenfilename()
 		self.NewArrivals = self.ArrivalSchedule.replace("ArrivalSchedule", "NewArrivals")
 		if self.debugDevice: mmLib_Log.logForce("New Arrival Schedule is: " + self.ArrivalSchedule)
 		return (0)
 
+	################### New Code ###################
+
+	def checkASCIIContent(self, filename):
+		# Note and Delete any non-ASCII characters in the file
+		backup_filename = f"{filename}.bak"
+		shutil.copyfile(filename, backup_filename)
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + "*** Processing checkDataIntegrity ***")
+
+		try:
+			# Read the content from the file
+			with open(filename, 'r', encoding='utf-8', errors='ignore') as file:
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + "Processing: " + filename)
+				content = file.read()
+				originalFileLength = len(content)
+				if self.debugDevice: mmLib_Log.logForce(self.deviceName + "Count: ", originalFileLength)
+
+			# Strip non-ASCII characters
+			ascii_content = ''.join(char for char in content if ord(char) < 128)
+			newFileLength = len(ascii_content)
+			if (newFileLength != originalFileLength):
+				fileLengthDelta = originalFileLength - newFileLength
+				if self.debugDevice: mmLib_Log.logForce(
+					self.deviceName + "### Non-ASCII characters found in file. Count: ", fileLengthDelta,
+					" They have been removed.")
+
+			# Write the ASCII-only content back to the file
+			with open(filename, 'w', encoding='ascii', errors='ignore') as file:
+				file.write(ascii_content)
+
+		except Exception as e:
+			# Restore the backup in case of any error
+			shutil.copyfile(backup_filename, filename)
+			mmLib_Log.logForce(
+				self.deviceName + "# An error occurred: {e}. The original file has been restored from {backup_filename}.")
+
+	def checkPinIntegrity(self, dictEntry):
+		#
+		# check pim integrity
+		#
+		lPin = len(dictEntry['Code'])
+
+		# for the purposes of this module we only allow 4 digit pins, though the hardware supports many lengths. We are forcing 4 digit below.
+		# if lPin not in [4,6,8,32]:
+
+		if lPin != 4:
+			priorCode = dictEntry['Code']
+			if lPin < 4:
+				dictEntry['Code'] = dictEntry['Code'].zfill(4)
+			else:
+				# Must be greeter than 4
+				dictEntry['Code'] = dictEntry['Code'][:4]
+			if self.debugDevice: mmLib_Log.logForceAndMail(
+				self.deviceName + " ### WARNING This plugin only supports 4 digit DoorCodes. Replacing given code (" + priorCode + ") with " +
+				dictEntry['Code'] + " for " +
+				dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.",
+				"SandCastle Automation Message", "9258727124@vtext.com")
+
+		return (dictEntry)
+
+	def getISOTime(self, dictEntry, dateName):
+
+		try:
+			theTimeISO = datetime.isoformat(datetime.strptime(dictEntry[dateName], "%m/%d/%y"))
+		except Exception as e:
+			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Time format Error " + dictEntry["GuestName"])
+			theTimeISO = 0
+
+		return (theTimeISO)
+
+	def checkDateIntegrity(self, dictEntry):
+		#
+		# checkDateIntegrity - vsarious date tests with current list entry
+		#
+		if self.debugDevice: mmLib_Log.logForce("##### In checkDateIntegrity")
+
+		if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Converting ISO Times " + dictEntry["GuestName"])
+
+		arrivalTimeISO = self.getISOTime(dictEntry, "ArrivalDate")
+		departureTimeISO = self.getISOTime(dictEntry, "DepartureDate")
+
+		if arrivalTimeISO >= departureTimeISO:
+			if self.debugDevice: mmLib_Log.logForceAndMail(
+				self.deviceName + " WARNING: Arrival Date is >= Departure. Set to arrival + 2 Days. " +
+				dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.",
+				"SandCastle Automation Message", "9258727124@vtext.com")
+			parsed_date = datetime.fromisoformat(arrivalTimeISO)
+			new_datetime = parsed_date + timedelta(days=2)
+
+			# Convert the new datetime object back to an ISO 8601 formatted string
+
+			departureTimeISO = new_datetime.isoformat()
+			parsed_date = datetime.fromisoformat(departureTimeISO)
+			mdy_date_str = parsed_date.strftime("%m/%d/%y")
+
+			# Get rid of leading zeros in date
+			month, day, year = mdy_date_str.split("/")
+
+			# Convert the components to integers to remove leading zeros
+			month = int(month)
+			day = int(day)
+			year = int(year)
+
+			# Format back into "m/d/y"
+			mdy_date_str = f"{month}/{day}/{year}"
+
+			# print("## New Departure Time: " + str(mdy_date_str))
+			dictEntry["DepartureDate"] = mdy_date_str
+			if self.debugDevice: mmLib_Log.logForceAndMail(
+				self.deviceName + "   New Departure Date is " + dictEntry["DepartureDate"] + " for " +
+				dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.",
+				"SandCastle Automation Message", "9258727124@vtext.com")
+
+		return (dictEntry)
+
+	def makeScheduleDict(self, theFilePath, todayISO, ignoreDates):
 		#
 		# makeScheduleDict - We manage the schedule through two files. We make a dict from those files for easy processing.
 		# This routine is called twice... once for the primary schedule, and once for the new arrival additions
 		#
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " ### File Open ###")
 
-	def makeScheduleDict(self, theFilePath, todayISO, ignoreDates):
-
+		fResult = 0
 		self.currentHeader = 0
 
-		# mmLib_Log.logTerse("Parsing file: " + ntpath.basename(theFilePath))			# For just file name
-		# self.deviceName + " Processing file: " + ntpath.basename(theFilePath))  # For just file name)
-		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Processing file: " + theFilePath)  # For just file name
+		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Processing file: " + theFilePath)
+
+		self.checkASCIIContent(theFilePath)
 
 		try:
-			f = open(theFilePath, 'r')
+			f = open(theFilePath, 'r', encoding='utf-8')
+		# f = open(theFilePath, 'r')
 		except Exception as e:
-			mmLib_Log.logForceAndMail(self.deviceName + "Error opening file in parseOccupancySchedule(): " + str(e) + " Terminating session.")
-			# Sometimes we cant find a file, or the the icloud repository is not available
+			mmLib_Log.logForce(self.deviceName + " Error opening file in parseOccupancySchedule(): " + str(
+				e) + " Terminating session.")
+			# Sometimes we cant find a file, or in the icloud repository is not available
 			return (-1)
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " ### File Open ###")
 		try:
 			rawLineList = f.readlines()
 		except Exception as e:
-			mmLib_Log.logForceAndMail(self.deviceName + "Error with f.readlines() in parseOccupancySchedule(): " + str(e) + " Terminating session.")
+			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " ### File Readline Error ###")
+			if self.debugDevice: mmLib_Log.logForce(
+				self.deviceName + " Error with f.readlines() in parseOccupancySchedule(): " + str(
+					e) + " Terminating session.")
 			# sometimes the file cant be read or has an illegal character
 			return (-1)
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Read Complete")
-		for line in rawLineList:
-			mmLib_Log.logForce(line)
+
+		# Now go through every line in the file to make a new dict
 
 		for line in rawLineList:
-			if self.debugDevice: mmLib_Log.logForce(line)
+			if self.debugDevice: mmLib_Log.logForce(self.deviceName + " " + line)
+
 			lineList = line.strip()
 			lineList = lineList.split(",")
 
@@ -226,80 +324,58 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 				try:
 					dictEntry = dict(list(zip(self.currentHeader, lineList)))
 				except Exception as e:
-					mmLib_Log.logForce(self.deviceName + " Failure to make dictionary")
-					mmLib_Log.logForceAndMail(
-						self.deviceName + "Processing Schedule Failure to make dictionary: " + str(
+					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Failure to make dictionary")
+					if self.debugDevice: mmLib_Log.logForce(
+						self.deviceName + " Processing Schedule Failure to make dictionary: " + str(
 							e) + " Terminating session.")
-					return (-1)
+					break
 
 				if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Have dict entry: " + str(dictEntry))
-				lPin = len(dictEntry['Code'])
 
-				if lPin < 4:
-
-					if lPin == 1:
-						dictEntry['Code'] = "000" + dictEntry['Code']
-					elif lPin == 2:
-						dictEntry['Code'] = "00" + dictEntry['Code']
-					elif lPin == 3:
-						dictEntry['Code'] = "0" + dictEntry['Code']
-					lPin = 4
-				# for the purposes of this module we only allow 4 digit pins, though the hardware supports many lengths. We are forcing 4 digit below.
-				# if lPin not in [4,6,8,32]:
-
-				if lPin != 4:
-					mmLib_Log.logForceAndMail(
-						self.deviceName + "WARNING This plugin only supports 4 digit DoorCodes. Please manually change this value for entry " +
-						dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.",
-						"SandCastle Automation Message", "9258727124@vtext.com")
+				dictEntry = self.checkPinIntegrity(dictEntry)
 
 				try:
-					arrivalTimeISO = dt.isoformat(dt.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
+					arrivalTimeISO = datetime.isoformat(datetime.strptime(dictEntry["ArrivalDate"], "%m/%d/%y"))
 				except Exception as e:
-					mmLib_Log.logForce(self.deviceName + "Arrival Time format Error")
-					return (-1)
-
-				if self.debugDevice: mmLib_Log.logForce(self.deviceName + "Arrival TimeISO = " + str(arrivalTimeISO))
-
-				try:
-					departureTimeISO = dt.isoformat(dt.strptime(dictEntry["DepartureDate"], "%m/%d/%y"))
-				except Exception as e:
-					# mmLib_Log.logForce(self.deviceName + "Departure Time format Error")
-					mmLib_Log.logForceAndMail(self.deviceName + " WARNING: Departure Time format Error.",
-											  "SandCastle Automation Message", "9258727124@vtext.com")
-					return (-1)
-
+					mmLib_Log.logForce(self.deviceName + " Arrival Time format Error " + dictEntry["GuestName"])
+					continue
 				if self.debugDevice: mmLib_Log.logForce(
-					self.deviceName + "Departure TimeISO = " + str(departureTimeISO))
+					self.deviceName + " Arrival TimeISO = " + str(arrivalTimeISO))
 
-				if arrivalTimeISO == departureTimeISO:
-					mmLib_Log.logForceAndMail(
-						self.deviceName + " WARNING: ArrivalDate and Departure Date are the same for entry " +
-						dictEntry["GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.",
-						"SandCastle Automation Message", "9258727124@vtext.com")
-					return (-1)
-				elif arrivalTimeISO > departureTimeISO:
-					mmLib_Log.logForceAndMail(
-						self.deviceName + " WARNING: ArrivalDate is after Departure Date for entry " + dictEntry[
-							"GuestName"] + " \'" + dictEntry["ArrivalDate"] + "\'.", "SandCastle Automation Message",
-						"9258727124@vtext.com")
-					return (-1)
+				try:
+					departureTimeISO = datetime.isoformat(datetime.strptime(dictEntry["DepartureDate"], "%m/%d/%y"))
+				except Exception as e:
+					mmLib_Log.logForceAndMail(self.deviceName + + " WARNING: Departure Time format Error.",
+											  "SandCastle Automation Message", "9258727124@vtext.com")
+					continue
+
+				dictEntry = self.checkDateIntegrity(dictEntry)
+				if self.debugDevice: mmLib_Log.logForce( self.deviceName + " Date Integrity Done")
+
+				arrivalTimeISO = self.getISOTime(dictEntry, "ArrivalDate")
+				departureTimeISO = self.getISOTime(dictEntry, "DepartureDate")
 
 				if todayISO > arrivalTimeISO:
-					# Tennent arrived 1 or more days ago, but may be due to leave today
+					if self.debugDevice: mmLib_Log.logForce(self.deviceName + " todayISO > arrivalTimeISO")
+					# Tennant arrived 1 or more days ago, but may be due to leave today
 					if not ignoreDates and todayISO >= departureTimeISO:
 						# Departure time is today, or in the past. Mark the code for deletion,
 						self.scheduleDict["Delete"] = dictEntry
 						if self.debugDevice: mmLib_Log.logForce(
-							self.deviceName + " self.deviceName + Stay is over, marking entry \'" + dictEntry[
-								'GuestName'] + " " + dictEntry['ArrivalDate'] + "\' for deletion.")
+							self.deviceName + " Stay is over, marking entry \'" + dictEntry['GuestName'] + " " +
+							dictEntry['ArrivalDate'] + "\' for deletion.")
 					else:
-						# the tennent is still here
+						# the tenant is still here
 						if self.debugDevice: mmLib_Log.logForce(
-							self.deviceName + " Preserving current tennent\'s entry \'" + dictEntry['GuestName'] + " " +
+							self.deviceName + " Preserving current tenant\'s entry \'" + dictEntry[
+								'GuestName'] + " " +
 							dictEntry['ArrivalDate'] + "\'")
 						self.scheduleDict[arrivalTimeISO] = dictEntry
+					if self.debugDevice: mmLib_Log.logForce(self.deviceName + "### Finished todayISO > arrivalTimeISO")
 				else:
+					#
+					# Finally... Schedule item looks good and is in the future, add it to the schedule dict
+					#
 					if dictEntry['GuestName'] == "": mmLib_Log.logForceAndMail(
 						self.deviceName + " WARNING: No GuestName for arrival Date: " + " \'" + dictEntry[
 							"ArrivalDate"] + "\'.", "SandCastle Automation Message", "9258727124@vtext.com")
@@ -307,20 +383,24 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 						self.deviceName + " Adding entry \'" + dictEntry['GuestName'] + " " + dictEntry[
 							'ArrivalDate'] + "\'")
 					self.scheduleDict[arrivalTimeISO] = dictEntry
-		f.close()
-		return (0)
 
+		f.close()
+
+		return (fResult)
+
+	####################### END NEW CODE ######################
+
+	def resetArrivalFile(self, theFilePath):
 		#
 		# resetArrivalFile - After we process the arrival file, we reset it to include only the header
 		#
-
-	def resetArrivalFile(self, theFilePath):
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " ### Resetting Arrival File")
 
 		try:
 			f = open(theFilePath, 'r+')
 		except Exception as e:
-			mmLib_Log.logForce(self.deviceName + " Error in resetArrivalFile(): " + str(e) + " Terminating session.")
+			mmLib_Log.logForce(
+				self.deviceName + " Error in resetArrivalFile(): " + str(e) + " Terminating session.")
 			return (-1)
 
 		firstLine = f.readline()
@@ -331,12 +411,11 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		f.close()
 		return (0)
 
+	def writeScheduleDict(self, theFilePath):
 		#
 		# writeScheduleDict - After we process new schedule dict, we write it back out to a file. All the unwanted lines have
 		# been removed from the dict so the file is self pruning
 		#
-
-	def writeScheduleDict(self, theFilePath):
 
 		# mmLib_Log.logTerse("Parsing file: " + ntpath.basename(theFilePath))			# For just file name
 		if self.debugDevice: mmLib_Log.logForce(
@@ -375,25 +454,22 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		f.close()
 		return (0)
 
+	def convertListToHexStr(self, bList):
 		#
 		# convertListToHexStr - Utility routine
 		#
-
-	def convertListToHexStr(self, bList):
 		return ' '.join(["%02X" % byte for byte in bList])
 
+	def convertListToStr(self, bList):
 		#
 		# convertListToStr - Utility routine
 		#
-
-	def convertListToStr(self, bList):
 		return ' '.join(["%02X" % byte for byte in bList])
 
+	def getPinStr(self, inPin):
 		#
 		# getPinStr - Format the pin string to send via raw command to the lock
 		#
-
-	def getPinStr(self, inPin):
 		if (len(inPin) == 4):
 			d1 = int(ord(inPin[0:1]))
 			d2 = int(ord(inPin[1:2]))
@@ -434,16 +510,15 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		else:
 			return []
 
+	def setUserPin(self, indigoDevID, userNo, userPin):
 		#
 		# setUserPin - Send a user code to the lock
 		#
 
-	def setUserPin(self, indigoDevID, userNo, userPin):
-
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " setUserPin action called")
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Indigo lock selected: " + str(indigoDevID))
 
-		# Hardware supports supports 4,6,8,32 digit codes, but we only support 4 digits here.
+		# Hardware supports 4,6,8,32 digit codes, but we only support 4 digits here.
 
 		# if len(userPin) not in [4,6,8,32]:  # commented out.. we only support 4 digit pins
 		if len(userPin) != 4:
@@ -476,11 +551,10 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		# mmLib_Log.logForce(self.deviceName + " Sending raw command: [" + self.convertListToStr(codeStr) + "] to device " + str(indigoDevID))
 		indigo.zwave.sendRaw(device=indigo.devices[indigoDevID], cmdBytes=codeStr, sendMode=1, waitUntilAck=False)
 
+	def clearUserPin(self, indigoDevID, userNo):
 		#
 		# clearUserPin - Erase the user pin
 		#
-
-	def clearUserPin(self, indigoDevID, userNo):
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " clearUserPin action called")
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Indigo lock selected: " + str(indigoDevID))
 
@@ -491,12 +565,13 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		# mmLib_Log.logForce(self.deviceName + " Sending raw command: [" + self.convertListToStr(codeStr) + "] to device " + str(indigoDevID))
 		indigo.zwave.sendRaw(device=indigo.devices[indigoDevID], cmdBytes=codeStr, sendMode=1, waitUntilAck=False)
 
-		######################################################################################
-		#
-		# Externally Addessable Routines, must have a single parameter - theCommandParameters
-		#
-		######################################################################################
+	######################################################################################
+	#
+	# Externally Addessable Routines, must have a single parameter - theCommandParameters
+	#
+	######################################################################################
 
+	def processSchedule(self, theCommandParameters):
 		#
 		#  processSchedule
 		#
@@ -509,18 +584,16 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		#
 		# Note processSchedule handles all access to ArrivalSchedule.csv. Do not open this file for write access remotely.
 
-	def processSchedule(self, theCommandParameters):
-
 		self.ArrivalSchedule = theCommandParameters['ArrivalSchedule']
 		self.NewArrivals = theCommandParameters['NewArrivals']
 		self.HistoricalArrivals = theCommandParameters['HistoricalArrivals']
 
 		self.scheduleDict = {}
 		self.currentHeader = 0
-		dateToday = dt.today()
+		dateToday = datetime.today()
 		dateToday = dateToday.replace(hour=0, minute=0, second=0, microsecond=0)
-		todayString = dt.strftime(dateToday, "%m/%d/%y")
-		todayISO = dt.isoformat(dt.strptime(todayString, "%m/%d/%y"))
+		todayString = datetime.strftime(dateToday, "%m/%d/%y")
+		todayISO = datetime.isoformat(datetime.strptime(todayString, "%m/%d/%y"))
 
 		if self.debugDevice: mmLib_Log.logForce(self.deviceName + " Making Arrival Dict.")
 		# this is a test
@@ -542,7 +615,9 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 		deleteDict = self.scheduleDict.get("Delete", 0)
 		if deleteDict != 0:
 			# delete the door code for this entry
-			mmLib_Log.logForceAndMail(self.deviceName + " Deleting DoorCode for guest " + deleteDict['GuestName'] + " " + deleteDict['ArrivalDate'], "SandCastle Automation Message", "9258727124@vtext.com")
+			mmLib_Log.logForceAndMail(
+				self.deviceName + " Deleting DoorCode for guest " + deleteDict['GuestName'] + " " + deleteDict[
+					'ArrivalDate'], "SandCastle Automation Message", "9258727124@vtext.com")
 			for aLock in self.doorLocks:
 				self.clearUserPin(aLock, self.userNo)
 
@@ -554,13 +629,12 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 			mmLib_Log.logForce(self.deviceName + " Today is " + todayString + ". Nothing to be done.")
 		else:
 
-			mmLib_Log.logForceAndMail(
-				self.deviceName + " Setting DoorCode for guest " + changeDict["GuestName"] + " \'" + changeDict[
-					"ArrivalDate"] + "\'.", "SandCastle Automation Message", "9258727124@vtext.com")
-			mmLib_Log.logForce(self.deviceName + "  DoorCode to be reset on " + changeDict["DepartureDate"])
+			mmLib_Log.logForceAndMail(" Guest " + changeDict["GuestName"] + " \'" + changeDict["ArrivalDate"] + "\'- \'" + changeDict["DepartureDate"] + "\'. [" + changeDict["Code"] + "]", "SandCastle Message", "9258727124@vtext.com")
+			#mmLib_Log.logForce(self.deviceName + "  DoorCode to be reset on " + changeDict["DepartureDate"])
 
 			# Change Lock DoorCode
 			for aLock in self.doorLocks:
+				mmLib_Log.logForce(self.deviceName + " ### Setting User Pin: " + changeDict["Code"])
 				self.setUserPin(aLock, self.userNo, changeDict["Code"])
 
 		# either way, rewrite the arrival schedule file
@@ -585,7 +659,8 @@ class mmZLockMgr(mmComm_Indigo.mmIndigo):
 				else:
 					localError = self.writeScheduleDict(self.HistoricalArrivals)
 					if localError:
-						mmLib_Log.logForce(self.deviceName + "### Warning ###: Cannot Write HistoricalArrivals file.")
+						mmLib_Log.logForce(
+							self.deviceName + "### Warning ###: Cannot Write HistoricalArrivals file.")
 
 		if not localError:
 			# And Finally delete info from newArrivals
