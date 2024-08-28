@@ -254,6 +254,7 @@ MiddleFloorBathVanityLightP,20,100,60,StatAsync;flash,MiddleFloorBathMotion,Midd
 BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkRightLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
+BottomFloorPorchLightSwitchP,600,100,100,StatAsync,,,2,noDebug
 # the following was deleted in favor of motion sensor automatically turning on light for responsiveness (keep a copy with no ON motion Sensor though - For Companions)
 #MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMotion,,2,noDebug
 MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,,,2,noDebug
