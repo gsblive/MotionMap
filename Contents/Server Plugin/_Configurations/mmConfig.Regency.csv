@@ -398,7 +398,7 @@ UpstairsHallLight,60,100,100,StatAsync,,,2,noDebug,,
 #	maxSequentialErrorsAllowed - (optional; default is 2) the maximum numbers of consecutive errors allowed before marking this device unnresponsive,,,,,,,,,,
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent; anything else for verbose),,,,,,,,,,
 #
-########################################################
+#########################################################
 ,,,,,,,,,,
 -h,Companion,,,,,,,,,
 deviceName,loadDeviceName,maxSequentialErrorsAllowed,debugDeviceMode,,,,,,,
