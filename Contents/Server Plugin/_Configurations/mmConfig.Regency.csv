@@ -76,7 +76,11 @@
 #
 #   deviceName – The English name of the device,,,,,,,,,,
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off,,,,,,,,,,
-#   minMovement – How long (in minutes) that non motion is allowed before non occupancy is assumed,,,,,,,,,,
+#   minMovement – How long (in minutes) that non motion is required before non occupancy is assumed. Note, this value is not in effect until the minMovement fiels has already expired once...
+#					meaning the actual min movement from the start of the occupatiuon is twice this number, any subsequent lapses of minMovement are at face value.
+#					The concept here is that maxMovement is established a soon as someone moves into a room.. its an event (someone entered the area). minMovement on the other hand is a
+#					threshold that needs to establish a pattern (how often are people moving), not an event. Therefore, Hitting min movement 2 times in a row is required to establish a pattern
+#					that can be measured. At any time when any movement is detected (including during the first run of the minMovement timer), the minMovement timer gets extended again.
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be noDebug for silent; anything else for verbose),,,,,,,,,,
 #			autoEnableActivityLight - true = manage turning on or off activity light at daytime/nighttime events; false dont do this behavior (supported by Insteon motion only)
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass),,,,,,,,,,

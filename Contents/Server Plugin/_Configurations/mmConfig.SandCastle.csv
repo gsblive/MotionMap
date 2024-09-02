@@ -78,8 +78,12 @@
 #
 #   deviceName – The English name of the device
 #   maxMovement – How long (in minutes) the sensor is allowed to stay on before forcing it off into unoccupied state
-#   minMovement – How long (in minutes) that non motion is required before non occupancy is assumed
-#			autoEnableActivityLight - true = manage turning on or off activity light at daytime/nighttime events; false dont do this behavior (supported by Insteon motion only)
+#   minMovement – How long (in minutes) that non motion is required before non occupancy is assumed. Note, this value is not in effect until the minMovement fiels has already expired once...
+#					meaning the actual min movement from the start of the occupatiuon is twice this number, any subsequent lapses of minMovement are at face value.
+#					The concept here is that maxMovement is established a soon as someone moves into a room.. its an event (someone entered the area). minMovement on the other hand is a
+#					threshold that needs to establish a pattern (how often are people moving), not an event. Therefore, Hitting min movement 2 times in a row is required to establish a pattern
+#					that can be measured. At any time when any movement is detected (including during the first run of the minMovement timer), the minMovement timer gets extended again.
+#	autoEnableActivityLight - true = manage turning on or off activity light at daytime/nighttime events; false dont do this behavior (supported by Insteon motion only)
 #   debugDeviceMode - Extra debugging messages are logged for all interaction with this device (can be 'noDebug' for silent, anything else for verbose)
 #
 #   IMPORTANT – Keep Motion sensors above all other devices because the other devices will register with the motion sensors during initialization (one pass)
@@ -275,8 +279,9 @@ TopFloorFoyerLightP,5,0,60,StatAsync;flash,,,2,noDebug
 TopFloorMasterBathLavFan,10,100,100,StatAsync,,TopFloorMasterBathLavMotion,2,noDebug
 # the following was deleted in favor of linking the light with the motion sensor directly, thus automatically turning on light for responsiveness. (keep a copy with no ON motion Sensor though - For Companions)
 # The side effect is that the onboard motoin sensor timer is very quick to turn off when no motion is detected :-(
-#TopFloorMasterBathLavLight,10,0,3,StatAsync;flash,TopFloorMasterBathLavMotion,,2,noDebug
-#TopFloorMasterBathLavLight,10,100,3,StatAsync;flash,NEW_MULTISENSOR_MASTER_LAV,,2,noDebug # GB Fix me 5/5/24 Enable to Test for ZWave responsiveness - wait
+# abandoned change mentioned above - quick timeout was unmanageable.. .However, eliminatged lingage between TopFloorMasterLavLight1 from thej motion sensor (I think that is what was causing the responsiveness
+# problem.TopFloorMasterBathLavLight1 is a companion to TopFloorMasterBathLavLight and doesnt need to be talked to directly from the motion sensor.. MotionMap will sync all companions as necessary)
+TopFloorMasterBathLavLight,10,100,3,StatAsync;flash,TopFloorMasterBathLavMotion,,2,noDebug
 TopFloorMasterBathLinenP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterBathVanityLightP,10,100,60,StatAsync;flash,,TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
 TopFloorMasterLightsP,60,20,60,StatAsync;flash,,GregsDeskMultisensorMotion;TopFloorMasterBathMotion;TopFloorMasterMotion,2,noDebug
