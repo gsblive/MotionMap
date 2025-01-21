@@ -17,34 +17,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="$USER_HOME$/Documents/_Short Term Rentals/SandCastle/ArrivalSchedule.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="$USER_HOME$/Documents/_Short Term Rentals/SandCastle/ArrivalScheduleFlawed.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="$USER_HOME$/Documents/_Short Term Rentals/SandCastle/ArrivalScheduleMultiFailure.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="$USER_HOME$/Documents/_Short Term Rentals/SandCastle/ArrivalScheduleStarr.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="$PROJECT_DIR$/../mmConfig.Regency.csv">
           <value>
             <Attribute>

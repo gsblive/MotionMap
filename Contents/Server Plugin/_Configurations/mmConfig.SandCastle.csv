@@ -259,9 +259,11 @@ BottomFloorRoomNearDoorP,20,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkLeftLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorBunkRightLightP,60,0,30,StatAsync;flash,,BottomFloorMotion,2,noDebug
 BottomFloorPorchLightSwitchP,600,100,100,StatAsync,,,2,noDebug
-# the following was deleted in favor of motion sensor automatically turning on light for responsiveness (keep a copy with no ON motion Sensor though - For Companions)
-#MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMotion,,2,noDebug
-MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,,,2,noDebug
+MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,MiddleFloorBathToiletMotion;MiddleFloorBathMotion,,2,noDebug
+# the following was an experiment and was commented out. The notion was motion sensor automatically
+# turning on light directly for responsiveness (keep a copy with no ON motion Sensor though - For Companions)
+# The experiment didnt woerk because of the motion sensor's quick time-out, the light kept going off while occupied.
+#MiddleFloorBathLavLightP,10,100,15,StatAsync;flash,,,2,noDebug
 MiddleFloorBathLavFanP,10,0,0,StatAsync,,MiddleFloorBathToiletMotion,2,noDebug
 MiddleFloorBackDeckP,120,0,30,StatAsync;flash,,MiddleFloorMotion,2,noDebug
 MiddleFloorBathShowerFanLightP,30,0,30,StatAsync;flash,,MiddleFloorBathMotion,2,noDebug
